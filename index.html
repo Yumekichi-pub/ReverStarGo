@@ -2116,7 +2116,7 @@
         <span class="menu-tile-label">ランク</span>
       </div>
     </div>
-    <p class="app-version">dev-v41</p>
+    <p class="app-version">dev-v42</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -4435,18 +4435,10 @@
     async function updateGame(showTurnChange = false) {
       if (isTutorial) { render([]); return; }
 
-      // スーパーコウ判定：同一局面＋同一手番が2回目なら終了
-      const currentState = serializeBoard() + ':' + current;
-      const stateCount = boardHistory.filter(s => s === currentState).length;
-      if (stateCount >= 2) {
-        render([]);
-        await showPassModal('コウによりゲーム終了');
-        endGame();
-        return;
-      }
-
-      const validNow = filterKoMoves(getValidMoves(current), current);
-      const validOpp = filterKoMoves(getValidMoves(opp(current)), opp(current));
+      const allValidNow = getValidMoves(current);
+      const validNow = filterKoMoves(allValidNow, current);
+      const allValidOpp = getValidMoves(opp(current));
+      const validOpp = filterKoMoves(allValidOpp, opp(current));
 
       if (validNow.length === 0 && validOpp.length === 0) {
         render([]);
@@ -4480,7 +4472,8 @@
       if (isCpuTurn()) {
         await cpuPlay();
       } else {
-        render(validNow);
+        // コウ手も含めた全有効手を渡す（黄色い点を表示するため）
+        render(allValidNow);
       }
     }
 
@@ -4531,7 +4524,7 @@
       btn.disabled = true;
       btn.textContent = '1手戻る（済）';
       updateScore();
-      const validMoves = filterKoMoves(getValidMoves(current), current);
+      const validMoves = getValidMoves(current);
       render(validMoves);
     }
 
