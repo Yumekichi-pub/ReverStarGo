@@ -302,6 +302,54 @@
       height: auto;
     }
 
+    /* ===== コウ説明モーダル ===== */
+    #ko-help-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1100;
+    }
+
+    .ko-help-content {
+      background: linear-gradient(135deg, #fff5f0, #f5e0d8);
+      border: 3px solid #c04020;
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: center;
+      max-width: 300px;
+      width: 85%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .ko-help-content h2 {
+      color: #c04020;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+    }
+
+    .ko-help-content p {
+      font-size: 0.9rem;
+      color: #3a2010;
+      line-height: 1.6;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
+    .ko-help-close-btn {
+      margin-top: 8px;
+      padding: 10px 40px;
+      border: 2px solid #c04020;
+      border-radius: 10px;
+      background: #c04020;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     /* ===== C.P.コールモーダル ===== */
     #gp-modal {
       position: fixed;
@@ -2116,7 +2164,7 @@
         <span class="menu-tile-label">ランク</span>
       </div>
     </div>
-    <p class="app-version">dev-v42</p>
+    <p class="app-version">dev-v43</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2483,6 +2531,17 @@
         </div>
 
       </div>
+    </div>
+  </div>
+
+  <!-- コウ説明モーダル -->
+  <div id="ko-help-modal" style="display:none;">
+    <div class="ko-help-content">
+      <h2>コウとは？</h2>
+      <p>囲んで相手の石を取った直後、相手がすぐ同じ場所に置いて取り返すと、同じ局面が永遠に繰り返されてしまいます。</p>
+      <p>これを防ぐため、<strong>取られた石をすぐに取り返すことはできません。</strong></p>
+      <p>他の場所に一手置いてからなら、取り返すことができます。</p>
+      <button class="ko-help-close-btn" onclick="hideKoHelp()">閉じる</button>
     </div>
   </div>
 
@@ -4532,14 +4591,27 @@
     function showKoMessage() {
       if (koMessageTimer) clearTimeout(koMessageTimer);
       const el = document.getElementById('turn-info');
-      el.textContent = 'コウ：その手は打てません';
+      el.innerHTML = 'コウ：その手は打てません <button onclick="showKoHelp()" style="background:none;border:2px solid #c04020;border-radius:50%;width:24px;height:24px;font-size:0.8rem;font-weight:bold;color:#c04020;cursor:pointer;vertical-align:middle;margin-left:4px;">？</button>';
       el.style.color = '#c04020';
       koMessageTimer = setTimeout(() => {
         const icon = current === 'black' ? '●' : '○';
         showTurn(`${icon} ${colorLabel(current)}のターンです`);
         el.style.color = '';
         koMessageTimer = null;
-      }, 1500);
+      }, 3000);
+    }
+
+    function showKoHelp() {
+      if (koMessageTimer) { clearTimeout(koMessageTimer); koMessageTimer = null; }
+      document.getElementById('ko-help-modal').style.display = 'flex';
+    }
+
+    function hideKoHelp() {
+      document.getElementById('ko-help-modal').style.display = 'none';
+      const el = document.getElementById('turn-info');
+      const icon = current === 'black' ? '●' : '○';
+      showTurn(`${icon} ${colorLabel(current)}のターンです`);
+      el.style.color = '';
     }
 
     // 終了処理
