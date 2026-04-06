@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>意匠登録用 盤面画像エクスポート</title>
+<style>
+  body { font-family: sans-serif; background: #f0f0f0; text-align: center; padding: 20px; }
+  h1 { font-size: 1.3rem; color: #333; }
+  .controls { margin: 20px 0; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  button { padding: 12px 28px; font-size: 1rem; font-weight: bold; border: 2px solid #666; border-radius: 8px; background: #fff; cursor: pointer; }
+  button:hover { background: #e0e0e0; }
+  .preview { display: inline-block; border: 1px solid #ccc; background: white; margin: 10px; }
+  .label { font-size: 0.9rem; color: #666; margin-top: 8px; }
+</style>
+</head>
+<body>
+<h1>意匠登録用 盤面画像エクスポート</h1>
+<p>A4サイズ（210×297mm）/ 白背景 / グレースケール / 600dpi相当</p>
+
+<div class="controls">
+  <button onclick="downloadSVG(true)">SVG ダウンロード（CPマークあり）</button>
+  <button onclick="downloadSVG(false)">SVG ダウンロード（CPマークなし）</button>
+  <button onclick="downloadPNG(true)">PNG ダウンロード（CPマークあり）</button>
+  <button onclick="downloadPNG(false)">PNG ダウンロード（CPマークなし）</button>
+</div>
+
+<div>
+  <div style="display:inline-block; margin:10px;">
+    <div class="label">CPマークあり</div>
+    <div class="preview" id="preview-cp"></div>
+  </div>
+  <div style="display:inline-block; margin:10px;">
+    <div class="label">CPマークなし</div>
+    <div class="preview" id="preview-nocp"></div>
+  </div>
+</div>
+
+<script>
+const SQRT3 = Math.sqrt(3);
+const HEX_SIZE = 27;
+const ALL_CELLS = [
+  [0,0,0],
+  [1,-1,0],[1,0,-1],[0,1,-1],[-1,1,0],[-1,0,1],[0,-1,1],
+  [2,-2,0],[2,-1,-1],[2,0,-2],[1,1,-2],[0,2,-2],[-1,2,-1],
+  [-2,2,0],[-2,1,1],[-2,0,2],[-1,-1,2],[0,-2,2],[1,-2,1],
+  [3,-1,-2],[3,-2,-1],[4,-2,-2],
+  [-3,1,2],[-3,2,1],[-4,2,2],
+  [-1,3,-2],[-2,3,-1],[-2,4,-2],
+  [1,-3,2],[2,-3,1],[2,-4,2],
+  [-1,-2,3],[-2,-1,3],[-2,-2,4],
+  [1,2,-3],[2,1,-3],[2,2,-4]
+];
+const DIRS = [[1,-1,0],[1,0,-1],[0,1,-1],[-1,1,0],[-1,0,1],[0,-1,1]];
+
+function cellToPixel(q, r) {
+  return [HEX_SIZE * (SQRT3 * q + SQRT3 / 2 * r), HEX_SIZE * (3 / 2 * r)];
+}
+
+function hexPointsStr(cx, cy) {
+  const pts = [];
+  for (let i = 0; i < 6; i++) {
+    const a = -Math.PI / 2 + Math.PI / 3 * i;
+    pts.push((cx + HEX_SIZE * 0.92 * Math.cos(a)).toFixed(2) + ',' + (cy + HEX_SIZE * 0.92 * Math.sin(a)).toFixed(2));
+  }
+  return pts.join(' ');
+}
+
+function generateSVG(showCP) {
+  // A4: 210x297mm. Board fits in center.
+  // viewBox covers the board area, centered
+  const margin = 30;
+  const R_out = HEX_SIZE * 7.8;
+  const vbSize = R_out + margin;
+
+  // A4 aspect ratio: 210/297 = 0.707
+  const vbW = vbSize * 2;
+  const vbH = vbW / 0.707;
+  const yOffset = 0;
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="${(-vbW/2).toFixed(1)} ${(-vbH/2).toFixed(1)} ${vbW.toFixed(1)} ${vbH.toFixed(1)}">\n`;
+  svg += `<rect x="${(-vbW/2).toFixed(1)}" y="${(-vbH/2).toFixed(1)}" width="${vbW.toFixed(1)}" height="${vbH.toFixed(1)}" fill="white"/>\n`;
+
+  // Star outline
+  const R_in = R_out / Math.sqrt(3);
+  const starPts = [];
+  for (let i = 0; i < 6; i++) {
+    const a_tip = -Math.PI / 2 + i * Math.PI / 3;
+    const a_in = a_tip + Math.PI / 6;
+    starPts.push((R_out * Math.cos(a_tip)).toFixed(2) + ',' + (R_out * Math.sin(a_tip)).toFixed(2));
+    starPts.push((R_in * Math.cos(a_in)).toFixed(2) + ',' + (R_in * Math.sin(a_in)).toFixed(2));
+  }
+  svg += `<polygon points="${starPts.join(' ')}" fill="none" stroke="#333333" stroke-width="3.5" stroke-linejoin="round"/>\n`;
+
+  // Central hex set for boundary detection
+  const centralHex = new Set();
+  for (const [q,r,s] of ALL_CELLS) {
+    if (Math.max(Math.abs(q), Math.abs(r), Math.abs(s)) <= 2) centralHex.add(q+','+r+','+s);
+  }
+
+  // Cells
+  for (const [q,r,s] of ALL_CELLS) {
+    const [cx, cy] = cellToPixel(q, r);
+    const isGP = q === 0 && r === 0 && s === 0;
+    const fill = (isGP && showCP) ? '#cccccc' : 'none';
+    const stroke = '#333333';
+    const sw = isGP ? '2' : '1.2';
+    svg += `<polygon points="${hexPointsStr(cx, cy)}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>\n`;
+  }
+
+  // Ring2-arm boundary lines
+  const edgeVerts = [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]];
+  for (const [q,r,s] of ALL_CELLS) {
+    if (Math.max(Math.abs(q), Math.abs(r), Math.abs(s)) !== 2) continue;
+    const [cx, cy] = cellToPixel(q, r);
+    for (let d = 0; d < 6; d++) {
+      const [dq, dr, ds] = DIRS[d];
+      const nk = (q+dq)+','+(r+dr)+','+(s+ds);
+      if (!centralHex.has(nk)) {
+        const [vi, vj] = edgeVerts[d];
+        const a1 = -Math.PI/2 + Math.PI/3 * vi;
+        const a2 = -Math.PI/2 + Math.PI/3 * vj;
+        svg += `<line x1="${(cx + HEX_SIZE * Math.cos(a1)).toFixed(2)}" y1="${(cy + HEX_SIZE * Math.sin(a1)).toFixed(2)}" x2="${(cx + HEX_SIZE * Math.cos(a2)).toFixed(2)}" y2="${(cy + HEX_SIZE * Math.sin(a2)).toFixed(2)}" stroke="#333333" stroke-width="1.5" stroke-linecap="round"/>\n`;
+      }
+    }
+  }
+
+  // GP boundary lines
+  {
+    const [cx, cy] = cellToPixel(0, 0);
+    for (let d = 0; d < 6; d++) {
+      const [vi, vj] = edgeVerts[d];
+      const a1 = -Math.PI/2 + Math.PI/3 * vi;
+      const a2 = -Math.PI/2 + Math.PI/3 * vj;
+      svg += `<line x1="${(cx + HEX_SIZE * Math.cos(a1)).toFixed(2)}" y1="${(cy + HEX_SIZE * Math.sin(a1)).toFixed(2)}" x2="${(cx + HEX_SIZE * Math.cos(a2)).toFixed(2)}" y2="${(cy + HEX_SIZE * Math.sin(a2)).toFixed(2)}" stroke="#333333" stroke-width="2" stroke-linecap="round"/>\n`;
+    }
+  }
+
+  // CP text label
+  if (showCP) {
+    svg += `<text x="0" y="0" text-anchor="middle" dominant-baseline="central" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="bold" fill="#333333">C\u2009P</text>\n`;
+  }
+
+  svg += '</svg>';
+  return svg;
+}
+
+function downloadSVG(showCP) {
+  const svg = generateSVG(showCP);
+  const name = showCP ? 'board-with-cp.svg' : 'board-without-cp.svg';
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadPNG(showCP) {
+  const svg = generateSVG(showCP);
+  const name = showCP ? 'board-with-cp.png' : 'board-without-cp.png';
+
+  // A4 at 600dpi: 210mm/25.4*600 = 4961, 297mm/25.4*600 = 7016
+  const W = 4961;
+  const H = 7016;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const img = new Image();
+  const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  img.onload = function() {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(img, 0, 0, W, H);
+    URL.revokeObjectURL(url);
+
+    canvas.toBlob(function(pngBlob) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(pngBlob);
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }, 'image/png');
+  };
+  img.src = url;
+}
+
+// Preview
+function showPreview(containerId, showCP) {
+  const svg = generateSVG(showCP);
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svg, 'image/svg+xml');
+  const svgEl = doc.documentElement;
+  svgEl.setAttribute('width', '280');
+  svgEl.setAttribute('height', '396');
+  document.getElementById(containerId).appendChild(svgEl);
+}
+
+showPreview('preview-cp', true);
+showPreview('preview-nocp', false);
+</script>
+</body>
+</html>
