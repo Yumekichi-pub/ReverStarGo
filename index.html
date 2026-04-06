@@ -2164,7 +2164,7 @@
         <span class="menu-tile-label">ランク</span>
       </div>
     </div>
-    <p class="app-version">dev-v43</p>
+    <p class="app-version">dev-v44</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2830,15 +2830,17 @@
     // ===== 昇格試験システム =====
     const PROMOTION_KEY = 'reverstargo-promotions';
     const PROMOTION_EXAM_KEY = 'reverstargo-promotion-exam';
+    const PROMOTION_CAREER_KEY = 'reverstargo-promotion-career'; // 昇格試験通算成績
 
     // 昇格試験が必要なランク: rankIndex → { level, winsNeeded }
+    // careerWins: 通算勝利数での昇格条件（0=勝ち越しのみ）
     const PROMOTION_EXAMS = {
-      6:  { level: 2, winsNeeded: 3, maxLosses: 3, label: 'Lv.3 解放' },   // ブロンズ（5番勝負）
-      9:  { level: 3, winsNeeded: 4, maxLosses: 4, label: 'Lv.4 解放' },   // プラチナ
-      13: { level: 4, winsNeeded: 4, maxLosses: 4, label: 'Lv.5 解放' },   // アメジスト
-      17: { level: 5, winsNeeded: 4, maxLosses: 4, label: 'MAX 解放' },    // ルビー
-      22: { level: 6, winsNeeded: 4, maxLosses: 4, label: 'レジェンド' },   // レジェンド
-      23: { level: 6, winsNeeded: 8, maxLosses: 8, label: 'グランドマスター' }, // グランドマスター
+      6:  { level: 2, winsNeeded: 3, maxLosses: 3, label: 'Lv.3 解放', careerWins: 20 },   // ブロンズ（5番勝負）
+      9:  { level: 3, winsNeeded: 4, maxLosses: 4, label: 'Lv.4 解放', careerWins: 20 },   // プラチナ
+      13: { level: 4, winsNeeded: 4, maxLosses: 4, label: 'Lv.5 解放', careerWins: 20 },   // アメジスト
+      17: { level: 5, winsNeeded: 4, maxLosses: 4, label: 'MAX 解放', careerWins: 20 },    // ダイヤモンド
+      22: { level: 6, winsNeeded: 4, maxLosses: 4, label: 'マスター', careerWins: 0 },      // マスター（勝ち越しのみ）
+      23: { level: 6, winsNeeded: 8, maxLosses: 8, label: 'レジェンド', careerWins: 0 },    // レジェンド（勝ち越しのみ）
     };
 
     // 合格済みの昇格試験を読み込み/保存
@@ -2856,6 +2858,24 @@
     }
     function hasPassedPromotion(rankIndex) {
       return !!loadPromotions()[String(rankIndex)];
+    }
+
+    // 昇格試験の通算成績を読み込み/保存
+    function loadPromotionCareer() {
+      try {
+        const data = JSON.parse(localStorage.getItem(PROMOTION_CAREER_KEY));
+        if (data) return data;
+      } catch(e) {}
+      return {};
+    }
+    function savePromotionCareer(rankIndex, wins, losses) {
+      const data = loadPromotionCareer();
+      data[String(rankIndex)] = { wins, losses };
+      try { localStorage.setItem(PROMOTION_CAREER_KEY, JSON.stringify(data)); } catch(e) {}
+    }
+    function getPromotionCareer(rankIndex) {
+      const data = loadPromotionCareer();
+      return data[String(rankIndex)] || { wins: 0, losses: 0 };
     }
 
     // 進行中の昇格試験
@@ -2922,16 +2942,32 @@
       else promotionExam.losses++;
       savePromotionExam(promotionExam);
 
-      // 合格判定
+      // 通算成績を更新
+      const career = getPromotionCareer(promotionExam.targetRank);
+      if (isWin) career.wins++;
+      else career.losses++;
+      savePromotionCareer(promotionExam.targetRank, career.wins, career.losses);
+
+      // 合格判定（勝ち越し）
       if (promotionExam.wins >= promotionExam.winsNeeded) {
         savePromotion(promotionExam.targetRank);
-        const result = { passed: true, exam: { ...promotionExam } };
+        const result = { passed: true, exam: { ...promotionExam }, career };
         clearPromotionExam();
         return result;
       }
+
+      // 通算勝利数による合格判定
+      const examDef = PROMOTION_EXAMS[promotionExam.targetRank];
+      if (examDef.careerWins > 0 && career.wins >= examDef.careerWins) {
+        savePromotion(promotionExam.targetRank);
+        const result = { passed: true, careerPass: true, exam: { ...promotionExam }, career };
+        clearPromotionExam();
+        return result;
+      }
+
       // 不合格判定
       if (promotionExam.losses >= promotionExam.maxLosses) {
-        const result = { passed: false, exam: { ...promotionExam } };
+        const result = { passed: false, exam: { ...promotionExam }, career };
         clearPromotionExam();
         return result;
       }
@@ -4669,14 +4705,22 @@
             const promoResult = recordPromotionResult(soundType === 'win');
             if (promoResult) {
               if (promoResult.passed) {
-                msg += `\n\n🎉 昇格試験 合格！\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗`;
+                if (promoResult.careerPass) {
+                  msg += `\n\n🎉 通算${promoResult.career.wins}勝達成！\n昇格試験 合格！`;
+                } else {
+                  msg += `\n\n🎉 昇格試験 合格！\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗`;
+                }
               } else {
-                msg += `\n\n😢 昇格試験 不合格...\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗\nもう一度挑戦できます！`;
+                const examDef = PROMOTION_EXAMS[promoResult.exam.targetRank];
+                let careerMsg = '';
+                if (examDef && examDef.careerWins > 0) {
+                  careerMsg = `\n通算: ${promoResult.career.wins}勝（あと${examDef.careerWins - promoResult.career.wins}勝で昇格）`;
+                }
+                msg += `\n\n😢 昇格試験 不合格...\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗${careerMsg}\nもう一度挑戦できます！`;
               }
             } else {
               // 試験続行中 - 次の試合番号を表示
               const nextMatch = promotionExam.wins + promotionExam.losses + 1;
-              const totalMatches = promotionExam.winsNeeded + promotionExam.maxLosses - 1;
               msg += `\n\n⚔ 昇格試験 第${matchNum}試合終了\n${promotionExam.wins}勝${promotionExam.losses}敗（次: 第${nextMatch}試合）`;
             }
           }
@@ -5284,6 +5328,7 @@
         localStorage.removeItem('reverstargo-daily-record');
         localStorage.removeItem('reverstargo-promotions');
         localStorage.removeItem('reverstargo-promotion-exam');
+        localStorage.removeItem('reverstargo-promotion-career');
         localStorage.removeItem('reverstargo-daily-complete');
         closeDevMenu();
         updateRankDisplay();
@@ -5307,6 +5352,7 @@
       if (confirm('昇格試験の記録をリセットしますか？')) {
         localStorage.removeItem('reverstargo-promotions');
         localStorage.removeItem('reverstargo-promotion-exam');
+        localStorage.removeItem('reverstargo-promotion-career');
         promotionExam = null;
         closeDevMenu();
         updateRankDisplay();
@@ -5408,14 +5454,30 @@
 
       section.style.display = '';
       const targetRank = RANKS[promo.targetRank];
-      const lvLabel = promo.level === 6 ? 'MAX' : `Lv.${promo.level}`;
+      const matchLabel = promo.winsNeeded === 3 ? '5番勝負' : (promo.winsNeeded === 8 ? '15番勝負' : '7番勝負');
       document.getElementById('promotion-title').textContent = `⚔ 昇格試験 → ${targetRank.icon} ${targetRank.name}`;
-      document.getElementById('promotion-desc').textContent = `${lvLabel} で ${promo.winsNeeded} 勝すれば昇格！`;
+
+      let descText = `${matchLabel}で勝ち越しで昇格`;
+      if (promo.careerWins > 0) {
+        descText += `\nまたは通算${promo.careerWins}勝で昇格`;
+      }
+      document.getElementById('promotion-desc').textContent = descText;
 
       const progressEl = document.getElementById('promotion-progress');
+      const career = getPromotionCareer(promo.targetRank);
+      let progressText = '';
+
       if (exam && exam.targetRank === promo.targetRank) {
+        progressText = `今回: ${exam.wins}勝${exam.losses}敗`;
+      }
+      if (career.wins > 0 && promo.careerWins > 0) {
+        const remaining = promo.careerWins - career.wins;
+        progressText += (progressText ? '\n' : '') + `通算: ${career.wins}勝${career.losses}敗（あと${remaining}勝）`;
+      }
+
+      if (progressText) {
         progressEl.style.display = '';
-        progressEl.textContent = `現在: ${exam.wins}勝 ${exam.losses}敗`;
+        progressEl.textContent = progressText;
       } else {
         progressEl.style.display = 'none';
       }
