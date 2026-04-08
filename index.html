@@ -714,6 +714,7 @@
       font-weight: bold;
       font-size: 0.95rem;
       text-align: center;
+      white-space: pre-line;
     }
 
     /* ===== ゲーム終了モーダル（盤面を隠さない・上部表示） ===== */
@@ -848,6 +849,8 @@
       font-size: 0.82rem;
       line-height: 1.5;
       white-space: pre-wrap;
+      tab-size: 16;
+      -moz-tab-size: 16;
       overflow-y: auto;
       max-height: 50vh;
       color: #333;
@@ -2897,7 +2900,7 @@
   <div id="notation-map-modal" style="display:none;">
     <div class="notation-modal-inner" style="max-width:400px;max-height:90vh;">
       <h3>棋譜表記法</h3>
-      <svg id="notation-map-svg" viewBox="-250 -280 500 560" style="width:100%;display:block;"></svg>
+      <svg id="notation-map-svg" viewBox="-255 -250 510 500" style="width:100%;max-width:100%;display:block;"></svg>
       <div style="text-align:center;font-size:0.85rem;color:#9a7010;margin-top:4px;">X = 10　　J = 11　　Q = 12</div>
       <div class="notation-btn-row">
         <button class="notation-btn" id="notation-map-close-btn" onclick="closeNotationMap()">閉じる</button>
@@ -4898,7 +4901,9 @@
           gpCall: gpColor !== null && !gpWasAlreadySurrounded,
           type: 'move',
           boardAfter: serializeBoard(),
-          capturedAfter: { black: captured.black, white: captured.white }
+          capturedAfter: { black: captured.black, white: captured.white },
+          flipped: flipped.length,
+          captured: groups.length > 0 ? groups.flat().filter(([cq,cr,cs]) => !(cq === 0 && cr === 0 && cs === 0 && gpWasAlreadySurrounded)).length : 0
         });
 
         current = opp(current);
@@ -5175,11 +5180,13 @@
             }
           }
           // 昇格試験の結果記録
+          let promotionPassed = false;
           if (promotionExam) {
             const matchNum = promotionExam.wins + promotionExam.losses + 1;
             const promoResult = recordPromotionResult(soundType === 'win');
             if (promoResult) {
               if (promoResult.passed) {
+                promotionPassed = true;
                 // devMode: 昇格試験合格でランクを試験ランクの次へ
                 if (devMode && devOverrideRank !== null) {
                   devOverrideRank = promoResult.exam.targetRank + 1;
@@ -5188,7 +5195,8 @@
                 if (promoResult.careerPass) {
                   msg += `\n\n🎉 通算${promoResult.career.wins}勝達成！\nランクアップマッチ 合格！`;
                 } else {
-                  msg += `\n\n🎉 ランクアップマッチ 合格！\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗`;
+                  const passLabel = getMatchLabel(promoResult.exam.winsNeeded);
+                  msg += `\n\n🎉 ランクアップマッチ 合格！\n${passLabel}: ${promoResult.exam.wins}勝${promoResult.exam.losses}敗`;
                 }
               } else {
                 const examDef = PROMOTION_EXAMS[promoResult.exam.targetRank];
@@ -5196,18 +5204,23 @@
                 if (examDef && examDef.careerWins > 0) {
                   careerMsg = `\n通算: ${promoResult.career.wins}勝（あと${examDef.careerWins - promoResult.career.wins}勝で昇格）`;
                 }
-                msg += `\n\n😢 ランクアップマッチ 不合格...\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗${careerMsg}\nもう一度挑戦できます！`;
+                const failLabel = getMatchLabel(promoResult.exam.winsNeeded);
+                msg += `\n\n😢 ランクアップマッチ 不合格...\n${failLabel}: ${promoResult.exam.wins}勝${promoResult.exam.losses}敗${careerMsg}\nもう一度挑戦できます！`;
               }
             } else {
               // 試験続行中 - 次の試合番号を表示
               const nextMatch = promotionExam.wins + promotionExam.losses + 1;
-              msg += `\n\n⚔ ランクアップマッチ 第${matchNum}試合終了\n${promotionExam.wins}勝${promotionExam.losses}敗（次: 第${nextMatch}試合）`;
+              const mLabel = getMatchLabel(promotionExam.winsNeeded);
+              msg += `\n\n⚔ ランクアップマッチ（${mLabel}）\n第${matchNum}試合終了\n${promotionExam.wins}勝${promotionExam.losses}敗（次: 第${nextMatch}試合）`;
             }
           }
           // ランクアップチェック
           const newRank = calculateRank();
-          if (newRank > prevRank) {
-            setTimeout(() => showRankUpModal(newRank), 1500);
+          if (newRank > prevRank || promotionPassed) {
+            const rankToShow = Math.max(newRank, prevRank + 1);
+            setTimeout(() => {
+              showRankUpModal(rankToShow);
+            }, 1800);
             prevRank = newRank;
           }
         }
@@ -5801,8 +5814,8 @@
     function handleDevTap() {
       devTapCount++;
       clearTimeout(devTapTimer);
-      devTapTimer = setTimeout(() => { devTapCount = 0; }, 2000);
-      if (devTapCount >= 5) {
+      devTapTimer = setTimeout(() => { devTapCount = 0; }, 3000);
+      if (devTapCount >= 3) {
         devTapCount = 0;
         document.getElementById('dev-menu').style.display = 'flex';
         if (!devMode) {
@@ -5904,7 +5917,7 @@
 
     function showPromoAnnounce(promo) {
       const targetRank = RANKS[promo.targetRank];
-      const matchLabel = promo.winsNeeded === 2 ? '3番勝負' : (promo.winsNeeded === 3 ? '5番勝負' : (promo.winsNeeded === 6 ? '11番勝負' : (promo.winsNeeded === 8 ? '15番勝負' : (promo.winsNeeded === 11 ? '21番勝負' : '7番勝負'))));
+      const matchLabel = getMatchLabel(promo.winsNeeded);
       document.getElementById('promo-announce-title').textContent = `🎉 ${promo.label}への挑戦権を獲得！`;
       document.getElementById('promo-announce-desc').textContent = `${targetRank.icon} ${targetRank.name} ランクアップマッチ（${matchLabel}）に挑戦できます！\nゲーム設定画面から開始できます。`;
       document.getElementById('promo-announce-help').style.display = 'none';
@@ -5987,7 +6000,7 @@
 
       section.style.display = '';
       const targetRank = RANKS[promo.targetRank];
-      const matchLabel = promo.winsNeeded === 2 ? '3番勝負' : (promo.winsNeeded === 3 ? '5番勝負' : (promo.winsNeeded === 6 ? '11番勝負' : (promo.winsNeeded === 8 ? '15番勝負' : (promo.winsNeeded === 11 ? '21番勝負' : '7番勝負'))));
+      const matchLabel = getMatchLabel(promo.winsNeeded);
       document.getElementById('promotion-title').textContent = `⚔ ランクアップマッチ → ${targetRank.icon} ${targetRank.name}`;
 
       let descText = `${matchLabel}で勝ち越しで昇格`;
@@ -6016,6 +6029,16 @@
       }
     }
 
+    function getMatchLabel(winsNeeded) {
+      if (winsNeeded === 2) return '3番勝負';
+      if (winsNeeded === 3) return '5番勝負';
+      if (winsNeeded === 4) return '7番勝負';
+      if (winsNeeded === 6) return '11番勝負';
+      if (winsNeeded === 8) return '15番勝負';
+      if (winsNeeded === 11) return '21番勝負';
+      return `${winsNeeded * 2 - 1}番勝負`;
+    }
+
     function updatePromotionGameStatus() {
       const statusEl = document.getElementById('promotion-game-status');
       if (!promotionExam) {
@@ -6024,9 +6047,10 @@
       }
       const targetRank = RANKS[promotionExam.targetRank];
       const matchNum = promotionExam.wins + promotionExam.losses + 1;
-      const totalMatches = promotionExam.winsNeeded + promotionExam.maxLosses - 1;
+      const matchLabel = getMatchLabel(promotionExam.winsNeeded);
       statusEl.style.display = '';
-      statusEl.textContent = `⚔ ランクアップマッチ ${targetRank.icon}${targetRank.name} ─ 第${matchNum}試合（${promotionExam.wins}勝${promotionExam.losses}敗）`;
+      const colorMark = humanColor === 'black' ? '●黒' : '○白';
+      statusEl.textContent = `⚔ ランクアップマッチ ${targetRank.icon}${targetRank.name}（${matchLabel}）\n第${matchNum}試合 ${colorMark}（${promotionExam.wins}勝${promotionExam.losses}敗）`;
     }
 
     document.getElementById('play-again-btn').addEventListener('click', () => {
@@ -6040,6 +6064,15 @@
         updateRankDisplay();
         updateLevelButtons();
       } else {
+        // ランクアップマッチ中は白黒を交互にする
+        if (promotionExam) {
+          humanColor = opp(humanColor);
+          cpuColor = opp(humanColor);
+          // 設定画面の選択状態も更新
+          document.querySelectorAll('[data-color]').forEach(b => b.classList.remove('selected'));
+          const colorBtn = document.querySelector(`[data-color="${humanColor}"]`);
+          if (colorBtn) colorBtn.classList.add('selected');
+        }
         initGame();
       }
     });
@@ -6639,35 +6672,47 @@
         opponent = `CPU ${lvName}`;
       }
 
-      const moveCount = moveHistory.filter(m => m.type === 'move').length;
+      const totalMoves = moveHistory.length;
+      const passMoves = moveHistory.filter(m => m.type === 'pass').length;
 
       let text = `【ReverStarGo 棋譜】\n`;
       text += `日付: ${dateStr}\n`;
       text += `${pName}（${pColor}） vs ${opponent}\n`;
       text += `結果: 黒${bTotal} - 白${wTotal}（${result}）\n`;
-      text += `手数: ${moveCount}手\n`;
+      text += `手数: ${totalMoves}手${passMoves > 0 ? `（パス${passMoves}回含む）` : ''}\n`;
       text += `────────────────\n`;
 
-      let line = '';
-      for (const entry of moveHistory) {
+      // 各手を整形する関数
+      function fmtMove(entry, num) {
         const icon = entry.player === 'black' ? '●' : '○';
-        let moveText;
+        const ns = String(num).padStart(2, ' ');
         if (entry.type === 'pass') {
-          moveText = `${icon}パス`;
+          return `${ns}.${icon}--`;
+        }
+        const label = CELL_LABELS[K(entry.q, entry.r, entry.s)] || '??';
+        let m = `${ns}.${icon}${label.padEnd(2)}`;
+        if (entry.gpCall) {
+          m += `[${entry.gpColor === 'black' ? 'B' : 'W'}]`;
         } else {
-          const label = CELL_LABELS[K(entry.q, entry.r, entry.s)] || `(${entry.q},${entry.r})`;
-          moveText = `${entry.num}.${icon}${label}`;
-          if (entry.gpCall) {
-            moveText += `[CP:${entry.gpColor === 'black' ? '黒' : '白'}]`;
-          }
+          m += '   ';
         }
-        if (line.length + moveText.length > 30) {
-          text += line.trim() + '\n';
-          line = '';
+        const caps = entry.captured || 0;
+        if (caps > 0) {
+          m += ` +${caps}`;
         }
-        line += moveText + '  ';
+        return m;
       }
-      if (line.trim()) text += line.trim() + '\n';
+
+      // 2列レイアウト（黒=左、白=右）タブ区切り
+      for (let i = 0; i < moveHistory.length; i += 2) {
+        const left = fmtMove(moveHistory[i], i + 1);
+        if (i + 1 < moveHistory.length) {
+          const right = fmtMove(moveHistory[i + 1], i + 2);
+          text += left + '\t' + right + '\n';
+        } else {
+          text += left + '\n';
+        }
+      }
 
       return text;
     }
@@ -6727,22 +6772,23 @@
         return pts.join(' ');
       }
 
-      // 六芒星アウトライン（正三角形2つ重ね）
+      // 六芒星アウトライン（外枠のみ12頂点ポリゴン）
       const starR = HEX_SIZE * 8.0;
-      for (let t = 0; t < 2; t++) {
-        const triPts = [];
-        for (let i = 0; i < 3; i++) {
-          const angle = (t === 0 ? -Math.PI/2 : Math.PI/2) + i * 2 * Math.PI / 3;
-          triPts.push(`${starR*Math.cos(angle)},${starR*Math.sin(angle)}`);
-        }
-        const tri = document.createElementNS(NS, 'polygon');
-        tri.setAttribute('points', triPts.join(' '));
-        tri.setAttribute('fill', '#0e3820');
-        tri.setAttribute('stroke', '#082810');
-        tri.setAttribute('stroke-width', '3');
-        tri.setAttribute('opacity', t === 0 ? '0.9' : '0.85');
-        svg.appendChild(tri);
+      const innerR = starR / Math.sqrt(3);
+      const starPts = [];
+      for (let i = 0; i < 6; i++) {
+        const aTip = -Math.PI / 2 + i * Math.PI / 3;
+        const aIn  = aTip + Math.PI / 6;
+        starPts.push(`${starR * Math.cos(aTip)},${starR * Math.sin(aTip)}`);
+        starPts.push(`${innerR * Math.cos(aIn)},${innerR * Math.sin(aIn)}`);
       }
+      const isDark = document.body.classList.contains('dark-theme');
+      const star = document.createElementNS(NS, 'polygon');
+      star.setAttribute('points', starPts.join(' '));
+      star.setAttribute('fill', isDark ? '#2a2520' : '#fff8ee');
+      star.setAttribute('stroke', isDark ? '#444' : '#082810');
+      star.setAttribute('stroke-width', '3');
+      svg.appendChild(star);
 
       // 時計ラベル（X, J, Q表記）
       const clockLabels = ['Q','1','2','3','4','5','6','7','8','9','X','J'];
