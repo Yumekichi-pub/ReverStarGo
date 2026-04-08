@@ -768,6 +768,254 @@
       background: rgba(192,144,32,0.1);
     }
 
+    .result-sub-btn {
+      padding: 8px 20px;
+      background: transparent;
+      color: #c09020;
+      border: 2px solid #c09020;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .result-sub-btn:hover {
+      background: rgba(192,144,32,0.1);
+    }
+    .result-btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .copy-toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .copy-toast.show { opacity: 1; }
+
+    /* 棋譜テキスト表示モーダル */
+    #notation-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 9000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .notation-modal-inner {
+      background: #fff8ee;
+      border: 2px solid #c09020;
+      border-radius: 14px;
+      padding: 16px;
+      max-width: 360px;
+      width: 100%;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dark-theme .notation-modal-inner {
+      background: #2a2520;
+      border-color: #5a4a30;
+    }
+    .notation-modal-inner h3 {
+      text-align: center;
+      margin: 0;
+      color: #9a7010;
+      font-size: 1.1rem;
+    }
+    .dark-theme .notation-modal-inner h3 {
+      color: #d4b860;
+    }
+    #notation-text-area {
+      background: #f5f0e0;
+      border: 1px solid #d0c090;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      max-height: 50vh;
+      color: #333;
+    }
+    .dark-theme #notation-text-area {
+      background: #1e1a16;
+      border-color: #4a3a28;
+      color: #ddd;
+    }
+    .notation-btn-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .notation-btn {
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #notation-copy-btn {
+      background: #c09020;
+      color: #fff8ee;
+      border: none;
+    }
+    #notation-close-btn {
+      background: transparent;
+      color: #c09020;
+      border: 2px solid #c09020;
+    }
+
+    /* 棋譜一覧ページ */
+    .kifu-list {
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .kifu-item {
+      background: #fff8ee;
+      border: 2px solid #c0a858;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .kifu-item:hover {
+      background: #fff0d0;
+    }
+    .dark-theme .kifu-item {
+      background: #2a2520;
+      border-color: #5a4a30;
+    }
+    .dark-theme .kifu-item:hover {
+      background: #3a3028;
+    }
+    .kifu-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+    .kifu-item-date {
+      font-size: 0.8rem;
+      color: #888;
+    }
+    .kifu-item-result {
+      font-size: 0.95rem;
+      font-weight: bold;
+    }
+    .kifu-item-detail {
+      font-size: 0.8rem;
+      color: #999;
+    }
+    .kifu-item .kifu-win { color: #d4a020; }
+    .kifu-item .kifu-lose { color: #888; }
+    .kifu-item .kifu-draw { color: #6a9; }
+    .kifu-delete-btn {
+      background: transparent;
+      border: 1px solid #c88;
+      color: #c88;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .kifu-delete-btn:hover {
+      background: rgba(200,100,100,0.15);
+    }
+    .kifu-empty {
+      text-align: center;
+      color: #999;
+      padding: 40px 0;
+      font-size: 1rem;
+    }
+
+    /* リプレイコントロール */
+    #replay-controls {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(0,0,0,0.05);
+      border-radius: 10px;
+      margin: 8px auto;
+      max-width: 340px;
+    }
+    .replay-nav-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid #c09020;
+      background: #fff8ee;
+      color: #c09020;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .replay-nav-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .dark-theme .replay-nav-btn {
+      background: #2a2520;
+      border-color: #c09020;
+      color: #d4b860;
+    }
+    #replay-info {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #9a7010;
+      min-width: 100px;
+      text-align: center;
+    }
+    .dark-theme #replay-info {
+      color: #d4b860;
+    }
+    #replay-exit-btn {
+      padding: 8px 20px;
+      background: #c09020;
+      color: #fff8ee;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 4px auto;
+      display: block;
+    }
+    #replay-move-label {
+      font-size: 0.85rem;
+      color: #9a7010;
+      text-align: center;
+      min-height: 1.2em;
+    }
+    .dark-theme #replay-move-label {
+      color: #d4b860;
+    }
+
     #today-record {
       background: #fff8ee;
       border: 2px solid #c0a858;
@@ -2163,6 +2411,12 @@
         <span class="menu-tile-icon">📖</span>
         <span class="menu-tile-label">ルール</span>
       </div>
+      <div class="menu-tile small" onclick="showPage('kifu')">
+        <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
+        <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
+        <span class="menu-tile-icon">📋</span>
+        <span class="menu-tile-label">棋譜</span>
+      </div>
       <div class="menu-tile small" onclick="showRankList()">
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
@@ -2171,7 +2425,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v03</p>
+    <p class="app-version">RSG-v04</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2406,6 +2660,13 @@
     <button class="nav-back-btn" onclick="showPage('daily')">📅 デイリーチャレンジへ戻る</button>
   </div>
 
+  <!-- 棋譜一覧ページ -->
+  <div id="setup-kifu" class="setup-page dark-theme" style="display:none;">
+    <h1 class="page-title">📋 棋譜一覧</h1>
+    <div id="kifu-list-container" class="kifu-list"></div>
+    <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
+  </div>
+
   <!-- チュートリアル2択画面 -->
   <div id="tutorial-choice" style="display:none;">
     <div id="tutorial-choice-inner">
@@ -2581,11 +2842,41 @@
     <button id="undo-btn" disabled>1手戻る</button>
   </footer>
 
+  <!-- リプレイコントロール -->
+  <div id="replay-controls">
+    <button class="replay-nav-btn" id="replay-start" onclick="replayGoStart()">⏮</button>
+    <button class="replay-nav-btn" id="replay-back" onclick="replayBack()">◀</button>
+    <span id="replay-info">0 / 0</span>
+    <button class="replay-nav-btn" id="replay-fwd" onclick="replayForward()">▶</button>
+    <button class="replay-nav-btn" id="replay-end" onclick="replayGoEnd()">⏭</button>
+  </div>
+  <p id="replay-move-label"></p>
+  <button id="replay-exit-btn" style="display:none;" onclick="exitReplay()">棋譜一覧に戻る</button>
+
   <!-- ゲーム結果（最初からボタンの下に表示） -->
   <div id="result-modal" style="display:none;">
     <p id="result-text"></p>
     <button id="play-again-btn">もう一度</button>
     <button id="back-to-daily-btn" style="display:none;" onclick="backToDaily()">📅 デイリーへ戻る</button>
+    <div class="result-btn-row" id="kifu-btn-row">
+      <button class="result-sub-btn" id="copy-notation-btn" onclick="copyNotation()">📋 棋譜コピー</button>
+      <button class="result-sub-btn" id="save-game-btn" onclick="saveGameRecord()">⭐ 保存</button>
+    </div>
+  </div>
+
+  <!-- コピー完了トースト -->
+  <div id="copy-toast" class="copy-toast">コピーしました！</div>
+
+  <!-- 棋譜テキスト表示モーダル -->
+  <div id="notation-modal">
+    <div class="notation-modal-inner">
+      <h3>📋 棋譜</h3>
+      <div id="notation-text-area"></div>
+      <div class="notation-btn-row">
+        <button class="notation-btn" id="notation-copy-btn" onclick="copyNotationText()">コピー</button>
+        <button class="notation-btn" id="notation-close-btn" onclick="closeNotationModal()">閉じる</button>
+      </div>
+    </div>
   </div>
 
   <!-- 途中放棄確認ポップアップ -->
@@ -2691,6 +2982,30 @@
 
     const CELL_SET = new Set(ALL_CELLS.map(c => c.join(',')));
 
+    // ===== セルラベル（棋譜表示用） =====
+    const CELL_LABELS = {
+      '0,0,0': 'GP',
+      // Ring 1 (内輪・a-f)
+      '1,-1,0': 'a', '1,0,-1': 'b', '0,1,-1': 'c',
+      '-1,1,0': 'd', '-1,0,1': 'e', '0,-1,1': 'f',
+      // Ring 2 (外輪・時計盤)
+      '1,-2,1': 'Q', '2,-2,0': '1', '2,-1,-1': '2', '2,0,-2': '3',
+      '1,1,-2': '4', '0,2,-2': '5', '-1,2,-1': '6', '-2,2,0': '7',
+      '-2,1,1': '8', '-2,0,2': '9', '-1,-1,2': 'X', '0,-2,2': 'J',
+      // Q腕 (12時方向)
+      '1,-3,2': 'Qa', '2,-3,1': 'Qb', '2,-4,2': 'QT',
+      // 2腕 (2時方向)
+      '3,-2,-1': '2a', '3,-1,-2': '2b', '4,-2,-2': '2T',
+      // 4腕 (4時方向)
+      '2,1,-3': '4a', '1,2,-3': '4b', '2,2,-4': '4T',
+      // 6腕 (6時方向)
+      '-1,3,-2': '6a', '-2,3,-1': '6b', '-2,4,-2': '6T',
+      // 8腕 (8時方向)
+      '-3,2,1': '8a', '-3,1,2': '8b', '-4,2,2': '8T',
+      // X腕 (10時方向)
+      '-2,-1,3': 'Xa', '-1,-2,3': 'Xb', '-2,-2,4': 'XT'
+    };
+
     // ===== 状態 =====
     let board = {};
     let current = 'black';
@@ -2718,6 +3033,14 @@
     let prevBoardSnapshot = null;  // コウ判定用：直前の手を打つ前のボード状態
     let boardHistory = [];         // スーパーコウ判定用：全局面の履歴
     let sessionWins = { black: 0, white: 0, draw: 0 }; // セッション勝敗カウント
+
+    // ===== 棋譜記録 =====
+    let moveHistory = [];       // [{num, player, q, r, s, gpColor, type:'move'|'pass', boardAfter, capturedAfter}]
+    let replayMode = false;     // リプレイモード中か
+    let replayData = null;      // リプレイ中のゲ��ムデータ
+    let replayStep = 0;         // リプレイの現在ステップ
+    const KIFU_STORAGE_KEY = 'reverstargo-kifu';
+    const MAX_SAVED_GAMES = 30;
 
     // ===== 戦績保存（localStorage） =====
     const BATTLE_RECORD_KEY = 'reverstargo-battle-record';
@@ -3426,6 +3749,7 @@
       document.getElementById('setup-daily').style.display = 'none';
       document.getElementById('setup-trophies').style.display = 'none';
       document.getElementById('setup-rules').style.display = 'none';
+      document.getElementById('setup-kifu').style.display = 'none';
       if (page === 'main') {
         document.getElementById('setup-main').style.display = 'flex';
         updatePlayerNameDisplay();
@@ -3473,6 +3797,9 @@
         renderTrophyList();
       } else if (page === 'rules') {
         document.getElementById('setup-rules').style.display = 'flex';
+      } else if (page === 'kifu') {
+        document.getElementById('setup-kifu').style.display = 'flex';
+        renderKifuList();
       }
     }
 
@@ -4538,6 +4865,15 @@
         // g. スーパーコウ判定用：局面を履歴に追加
         boardHistory.push(serializeBoard() + ':' + opp(current));
 
+        // 棋譜記録
+        const moveNum = moveHistory.filter(m => m.type === 'move').length + 1;
+        moveHistory.push({
+          num: moveNum, player: current, q, r, s, gpColor,
+          type: 'move',
+          boardAfter: serializeBoard(),
+          capturedAfter: { black: captured.black, white: captured.white }
+        });
+
         current = opp(current);
         await updateGame(true);
       } finally {
@@ -4648,6 +4984,13 @@
       if (validNow.length === 0) {
         // 片方だけ置けない → パス表示 → 次へ
         render([]);
+        // 棋譜にパス記録
+        moveHistory.push({
+          num: 0, player: current, q: 0, r: 0, s: 0, gpColor: null,
+          type: 'pass',
+          boardAfter: serializeBoard(),
+          capturedAfter: { black: captured.black, white: captured.white }
+        });
         await showPassModal(`${colorLabel(current)}は置けません`);
         current = opp(current);
         await updateGame(true);
@@ -4692,6 +5035,7 @@
         current: current,
         prevBoardSnapshot: prevBoardSnapshot,
         boardHistoryLength: boardHistory.length,
+        moveHistoryLength: moveHistory.length,
         lastMove: lastMove ? [...lastMove] : null,
       };
       document.getElementById('undo-btn').disabled = false;
@@ -4706,6 +5050,7 @@
       current         = undoSnapshot.current;
       prevBoardSnapshot = undoSnapshot.prevBoardSnapshot;
       boardHistory    = boardHistory.slice(0, undoSnapshot.boardHistoryLength);
+      moveHistory     = moveHistory.slice(0, undoSnapshot.moveHistoryLength);
       lastMove        = undoSnapshot.lastMove;
       undoSnapshot    = null;
       undoUsed        = true; // 使用済みにする
@@ -4849,6 +5194,10 @@
       }
       // デイリーチャレンジの場合は「デイリーへ戻る」ボタンを表示
       document.getElementById('back-to-daily-btn').style.display = isDailySetup ? '' : 'none';
+      // 棋譜ボタン表示（チュートリアル以外）
+      document.getElementById('kifu-btn-row').style.display = tutorialMiniGame ? 'none' : 'flex';
+      document.getElementById('save-game-btn').textContent = '⭐ 保存';
+      document.getElementById('save-game-btn').disabled = false;
       document.getElementById('result-modal').style.display = 'flex';
       if (!tutorialMiniGame) updateSessionScore();
     }
@@ -5194,6 +5543,7 @@
     }
 
     function onCellClick(q, r, s) {
+      if (replayMode) return; // リプレイ中はクリック無効
       if (isAnimating) return;
       if (isTutorial) { handleTutorialClick(q, r, s); return; }
       if (isCpuTurn()) return;
@@ -5239,6 +5589,7 @@
       current = 'black';
       pendingMove = null;
       passState = 0;
+      moveHistory = [];
       ALL_CELLS.forEach(([q,r,s]) => board[K(q,r,s)] = null);
 
       // 初期配置：GP周囲6マスに黒白交互（白が0,2,4番目）
@@ -6230,6 +6581,366 @@
 
       // 設定画面に戻る
       document.getElementById('setup-main').style.display = 'flex';
+    }
+
+    // ===== 棋譜システム (Phase 1-3) =====
+
+    // Phase 1: 棋譜テキスト生成
+    function generateNotationText() {
+      const date = new Date();
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+      const pName = getPlayerName();
+      const pColor = humanColor === 'black' ? '黒' : '白';
+
+      let bCount = 0, wCount = 0;
+      for (const [q,r,s] of ALL_CELLS) {
+        const c = board[K(q,r,s)];
+        if (c === 'black') bCount++;
+        else if (c === 'white') wCount++;
+      }
+      const bTotal = bCount + captured.black;
+      const wTotal = wCount + captured.white;
+      const result = bTotal > wTotal ? (humanColor === 'black' ? '勝利' : '敗北')
+                   : wTotal > bTotal ? (humanColor === 'white' ? '勝利' : '敗北')
+                   : '引き分け';
+
+      let opponent;
+      if (battleMode === 'two') {
+        opponent = '2人対戦';
+      } else {
+        const lvName = cpuLevel >= 6 ? LEVEL_NAMES[cpuLevel-1] : `Lv.${cpuLevel}`;
+        opponent = `CPU ${lvName}`;
+      }
+
+      const moveCount = moveHistory.filter(m => m.type === 'move').length;
+
+      let text = `【ReverStarGo 棋譜】\n`;
+      text += `日付: ${dateStr}\n`;
+      text += `${pName}（${pColor}） vs ${opponent}\n`;
+      text += `結果: 黒${bTotal} - 白${wTotal}（${result}）\n`;
+      text += `手数: ${moveCount}手\n`;
+      text += `────────────────\n`;
+
+      let line = '';
+      for (const entry of moveHistory) {
+        const icon = entry.player === 'black' ? '●' : '○';
+        let moveText;
+        if (entry.type === 'pass') {
+          moveText = `${icon}パス`;
+        } else {
+          const label = CELL_LABELS[K(entry.q, entry.r, entry.s)] || `(${entry.q},${entry.r})`;
+          moveText = `${entry.num}.${icon}${label}`;
+          if (entry.gpColor) {
+            moveText += `[GP:${entry.gpColor === 'black' ? '黒' : '白'}]`;
+          }
+        }
+        if (line.length + moveText.length > 30) {
+          text += line.trim() + '\n';
+          line = '';
+        }
+        line += moveText + '  ';
+      }
+      if (line.trim()) text += line.trim() + '\n';
+
+      return text;
+    }
+
+    function copyNotation() {
+      const text = generateNotationText();
+      document.getElementById('notation-text-area').textContent = text;
+      document.getElementById('notation-modal').style.display = 'flex';
+    }
+
+    function copyNotationText() {
+      const text = document.getElementById('notation-text-area').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('コピーしました！');
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('コピーしました！');
+      });
+    }
+
+    function closeNotationModal() {
+      document.getElementById('notation-modal').style.display = 'none';
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('copy-toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2000);
+    }
+
+    // Phase 2: 棋譜保存・一覧
+
+    function loadSavedGames() {
+      try {
+        const data = localStorage.getItem(KIFU_STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch(e) { return []; }
+    }
+
+    function saveSavedGames(games) {
+      localStorage.setItem(KIFU_STORAGE_KEY, JSON.stringify(games));
+    }
+
+    function saveGameRecord() {
+      // 最終結果を計算
+      let bCount = 0, wCount = 0;
+      for (const [q,r,s] of ALL_CELLS) {
+        const c = board[K(q,r,s)];
+        if (c === 'black') bCount++;
+        else if (c === 'white') wCount++;
+      }
+      const bTotal = bCount + captured.black;
+      const wTotal = wCount + captured.white;
+      let result;
+      if (battleMode === 'two') {
+        result = bTotal > wTotal ? 'black-win' : wTotal > bTotal ? 'white-win' : 'draw';
+      } else {
+        result = bTotal > wTotal
+          ? (humanColor === 'black' ? 'win' : 'lose')
+          : wTotal > bTotal
+            ? (humanColor === 'white' ? 'win' : 'lose')
+            : 'draw';
+      }
+
+      // コンパクトなmoveHistory（保存用）
+      const compactMoves = moveHistory.map(m => ({
+        p: m.player === 'black' ? 'b' : 'w',
+        q: m.q, r: m.r,
+        g: m.gpColor ? (m.gpColor === 'black' ? 'b' : 'w') : null,
+        t: m.type === 'move' ? 'm' : 'p',
+        b: m.boardAfter,
+        cb: m.capturedAfter.black,
+        cw: m.capturedAfter.white
+      }));
+
+      const record = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        playerName: getPlayerName(),
+        humanColor: humanColor,
+        cpuLevel: cpuLevel,
+        battleMode: battleMode,
+        result: result,
+        bTotal: bTotal,
+        wTotal: wTotal,
+        moveCount: moveHistory.filter(m => m.type === 'move').length,
+        moves: compactMoves
+      };
+
+      const games = loadSavedGames();
+      games.unshift(record); // 最新を先頭に
+      if (games.length > MAX_SAVED_GAMES) games.length = MAX_SAVED_GAMES;
+      saveSavedGames(games);
+
+      // ボタンを更新
+      const btn = document.getElementById('save-game-btn');
+      btn.textContent = '⭐ 保存済み';
+      btn.disabled = true;
+      showToast('棋譜を保存しました！');
+    }
+
+    function renderKifuList() {
+      const container = document.getElementById('kifu-list-container');
+      const games = loadSavedGames();
+
+      if (games.length === 0) {
+        container.innerHTML = '<div class="kifu-empty">保存された棋譜はありません<br><br>ゲーム終了後に「⭐ 保存」ボタンで<br>棋譜を保存できます</div>';
+        return;
+      }
+
+      let html = '';
+      games.forEach((game, idx) => {
+        const d = new Date(game.date);
+        const dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+        let resultText, resultClass;
+        if (game.battleMode === 'two') {
+          resultText = game.result === 'draw' ? '引き分け' : (game.result === 'black-win' ? '黒の勝ち' : '白の勝ち');
+          resultClass = game.result === 'draw' ? 'kifu-draw' : 'kifu-win';
+        } else {
+          resultText = game.result === 'win' ? '勝利' : game.result === 'lose' ? '敗北' : '引き分け';
+          resultClass = game.result === 'win' ? 'kifu-win' : game.result === 'lose' ? 'kifu-lose' : 'kifu-draw';
+        }
+
+        const lvName = game.battleMode === 'two' ? '2人対戦'
+          : game.cpuLevel >= 6 ? LEVEL_NAMES[game.cpuLevel-1] : `Lv.${game.cpuLevel}`;
+        const colorIcon = game.humanColor === 'black' ? '●' : '○';
+
+        html += `<div class="kifu-item" onclick="startReplay(${idx})">`;
+        html += `<div class="kifu-item-info">`;
+        html += `<span class="kifu-item-date">${dateStr}</span>`;
+        html += `<span class="kifu-item-result ${resultClass}">${colorIcon} vs ${lvName}  ${resultText}</span>`;
+        html += `<span class="kifu-item-detail">黒${game.bTotal} - 白${game.wTotal}（${game.moveCount}手）</span>`;
+        html += `</div>`;
+        html += `<button class="kifu-delete-btn" onclick="event.stopPropagation(); deleteKifu(${idx})">削除</button>`;
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function deleteKifu(idx) {
+      if (!confirm('この棋譜を削除しますか？')) return;
+      const games = loadSavedGames();
+      games.splice(idx, 1);
+      saveSavedGames(games);
+      renderKifuList();
+    }
+
+    // Phase 3: リプレイ機能
+
+    function deserializeBoard(str) {
+      const newBoard = {};
+      ALL_CELLS.forEach(([q,r,s], i) => {
+        const k = K(q,r,s);
+        const c = str[i];
+        newBoard[k] = c === 'b' ? 'black' : c === 'w' ? 'white' : null;
+      });
+      return newBoard;
+    }
+
+    function startReplay(idx) {
+      const games = loadSavedGames();
+      if (idx < 0 || idx >= games.length) return;
+      replayData = games[idx];
+      replayStep = 0;
+      replayMode = true;
+
+      // 全ページを非表示（ゲーム画面がその下にある）
+      document.getElementById('setup-kifu').style.display = 'none';
+      document.getElementById('setup-main').style.display = 'none';
+
+      // ゲーム画面のコントロールを調整
+      document.getElementById('controls').style.display = 'none';
+      document.getElementById('result-modal').style.display = 'none';
+      document.getElementById('promotion-game-status').style.display = 'none';
+      document.getElementById('session-score').style.display = 'none';
+      document.getElementById('replay-controls').style.display = 'flex';
+      document.getElementById('replay-exit-btn').style.display = 'block';
+      document.getElementById('replay-move-label').style.display = 'block';
+
+      // スコア表示のラベルを設定
+      const lvName = replayData.battleMode === 'two' ? '2人対戦'
+        : replayData.cpuLevel >= 6 ? LEVEL_NAMES[replayData.cpuLevel-1] : `Lv.${replayData.cpuLevel}`;
+      if (replayData.battleMode === 'two') {
+        document.getElementById('black-role').textContent = '黒';
+        document.getElementById('white-role').textContent = '白';
+        document.getElementById('level-badge').style.display = 'none';
+      } else {
+        document.getElementById('black-role').textContent = replayData.humanColor === 'black' ? replayData.playerName : 'CPU';
+        document.getElementById('white-role').textContent = replayData.humanColor === 'white' ? replayData.playerName : 'CPU';
+        document.getElementById('level-badge').style.display = '';
+        document.getElementById('level-badge').textContent = lvName;
+      }
+
+      // 初期盤面を表示
+      replayRenderStep();
+    }
+
+    function replayRenderStep() {
+      if (!replayData) return;
+      const totalMoves = replayData.moves.length;
+
+      if (replayStep === 0) {
+        // 初期盤面
+        board = {};
+        ALL_CELLS.forEach(([q,r,s]) => board[K(q,r,s)] = null);
+        const ring1 = [[1,-1,0],[1,0,-1],[0,1,-1],[-1,1,0],[-1,0,1],[0,-1,1]];
+        ring1.forEach(([q,r,s], i) => board[K(q,r,s)] = i % 2 === 0 ? 'white' : 'black');
+        captured = { black: 0, white: 0 };
+        lastMove = null;
+      } else {
+        const move = replayData.moves[replayStep - 1];
+        board = deserializeBoard(move.b);
+        captured = { black: move.cb, white: move.cw };
+        if (move.t === 'm') {
+          const s = -move.q - move.r;
+          lastMove = [move.q, move.r, s];
+        } else {
+          lastMove = null;
+        }
+      }
+
+      updateScore();
+      render([]);
+
+      // 情報表示更新
+      document.getElementById('replay-info').textContent = `${replayStep} / ${totalMoves}`;
+
+      // 手の説明
+      if (replayStep === 0) {
+        showTurn('📋 リプレイ - 初期盤面');
+        document.getElementById('replay-move-label').textContent = '';
+      } else {
+        const move = replayData.moves[replayStep - 1];
+        const icon = move.p === 'b' ? '●' : '○';
+        if (move.t === 'p') {
+          showTurn(`${replayStep} / ${totalMoves} - ${icon} パス`);
+          document.getElementById('replay-move-label').textContent = `${icon} パス`;
+        } else {
+          const s = -move.q - move.r;
+          const label = CELL_LABELS[K(move.q, move.r, s)] || `(${move.q},${move.r})`;
+          const moveNum = replayData.moves.slice(0, replayStep).filter(m => m.t === 'm').length;
+          let desc = `${moveNum}.${icon} ${label}`;
+          if (move.g) desc += ` [GP:${move.g === 'b' ? '黒' : '白'}]`;
+          showTurn(`${replayStep} / ${totalMoves}`);
+          document.getElementById('replay-move-label').textContent = desc;
+        }
+      }
+
+      // ボタン状態
+      document.getElementById('replay-start').disabled = replayStep === 0;
+      document.getElementById('replay-back').disabled = replayStep === 0;
+      document.getElementById('replay-fwd').disabled = replayStep >= totalMoves;
+      document.getElementById('replay-end').disabled = replayStep >= totalMoves;
+    }
+
+    function replayForward() {
+      if (!replayData || replayStep >= replayData.moves.length) return;
+      replayStep++;
+      replayRenderStep();
+    }
+
+    function replayBack() {
+      if (!replayData || replayStep <= 0) return;
+      replayStep--;
+      replayRenderStep();
+    }
+
+    function replayGoStart() {
+      if (!replayData) return;
+      replayStep = 0;
+      replayRenderStep();
+    }
+
+    function replayGoEnd() {
+      if (!replayData) return;
+      replayStep = replayData.moves.length;
+      replayRenderStep();
+    }
+
+    function exitReplay() {
+      replayMode = false;
+      replayData = null;
+      replayStep = 0;
+
+      // リプレイUIを非表示
+      document.getElementById('replay-controls').style.display = 'none';
+      document.getElementById('replay-exit-btn').style.display = 'none';
+      document.getElementById('replay-move-label').style.display = 'none';
+      document.getElementById('controls').style.display = '';
+
+      // 棋譜一覧に戻る
+      showPage('kifu');
     }
 
     // ===== スタート =====
