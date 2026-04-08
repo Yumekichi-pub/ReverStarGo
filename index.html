@@ -2982,28 +2982,26 @@
 
     const CELL_SET = new Set(ALL_CELLS.map(c => c.join(',')));
 
-    // ===== セルラベル（棋譜表示用） =====
+    // ===== セルラベル（棋譜表示用 - ReverStarGo Notation System） =====
     const CELL_LABELS = {
-      '0,0,0': 'GP',
-      // Ring 1 (内輪・a-f)
-      '1,-1,0': 'a', '1,0,-1': 'b', '0,1,-1': 'c',
-      '-1,1,0': 'd', '-1,0,1': 'e', '0,-1,1': 'f',
-      // Ring 2 (外輪・時計盤)
-      '1,-2,1': 'Q', '2,-2,0': '1', '2,-1,-1': '2', '2,0,-2': '3',
-      '1,1,-2': '4', '0,2,-2': '5', '-1,2,-1': '6', '-2,2,0': '7',
-      '-2,1,1': '8', '-2,0,2': '9', '-1,-1,2': 'X', '0,-2,2': 'J',
-      // Q腕 (12時方向)
-      '1,-3,2': 'Qa', '2,-3,1': 'Qb', '2,-4,2': 'QT',
-      // 2腕 (2時方向)
-      '3,-2,-1': '2a', '3,-1,-2': '2b', '4,-2,-2': '2T',
-      // 4腕 (4時方向)
-      '2,1,-3': '4a', '1,2,-3': '4b', '2,2,-4': '4T',
-      // 6腕 (6時方向)
-      '-1,3,-2': '6a', '-2,3,-1': '6b', '-2,4,-2': '6T',
-      // 8腕 (8時方向)
-      '-3,2,1': '8a', '-3,1,2': '8b', '-4,2,2': '8T',
-      // X腕 (10時方向)
-      '-2,-1,3': 'Xa', '-1,-2,3': 'Xb', '-2,-2,4': 'XT'
+      '0,0,0': 'CP',
+      // A ring（内輪・時計盤の奇数位置）
+      '1,-1,0': 'A1', '1,0,-1': 'A3', '0,1,-1': 'A5',
+      '-1,1,0': 'A7', '-1,0,1': 'A9', '0,-1,1': 'AJ',
+      // B ring（外輪・時計盤の全12位置）
+      '1,-2,1': 'BQ', '2,-2,0': 'B1', '2,-1,-1': 'B2', '2,0,-2': 'B3',
+      '1,1,-2': 'B4', '0,2,-2': 'B5', '-1,2,-1': 'B6', '-2,2,0': 'B7',
+      '-2,1,1': 'B8', '-2,0,2': 'B9', '-1,-1,2': 'BX', '0,-2,2': 'BJ',
+      // C 腕ベース（各腕2マス）
+      '1,-3,2': 'CQ', '2,-3,1': 'C1',     // Q腕 (12時)
+      '3,-2,-1': 'C2', '3,-1,-2': 'C3',   // 2腕 (2時)
+      '2,1,-3': 'C4', '1,2,-3': 'C5',     // 4腕 (4時)
+      '-1,3,-2': 'C6', '-2,3,-1': 'C7',   // 6腕 (6時)
+      '-3,2,1': 'C8', '-3,1,2': 'C9',     // 8腕 (8時)
+      '-2,-1,3': 'CX', '-1,-2,3': 'CJ',   // X腕 (10時)
+      // D 腕先端（各腕1マス）
+      '2,-4,2': 'DQ', '4,-2,-2': 'D2', '2,2,-4': 'D4',
+      '-2,4,-2': 'D6', '-4,2,2': 'D8', '-2,-2,4': 'DX'
     };
 
     // ===== 状態 =====
@@ -4865,10 +4863,13 @@
         // g. スーパーコウ判定用：局面を履歴に追加
         boardHistory.push(serializeBoard() + ':' + opp(current));
 
-        // 棋譜記録
+        // 棋譜記録（gpCallは実際にCP選択が必要だった場合のみtrue）
         const moveNum = moveHistory.filter(m => m.type === 'move').length + 1;
+        const wasGPCall = gpColor !== null && gpWasAlreadySurrounded === false
+          && DIRS.every(([dq,dr,ds]) => board[K(dq,dr,ds)] !== null);
         moveHistory.push({
           num: moveNum, player: current, q, r, s, gpColor,
+          gpCall: gpColor !== null && !gpWasAlreadySurrounded,
           type: 'move',
           boardAfter: serializeBoard(),
           capturedAfter: { black: captured.black, white: captured.white }
@@ -6630,8 +6631,8 @@
         } else {
           const label = CELL_LABELS[K(entry.q, entry.r, entry.s)] || `(${entry.q},${entry.r})`;
           moveText = `${entry.num}.${icon}${label}`;
-          if (entry.gpColor) {
-            moveText += `[GP:${entry.gpColor === 'black' ? '黒' : '白'}]`;
+          if (entry.gpCall) {
+            moveText += `[CP:${entry.gpColor === 'black' ? '黒' : '白'}]`;
           }
         }
         if (line.length + moveText.length > 30) {
@@ -6716,6 +6717,7 @@
         p: m.player === 'black' ? 'b' : 'w',
         q: m.q, r: m.r,
         g: m.gpColor ? (m.gpColor === 'black' ? 'b' : 'w') : null,
+        gc: m.gpCall || false,
         t: m.type === 'move' ? 'm' : 'p',
         b: m.boardAfter,
         cb: m.capturedAfter.black,
@@ -6891,7 +6893,7 @@
           const label = CELL_LABELS[K(move.q, move.r, s)] || `(${move.q},${move.r})`;
           const moveNum = replayData.moves.slice(0, replayStep).filter(m => m.t === 'm').length;
           let desc = `${moveNum}.${icon} ${label}`;
-          if (move.g) desc += ` [GP:${move.g === 'b' ? '黒' : '白'}]`;
+          if (move.gc) desc += ` [CP:${move.g === 'b' ? '黒' : '白'}]`;
           showTurn(`${replayStep} / ${totalMoves}`);
           document.getElementById('replay-move-label').textContent = desc;
         }
