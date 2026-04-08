@@ -1288,6 +1288,12 @@
     }
 
     /* ===== トップページ メニューグリッド ===== */
+    .dev-mode-indicator {
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: #ffd700;
+      text-align: center;
+    }
     .app-version {
       margin-top: 16px;
       font-size: 0.7rem;
@@ -2164,7 +2170,8 @@
         <span class="menu-tile-label">ランク</span>
       </div>
     </div>
-    <p class="app-version">dev-v44</p>
+    <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
+    <p class="app-version">RSG-v03</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2193,10 +2200,11 @@
         <button class="setup-btn" data-level="4" onclick="selectLevel(4)">Lv.4 強敵</button>
         <button class="setup-btn" data-level="5" onclick="selectLevel(5)">Lv.5 達人</button>
         <button class="setup-btn" data-level="6" onclick="selectLevel(6)">MAX</button>
+        <button class="setup-btn" data-level="7" onclick="selectLevel(7)">FINAL</button>
       </div>
     </div>
     <div id="promotion-section" class="setup-section promotion-section" style="display:none;">
-      <h2 id="promotion-title">⚔ 昇格試験</h2>
+      <h2 id="promotion-title">⚔ ランクアップマッチ</h2>
       <p id="promotion-desc"></p>
       <p id="promotion-progress" style="display:none;"></p>
       <button class="promotion-start-btn" onclick="startPromotionExam()">⚔ 挑戦する</button>
@@ -2615,9 +2623,10 @@
   <div id="dev-menu" style="display:none;">
     <div class="dev-menu-content">
       <p class="dev-menu-title">🔧 開発者メニュー</p>
+      <button class="dev-menu-btn" onclick="toggleDevMode()" id="dev-mode-toggle-btn">🟢 開発者モード ON</button>
       <button class="dev-menu-btn" onclick="devResetAll()">全データリセット</button>
       <button class="dev-menu-btn" onclick="devResetBattle()">戦績リセット</button>
-      <button class="dev-menu-btn" onclick="devResetPromotions()">昇格試験リセット</button>
+      <button class="dev-menu-btn" onclick="devResetPromotions()">ランクアップマッチ リセット</button>
       <button class="dev-menu-btn" onclick="devResetDaily()">デイリー記録リセット</button>
       <button class="dev-menu-btn dev-close" onclick="closeDevMenu()">閉じる</button>
     </div>
@@ -2639,7 +2648,7 @@
       <p class="promo-announce-title" id="promo-announce-title"></p>
       <p class="promo-announce-desc" id="promo-announce-desc"></p>
       <div class="promo-announce-help" id="promo-announce-help" style="display:none;">
-        <p><strong>昇格試験とは？</strong></p>
+        <p><strong>ランクアップマッチとは？</strong></p>
         <p>次のレベルを解放するための特別な連戦です。</p>
         <p>🟤 ブロンズ：5番勝負（先に3勝で合格）</p>
         <p>💠 プラチナ以降：7番勝負（先に4勝で合格）</p>
@@ -2712,35 +2721,40 @@
 
     // ===== 戦績保存（localStorage） =====
     const BATTLE_RECORD_KEY = 'reverstargo-battle-record';
-    const LEVEL_NAMES = ['初級','中級','上級','強敵','達人','MAX'];
+    const LEVEL_NAMES = ['初級','中級','上級','強敵','達人','MAX','FINAL'];
 
     // ===== プレイヤーランクシステム =====
     const RANKS = [
-      { name: 'ペーパー', icon: '📄', condition: '初期ランク' },
-      { name: 'レザー', icon: '👝', condition: 'Lv.1に初勝利' },
-      { name: 'ウッド', icon: '🪵', condition: 'Lv.1に累計3勝' },
-      { name: 'ストーン', icon: '🪨', condition: 'Lv.1に累計5勝' },
-      { name: 'アイアン', icon: '⚙️', condition: 'Lv.2に累計5勝' },
-      { name: 'スチール', icon: '⚔️', condition: 'Lv.2に累計10勝' },
-      { name: 'ブロンズ', icon: '🟤', condition: '当日5番勝負で勝ち越し' },
-      { name: 'シルバー', icon: '⚪', condition: 'Lv.3に累計5勝' },
-      { name: 'ゴールド', icon: '🟡', condition: 'Lv.3に累計10勝' },
-      { name: 'プラチナ', icon: '💠', condition: '当日7番勝負で勝ち越し' },
-      { name: 'ターコイズ', icon: '🩵', condition: 'Lv.4に累計2勝' },
-      { name: 'ガーネット', icon: '🔴', condition: 'Lv.4に累計5勝' },
-      { name: 'トパーズ', icon: '💛', condition: 'Lv.4に累計10勝' },
-      { name: 'アメジスト', icon: '💜', condition: '当日7番勝負で勝ち越し' },
-      { name: 'ルビー', icon: '❤️', condition: 'Lv.5に累計2勝' },
-      { name: 'サファイア', icon: '💙', condition: 'Lv.5に累計5勝' },
-      { name: 'エメラルド', icon: '💚', condition: 'Lv.5に累計10勝' },
-      { name: 'ダイヤモンド', icon: '💎', condition: '当日7番勝負で勝ち越し' },
-      { name: 'スター', icon: '⭐', condition: 'MAXに累計2勝' },
-      { name: 'スペシャリスト', icon: '🎖️', condition: 'MAXに累計5勝' },
-      { name: 'エキスパート', icon: '🛡️', condition: 'MAXに累計10勝' },
-      { name: 'チャンピオン', icon: '⚜️', condition: 'MAXに累計20勝' },
-      { name: 'マスター', icon: '👑', condition: '当日7番勝負で勝ち越し' },
-      { name: 'レジェンド', icon: '🌟', condition: '当日15番勝負で勝ち越し' },
-      { name: 'グランドマスター', icon: '🔱', condition: 'グランドマスター' },
+      { name: 'ペーパー', icon: '📄', condition: '初期ランク' },              // 0  🔓Lv.1
+      { name: 'レザー', icon: '👝', condition: 'Lv.1に初勝利' },             // 1
+      { name: 'ウッド', icon: '🪵', condition: 'Lv.1に累計3勝' },            // 2
+      { name: 'ストーン', icon: '🪨', condition: '3番勝負で勝ち越し' },       // 3  🔓Lv.2
+      { name: 'アイアン', icon: '⚙️', condition: 'Lv.2に累計5勝' },          // 4
+      { name: 'スチール', icon: '⚔️', condition: 'Lv.2に累計10勝' },         // 5
+      { name: 'ブロンズ', icon: '🟤', condition: '5番勝負で勝ち越し' },       // 6  🔓Lv.3
+      { name: 'シルバー', icon: '⚪', condition: 'Lv.3に累計5勝' },          // 7
+      { name: 'ゴールド', icon: '🟡', condition: 'Lv.3に累計10勝' },         // 8
+      { name: 'プラチナ', icon: '💠', condition: '7番勝負で勝ち越し' },       // 9  🔓Lv.4
+      { name: 'ターコイズ', icon: '🩵', condition: 'Lv.4に累計2勝' },        // 10
+      { name: 'アクアマリン', icon: '💧', condition: 'Lv.4に累計5勝' },       // 11
+      { name: 'ガーネット', icon: '🔴', condition: 'Lv.4に累計10勝' },       // 12
+      { name: 'トパーズ', icon: '💛', condition: '7番勝負で勝ち越し' },       // 13 🔓Lv.5
+      { name: 'アメジスト', icon: '💜', condition: 'Lv.5に累計2勝' },        // 14
+      { name: 'ルビー', icon: '❤️', condition: 'Lv.5に累計5勝' },           // 15
+      { name: 'サファイア', icon: '💙', condition: 'Lv.5に累計10勝' },       // 16
+      { name: 'エメラルド', icon: '💚', condition: 'Lv.5に累計20勝' },       // 17
+      { name: 'ダイヤモンド', icon: '💎', condition: '7番勝負で勝ち越し' },   // 18 🔓MAX
+      { name: 'スペシャリスト', icon: '✨', condition: 'MAXに累計2勝' },      // 19
+      { name: 'エキスパート', icon: '🛡️', condition: 'MAXに累計5勝' },       // 20
+      { name: 'チャンピオン', icon: '⚜️', condition: 'MAXに累計10勝' },      // 21
+      { name: 'マスター', icon: '🌟', condition: 'MAXに累計20勝' },          // 22
+      { name: 'レジェンド', icon: '🔱', condition: '7番勝負で勝ち越し' },     // 23
+      { name: 'グランドマスター', icon: '👑', condition: '15番勝負で勝ち越し' }, // 24 🔓FINAL
+      { name: 'アークマスター', icon: '🌀', condition: 'FINALに累計10勝' },   // 25
+      { name: 'オーバーロード', icon: '👁️', condition: 'FINALに累計30勝' },   // 26
+      { name: 'デミゴッド', icon: '🔥', condition: 'FINALに累計50勝' },       // 27
+      { name: 'ゴッド', icon: '⚡', condition: '連続11番勝負で勝ち越し' },     // 28
+      { name: 'ゼウス', icon: '🏛️', condition: '連続21番勝負で勝ち越し' },    // 29
     ];
 
     function calculateRank() {
@@ -2751,9 +2765,48 @@
       const getWins = (lv) => record[String(lv)] ? record[String(lv)].win : 0;
       const totalWins = () => {
         let sum = 0;
-        for (let lv = 1; lv <= 6; lv++) sum += getWins(lv);
+        for (let lv = 1; lv <= 7; lv++) sum += getWins(lv);
         return sum;
       };
+
+      // devMode: ランクオーバーライド
+      if (devMode && devOverrideRank !== null) return devOverrideRank;
+
+      // devMode: どのレベルでも1勝でクリア
+      if (devMode) {
+        const tw = totalWins();
+        const passed = (r) => hasPassedPromotion(r);
+        if (passed(29)) return 29;
+        if (passed(28)) return 28;
+        if (tw >= 28) return 27;
+        if (tw >= 27) return 26;
+        if (tw >= 26) return 25;
+        if (passed(24)) return 24;
+        if (passed(23)) return 23;
+        if (tw >= 23) return 22;
+        if (tw >= 22) return 21;
+        if (tw >= 21) return 20;
+        if (tw >= 20) return 19;
+        if (passed(18)) return 18;
+        if (tw >= 18) return 17;
+        if (tw >= 17) return 16;
+        if (tw >= 16) return 15;
+        if (tw >= 15) return 14;
+        if (passed(13)) return 13;
+        if (tw >= 13) return 12;
+        if (tw >= 12) return 11;
+        if (tw >= 11) return 10;
+        if (passed(9)) return 9;
+        if (tw >= 9) return 8;
+        if (tw >= 8) return 7;
+        if (passed(6)) return 6;
+        if (tw >= 6) return 5;
+        if (tw >= 5) return 4;
+        if (passed(3)) return 3;
+        if (tw >= 3) return 2;
+        if (tw >= 1) return 1;
+        return 0;
+      }
 
       // 当日の勝ち越し判定（7番勝負: 7戦以上で勝率51%超）
       const getDailyTotal = (lv) => {
@@ -2771,34 +2824,49 @@
       const passed = (r) => hasPassedPromotion(r);
 
       // Check from highest rank down
-      // Rank 25: グランドマスター（条件は後で実装）
-      // Rank 24: レジェンド - MAX 15番勝負で勝ち越し（昇格試験）
+      // Rank 30: ゼウス - 連続21番勝負で勝ち越し（昇格試験）
+      if (passed(28)) return 29;
+      // Rank 29: ゴッド - 連続21番勝負で勝ち越し（昇格試験）
+      if (passed(27)) return 28;
+      // 30. ゼウス - 連続21番勝負で勝ち越し
+      if (passed(29)) return 29;
+      // 29. ゴッド - 連続11番勝負で勝ち越し
+      if (passed(28)) return 28;
+      // 28. デミゴッド - FINALに累計50勝
+      if (getWins(7) >= 50) return 27;
+      // 27. オーバーロード - FINALに累計30勝
+      if (getWins(7) >= 30) return 26;
+      // 26. アークマスター - FINALに累計10勝
+      if (getWins(7) >= 10) return 25;
+      // 25. グランドマスター - 15番勝負で勝ち越し
+      if (passed(24)) return 24;
+      // 24. レジェンド - 7番勝負で勝ち越し
       if (passed(23)) return 23;
-      // Rank 23: MAX 7番勝負で勝ち越し（昇格試験）
-      if (passed(22)) return 22;
-      // Rank 22: MAX 累計20勝
-      if (getWins(6) >= 20) return 21;
-      // Rank 21: MAX 累計10勝
-      if (getWins(6) >= 10) return 20;
-      // Rank 20: MAX 累計5勝
-      if (getWins(6) >= 5) return 19;
-      // Rank 19: MAX 累計2勝
-      if (getWins(6) >= 2) return 18;
-      // Rank 18: Lv.5 7番勝負で勝ち越し（昇格試験）
-      if (passed(17)) return 17;
-      // Rank 17: Lv.5 累計10勝
+      // 23. マスター - MAXに累計20勝
+      if (getWins(6) >= 20) return 22;
+      // 22. チャンピオン - MAXに累計10勝
+      if (getWins(6) >= 10) return 21;
+      // 21. エキスパート - MAXに累計5勝
+      if (getWins(6) >= 5) return 20;
+      // 20. スペシャリスト - MAXに累計2勝
+      if (getWins(6) >= 2) return 19;
+      // 19. ダイヤモンド - 7番勝負で勝ち越し
+      if (passed(18)) return 18;
+      // 18. エメラルド - Lv.5に累計20勝
+      if (getWins(5) >= 20) return 17;
+      // 17. サファイア - Lv.5に累計10勝
       if (getWins(5) >= 10) return 16;
-      // Rank 16: Lv.5 累計5勝
+      // 16. ルビー - Lv.5に累計5勝
       if (getWins(5) >= 5) return 15;
-      // Rank 15: Lv.5 累計2勝
+      // 15. アメジスト - Lv.5に累計2勝
       if (getWins(5) >= 2) return 14;
-      // Rank 14: Lv.4 7番勝負で勝ち越し（昇格試験）
+      // 14. トパーズ - 7番勝負で勝ち越し
       if (passed(13)) return 13;
-      // Rank 13: Lv.4 累計10勝
+      // 13. ガーネット - Lv.4に累計10勝
       if (getWins(4) >= 10) return 12;
-      // Rank 12: Lv.4 累計5勝
+      // 12. アクアマリン - Lv.4に累計5勝
       if (getWins(4) >= 5) return 11;
-      // Rank 11: Lv.4 累計2勝
+      // 11. ターコイズ - Lv.4に累計2勝
       if (getWins(4) >= 2) return 10;
       // Rank 10: Lv.3 7番勝負で勝ち越し（昇格試験）
       if (passed(9)) return 9;
@@ -2812,8 +2880,8 @@
       if (getWins(2) >= 10) return 5;
       // Rank 5: Lv.2 累計5勝
       if (getWins(2) >= 5) return 4;
-      // Rank 4: Lv.1 累計5勝
-      if (getWins(1) >= 5) return 3;
+      // Rank 4: Lv.1 3番勝負で勝ち越し（昇格試験）
+      if (passed(3)) return 3;
       // Rank 3: Lv.1 累計3勝
       if (getWins(1) >= 3) return 2;
       // Rank 2: 累計1勝
@@ -2835,12 +2903,15 @@
     // 昇格試験が必要なランク: rankIndex → { level, winsNeeded }
     // careerWins: 通算勝利数での昇格条件（0=勝ち越しのみ）
     const PROMOTION_EXAMS = {
+      3:  { level: 1, winsNeeded: 2, maxLosses: 2, label: 'Lv.2 解放', careerWins: 20 },   // ストーン（3番勝負）
       6:  { level: 2, winsNeeded: 3, maxLosses: 3, label: 'Lv.3 解放', careerWins: 20 },   // ブロンズ（5番勝負）
-      9:  { level: 3, winsNeeded: 4, maxLosses: 4, label: 'Lv.4 解放', careerWins: 20 },   // プラチナ
-      13: { level: 4, winsNeeded: 4, maxLosses: 4, label: 'Lv.5 解放', careerWins: 20 },   // アメジスト
-      17: { level: 5, winsNeeded: 4, maxLosses: 4, label: 'MAX 解放', careerWins: 20 },    // ダイヤモンド
-      22: { level: 6, winsNeeded: 4, maxLosses: 4, label: 'マスター', careerWins: 0 },      // マスター（勝ち越しのみ）
-      23: { level: 6, winsNeeded: 8, maxLosses: 8, label: 'レジェンド', careerWins: 0 },    // レジェンド（勝ち越しのみ）
+      9:  { level: 3, winsNeeded: 4, maxLosses: 4, label: 'Lv.4 解放', careerWins: 20 },   // プラチナ（7番勝負）
+      13: { level: 4, winsNeeded: 4, maxLosses: 4, label: 'Lv.5 解放', careerWins: 20 },   // トパーズ（7番勝負）
+      18: { level: 5, winsNeeded: 4, maxLosses: 4, label: 'MAX 解放', careerWins: 20 },    // ダイヤモンド（7番勝負）
+      23: { level: 6, winsNeeded: 4, maxLosses: 4, label: 'レジェンド', careerWins: 0 },    // レジェンド（7番勝負）
+      24: { level: 6, winsNeeded: 8, maxLosses: 8, label: 'グランドマスター', careerWins: 0 }, // グランドマスター（15番勝負）
+      28: { level: 7, winsNeeded: 6, maxLosses: 6, label: 'ゴッド', careerWins: 0 },        // ゴッド（連続11番勝負）
+      29: { level: 7, winsNeeded: 11, maxLosses: 11, label: 'ゼウス', careerWins: 0 },      // ゼウス（連続21番勝負）
     };
 
     // 合格済みの昇格試験を読み込み/保存
@@ -2900,9 +2971,11 @@
     function getAvailablePromotion() {
       const rank = calculateRank();
       // 各昇格試験のランクをチェック（低い方から）
-      const examRanks = [6, 9, 13, 17, 22, 23];
+      const examRanks = [3, 6, 9, 13, 18, 23, 24, 28, 29];
       for (const targetRank of examRanks) {
         if (hasPassedPromotion(targetRank)) continue; // 合格済み
+        // devMode: ランク条件を無視して次の未合格試験を返す
+        if (devMode) return { targetRank, ...PROMOTION_EXAMS[targetRank] };
         // 受験資格: 一つ手前のランクに到達している
         if (rank >= targetRank - 1) return { targetRank, ...PROMOTION_EXAMS[targetRank] };
       }
@@ -2913,9 +2986,11 @@
     function startPromotionExam() {
       const promo = getAvailablePromotion();
       if (!promo) return;
+      // devMode: 現在選択中のレベルで試験を受けられる
+      const examLevel = devMode ? cpuLevel : promo.level;
       promotionExam = {
         targetRank: promo.targetRank,
-        level: promo.level,
+        level: examLevel,
         wins: 0,
         losses: 0,
         winsNeeded: promo.winsNeeded,
@@ -2923,10 +2998,10 @@
       };
       savePromotionExam(promotionExam);
       // レベルと対戦モードを設定して開始
-      cpuLevel = promo.level;
+      cpuLevel = examLevel;
       battleMode = 'cpu';
       document.querySelectorAll('[data-level]').forEach(b => b.classList.remove('selected'));
-      const lvBtn = document.querySelector(`[data-level="${promo.level}"]`);
+      const lvBtn = document.querySelector(`[data-level="${examLevel}"]`);
       if (lvBtn) lvBtn.classList.add('selected');
       saveSettings();
       prevRank = calculateRank();
@@ -2975,9 +3050,10 @@
     }
 
     // ===== レベル解放システム =====
-    const LEVEL_UNLOCK_RANK = [0, 0, 3, 6, 9, 13, 17]; // index 0 unused, levels 1-6
+    const LEVEL_UNLOCK_RANK = [0, 0, 3, 6, 9, 13, 18, 24]; // index 0 unused, levels 1-7(FINAL)
 
     function isLevelUnlocked(level) {
+      if (devMode) return true; // devMode: 全レベル解放
       return calculateRank() >= LEVEL_UNLOCK_RANK[level];
     }
 
@@ -3007,7 +3083,7 @@
           return data;
         }
       } catch(e) {}
-      return { '1':{win:0,lose:0,draw:0}, '2':{win:0,lose:0,draw:0}, '3':{win:0,lose:0,draw:0}, '4':{win:0,lose:0,draw:0}, '5':{win:0,lose:0,draw:0}, '6':{win:0,lose:0,draw:0} };
+      return { '1':{win:0,lose:0,draw:0}, '2':{win:0,lose:0,draw:0}, '3':{win:0,lose:0,draw:0}, '4':{win:0,lose:0,draw:0}, '5':{win:0,lose:0,draw:0}, '6':{win:0,lose:0,draw:0}, '7':{win:0,lose:0,draw:0} };
     }
 
     function saveBattleRecord(record) {
@@ -3027,7 +3103,7 @@
         const data = JSON.parse(localStorage.getItem(DAILY_RECORD_KEY));
         if (data && data.date === getTodayDateStr()) return data.record;
       } catch(e) {}
-      return { '1':{win:0,lose:0,draw:0}, '2':{win:0,lose:0,draw:0}, '3':{win:0,lose:0,draw:0}, '4':{win:0,lose:0,draw:0}, '5':{win:0,lose:0,draw:0}, '6':{win:0,lose:0,draw:0} };
+      return { '1':{win:0,lose:0,draw:0}, '2':{win:0,lose:0,draw:0}, '3':{win:0,lose:0,draw:0}, '4':{win:0,lose:0,draw:0}, '5':{win:0,lose:0,draw:0}, '6':{win:0,lose:0,draw:0}, '7':{win:0,lose:0,draw:0} };
     }
 
     function saveDailyRecord(record) {
@@ -3045,7 +3121,7 @@
       const total = r.win + r.lose + r.draw;
       if (total === 0) { el.style.display = 'none'; return; }
       const rate = Math.round(r.win / total * 100);
-      const lvLabel = cpuLevel === 6 ? 'MAX' : `Lv.${cpuLevel}`;
+      const lvLabel = cpuLevel >= 6 ? LEVEL_NAMES[cpuLevel-1] : `Lv.${cpuLevel}`;
       el.style.display = 'block';
       el.innerHTML = `<div class="today-title">📊 本日の成績（${lvLabel}）</div><div class="today-stats">${r.win}勝 ${r.lose}敗 ${r.draw}分（${total}戦・勝率${rate}%）</div>`;
     }
@@ -3054,12 +3130,12 @@
       const record = loadBattleRecord();
       const tbody = document.getElementById('battle-record-body');
       tbody.innerHTML = '';
-      for (let lv = 1; lv <= 6; lv++) {
+      for (let lv = 1; lv <= 7; lv++) {
         const r = record[String(lv)];
         const total = r.win + r.lose + r.draw;
         const rate = total === 0 ? '-' : Math.round(r.win / total * 100) + '%';
         const tr = document.createElement('tr');
-        const lvLabel = lv === 6 ? 'MAX' : `Lv.${lv} ${LEVEL_NAMES[lv-1]}`;
+        const lvLabel = lv >= 6 ? LEVEL_NAMES[lv-1] : `Lv.${lv} ${LEVEL_NAMES[lv-1]}`;
         tr.innerHTML = `<td>${lvLabel}</td><td>${r.win}</td><td>${r.lose}</td><td>${r.draw}</td><td>${rate}</td>`;
         tbody.appendChild(tr);
       }
@@ -3154,14 +3230,31 @@
             if (data[dateStr]) {
               span.classList.add('completed');
               completedCount++;
+              // devMode: タップで未クリアに戻す
+              if (devMode) {
+                span.onclick = (() => {
+                  const ds = dateStr;
+                  return () => { devToggleDaily(ds, false); };
+                })();
+              }
             } else if (isFuture) {
               span.classList.add('future');
+              // devMode: 未来の日付もタップでクリア済みにできる
+              if (devMode) {
+                span.onclick = (() => {
+                  const ds = dateStr;
+                  return () => { devToggleDaily(ds, true); };
+                })();
+              }
             } else {
               // Playable (past or today, not completed)
               span.classList.add('playable');
               span.onclick = (() => {
                 const ds = dateStr;
-                return () => startDailyChallenge(ds);
+                return () => {
+                  if (devMode) { devToggleDaily(ds, true); }
+                  else { startDailyChallenge(ds); }
+                };
               })();
             }
 
@@ -3429,12 +3522,14 @@
         const cls = isCurrent ? ' class="rank-current"' : (achieved ? ' class="rank-achieved"' : '');
         // Find which level this rank unlocks
         let unlockLabel = '';
-        for (let lv = 1; lv <= 6; lv++) {
+        for (let lv = 1; lv <= 7; lv++) {
           if (LEVEL_UNLOCK_RANK[lv] === i) {
-            unlockLabel = lv === 6 ? '🔓MAX' : `🔓Lv.${lv}`;
+            unlockLabel = lv >= 6 ? `🔓${LEVEL_NAMES[lv-1]}` : `🔓Lv.${lv}`;
           }
         }
-        html += `<tr${cls}>`;
+        const clickAttr = devMode ? ` onclick="devSetRank(${i})"` : '';
+        const cursorStyle = devMode ? ' style="cursor:pointer;"' : '';
+        html += `<tr${cls}${clickAttr}${cursorStyle}>`;
         html += `<td>${RANKS[i].icon}</td>`;
         html += `<td>${i + 1}. ${RANKS[i].name}</td>`;
         html += `<td>${RANKS[i].condition}</td>`;
@@ -3458,24 +3553,23 @@
     }
 
     function updateLevelButtons() {
-      for (let lv = 1; lv <= 6; lv++) {
+      for (let lv = 1; lv <= 7; lv++) {
         const btn = document.querySelector(`[data-level="${lv}"]`);
         if (!btn) continue;
         const unlocked = isLevelUnlocked(lv);
         if (unlocked) {
           btn.classList.remove('locked');
           btn.disabled = false;
-          // Restore original text
-          if (lv === 6) {
-            btn.textContent = 'MAX';
+          if (lv >= 6) {
+            btn.textContent = LEVEL_NAMES[lv-1];
           } else {
             btn.textContent = `Lv.${lv} ${LEVEL_NAMES[lv-1]}`;
           }
         } else {
           btn.classList.add('locked');
           btn.disabled = false; // Keep clickable for hint
-          if (lv === 6) {
-            btn.textContent = '🔒 MAX';
+          if (lv >= 6) {
+            btn.textContent = `🔒 ${LEVEL_NAMES[lv-1]}`;
           } else {
             btn.textContent = `🔒 Lv.${lv}`;
           }
@@ -3484,7 +3578,7 @@
       // If current selected level is locked, reset to highest unlocked
       if (!isLevelUnlocked(cpuLevel)) {
         let highest = 1;
-        for (let lv = 6; lv >= 1; lv--) {
+        for (let lv = 7; lv >= 1; lv--) {
           if (isLevelUnlocked(lv)) { highest = lv; break; }
         }
         selectLevel(highest);
@@ -4153,9 +4247,9 @@
         return bestMoves[Math.floor(Math.random() * bestMoves.length)];
       }
 
-      // Lv.4〜6: negamax with alpha-beta（先読み深さをレベルで変える）
-      // Lv.4: 3手先読み(depth=2), Lv.5: 4手先読み(depth=3), Lv.6(MAX): 5手先読み(depth=4)
-      const searchDepth = cpuLevel === 6 ? 4 : cpuLevel === 5 ? 3 : 2;
+      // Lv.4〜7: negamax with alpha-beta（先読み深さをレベルで変える）
+      // Lv.4: 3手先読み(depth=2), Lv.5: 4手先読み(depth=3), Lv.6(MAX): 5手先読み(depth=4), Lv.7(FINAL): 6手先読み(depth=5)
+      const searchDepth = cpuLevel === 7 ? 5 : cpuLevel === 6 ? 4 : cpuLevel === 5 ? 3 : 2;
 
       const ranked = validMoves.map(([q,r,s]) => ({
         move:[q,r,s],
@@ -4699,16 +4793,30 @@
             markDailyComplete(dateToMark);
             dailyChallengeDate = null;
           }
+          // devMode: 通常勝利でランク+1（昇格試験中は除く）
+          if (devMode && devOverrideRank !== null && soundType === 'win' && !promotionExam) {
+            const examRanks = [3, 6, 9, 13, 18, 23, 24, 28, 29];
+            const cap = examRanks.find(r => r > devOverrideRank && !hasPassedPromotion(r));
+            const maxRank = cap !== undefined ? cap : 24;
+            if (devOverrideRank < maxRank) {
+              devOverrideRank++;
+            }
+          }
           // 昇格試験の結果記録
           if (promotionExam) {
             const matchNum = promotionExam.wins + promotionExam.losses + 1;
             const promoResult = recordPromotionResult(soundType === 'win');
             if (promoResult) {
               if (promoResult.passed) {
+                // devMode: 昇格試験合格でランクを試験ランクの次へ
+                if (devMode && devOverrideRank !== null) {
+                  devOverrideRank = promoResult.exam.targetRank + 1;
+                  if (devOverrideRank > 24) devOverrideRank = 24;
+                }
                 if (promoResult.careerPass) {
-                  msg += `\n\n🎉 通算${promoResult.career.wins}勝達成！\n昇格試験 合格！`;
+                  msg += `\n\n🎉 通算${promoResult.career.wins}勝達成！\nランクアップマッチ 合格！`;
                 } else {
-                  msg += `\n\n🎉 昇格試験 合格！\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗`;
+                  msg += `\n\n🎉 ランクアップマッチ 合格！\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗`;
                 }
               } else {
                 const examDef = PROMOTION_EXAMS[promoResult.exam.targetRank];
@@ -4716,18 +4824,19 @@
                 if (examDef && examDef.careerWins > 0) {
                   careerMsg = `\n通算: ${promoResult.career.wins}勝（あと${examDef.careerWins - promoResult.career.wins}勝で昇格）`;
                 }
-                msg += `\n\n😢 昇格試験 不合格...\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗${careerMsg}\nもう一度挑戦できます！`;
+                msg += `\n\n😢 ランクアップマッチ 不合格...\n${promoResult.exam.wins}勝${promoResult.exam.losses}敗${careerMsg}\nもう一度挑戦できます！`;
               }
             } else {
               // 試験続行中 - 次の試合番号を表示
               const nextMatch = promotionExam.wins + promotionExam.losses + 1;
-              msg += `\n\n⚔ 昇格試験 第${matchNum}試合終了\n${promotionExam.wins}勝${promotionExam.losses}敗（次: 第${nextMatch}試合）`;
+              msg += `\n\n⚔ ランクアップマッチ 第${matchNum}試合終了\n${promotionExam.wins}勝${promotionExam.losses}敗（次: 第${nextMatch}試合）`;
             }
           }
           // ランクアップチェック
           const newRank = calculateRank();
           if (newRank > prevRank) {
             setTimeout(() => showRankUpModal(newRank), 1500);
+            prevRank = newRank;
           }
         }
       }
@@ -5157,7 +5266,7 @@
         document.getElementById('black-role').textContent = humanColor === 'black' ? `${rankIcon} ${getPlayerName()}` : 'CPU';
         document.getElementById('white-role').textContent = humanColor === 'white' ? `${rankIcon} ${getPlayerName()}` : 'CPU';
         document.getElementById('level-badge').style.display = '';
-        document.getElementById('level-badge').textContent = cpuLevel === 6 ? 'MAX' : `Lv.${cpuLevel}`;
+        document.getElementById('level-badge').textContent = cpuLevel >= 6 ? LEVEL_NAMES[cpuLevel-1] : `Lv.${cpuLevel}`;
       }
       updateScore();
       document.getElementById('result-modal').style.display = 'none';
@@ -5259,17 +5368,18 @@
 
     // ===== レベル解放演出 =====
     function checkLevelUnlock(rankIdx) {
-      // どのレベルが新しく解放されたかチェック
-      for (let lv = 2; lv <= 6; lv++) {
-        if (LEVEL_UNLOCK_RANK[lv] === rankIdx) {
-          return lv;
+      // どのレベルが新しく解放されたかチェック（ランクを飛び越えた場合も対応）
+      let highestUnlock = 0;
+      for (let lv = 2; lv <= 7; lv++) {
+        if (LEVEL_UNLOCK_RANK[lv] <= rankIdx && LEVEL_UNLOCK_RANK[lv] > prevRank) {
+          highestUnlock = lv;
         }
       }
-      return 0;
+      return highestUnlock;
     }
 
     function showLevelUnlock(level) {
-      const lvLabel = level === 6 ? 'MAX' : `Lv.${level}`;
+      const lvLabel = level >= 6 ? LEVEL_NAMES[level-1] : `Lv.${level}`;
       document.getElementById('level-unlock-icon').textContent = '🎊';
       document.getElementById('level-unlock-title').textContent = `${lvLabel} 解放！`;
       document.getElementById('level-unlock-desc').textContent = `おめでとうございます！\n新しいレベルで遊べるようになりました！`;
@@ -5305,6 +5415,8 @@
     });
 
     // ===== 開発者メニュー =====
+    let devMode = false;
+    let devOverrideRank = null;
     let devTapCount = 0;
     let devTapTimer = null;
 
@@ -5315,7 +5427,38 @@
       if (devTapCount >= 5) {
         devTapCount = 0;
         document.getElementById('dev-menu').style.display = 'flex';
+        if (!devMode) {
+          const currentRank = calculateRank();
+          devMode = true;
+          devOverrideRank = currentRank;
+        }
+        document.getElementById('dev-mode-toggle-btn').textContent = '🟢 開発者モード ON';
+        document.getElementById('dev-mode-indicator').style.display = '';
       }
+    }
+
+    function toggleDevMode() {
+      if (!devMode) {
+        // ON にする前に通常ランクを取得
+        const currentRank = calculateRank();
+        devMode = true;
+        devOverrideRank = currentRank;
+      } else {
+        devMode = false;
+        devOverrideRank = null;
+      }
+      const btn = document.getElementById('dev-mode-toggle-btn');
+      btn.textContent = devMode ? '🟢 開発者モード ON' : '🔴 開発者モード OFF';
+      document.getElementById('dev-mode-indicator').style.display = devMode ? '' : 'none';
+      updateRankDisplay();
+      updateLevelButtons();
+    }
+
+    function devSetRank(rankIdx) {
+      devOverrideRank = rankIdx;
+      updateRankDisplay();
+      updateLevelButtons();
+      closeRankList();
     }
 
     function closeDevMenu() {
@@ -5349,7 +5492,7 @@
     }
 
     function devResetPromotions() {
-      if (confirm('昇格試験の記録をリセットしますか？')) {
+      if (confirm('ランクアップマッチの記録をリセットしますか？')) {
         localStorage.removeItem('reverstargo-promotions');
         localStorage.removeItem('reverstargo-promotion-exam');
         localStorage.removeItem('reverstargo-promotion-career');
@@ -5357,8 +5500,20 @@
         closeDevMenu();
         updateRankDisplay();
         updateLevelButtons();
-        alert('昇格試験をリセットしました');
+        alert('ランクアップマッチをリセットしました');
       }
+    }
+
+    function devToggleDaily(dateStr, setComplete) {
+      const data = loadDailyData();
+      if (setComplete) {
+        data[dateStr] = true;
+      } else {
+        delete data[dateStr];
+      }
+      saveDailyData(data);
+      renderCalendar();
+      renderTrophies();
     }
 
     function devResetDaily() {
@@ -5371,9 +5526,9 @@
 
     function showPromoAnnounce(promo) {
       const targetRank = RANKS[promo.targetRank];
-      const matchLabel = promo.winsNeeded === 3 ? '5番勝負' : (promo.winsNeeded === 8 ? '15番勝負' : '7番勝負');
+      const matchLabel = promo.winsNeeded === 2 ? '3番勝負' : (promo.winsNeeded === 3 ? '5番勝負' : (promo.winsNeeded === 6 ? '11番勝負' : (promo.winsNeeded === 8 ? '15番勝負' : (promo.winsNeeded === 11 ? '21番勝負' : '7番勝負'))));
       document.getElementById('promo-announce-title').textContent = `🎉 ${promo.label}への挑戦権を獲得！`;
-      document.getElementById('promo-announce-desc').textContent = `${targetRank.icon} ${targetRank.name} 昇格試験（${matchLabel}）に挑戦できます！\nゲーム設定画面から開始できます。`;
+      document.getElementById('promo-announce-desc').textContent = `${targetRank.icon} ${targetRank.name} ランクアップマッチ（${matchLabel}）に挑戦できます！\nゲーム設定画面から開始できます。`;
       document.getElementById('promo-announce-help').style.display = 'none';
       document.getElementById('promo-announce-modal').style.display = 'flex';
     }
@@ -5454,8 +5609,8 @@
 
       section.style.display = '';
       const targetRank = RANKS[promo.targetRank];
-      const matchLabel = promo.winsNeeded === 3 ? '5番勝負' : (promo.winsNeeded === 8 ? '15番勝負' : '7番勝負');
-      document.getElementById('promotion-title').textContent = `⚔ 昇格試験 → ${targetRank.icon} ${targetRank.name}`;
+      const matchLabel = promo.winsNeeded === 2 ? '3番勝負' : (promo.winsNeeded === 3 ? '5番勝負' : (promo.winsNeeded === 6 ? '11番勝負' : (promo.winsNeeded === 8 ? '15番勝負' : (promo.winsNeeded === 11 ? '21番勝負' : '7番勝負'))));
+      document.getElementById('promotion-title').textContent = `⚔ ランクアップマッチ → ${targetRank.icon} ${targetRank.name}`;
 
       let descText = `${matchLabel}で勝ち越しで昇格`;
       if (promo.careerWins > 0) {
@@ -5493,7 +5648,7 @@
       const matchNum = promotionExam.wins + promotionExam.losses + 1;
       const totalMatches = promotionExam.winsNeeded + promotionExam.maxLosses - 1;
       statusEl.style.display = '';
-      statusEl.textContent = `⚔ 昇格試験 ${targetRank.icon}${targetRank.name} ─ 第${matchNum}試合（${promotionExam.wins}勝${promotionExam.losses}敗）`;
+      statusEl.textContent = `⚔ ランクアップマッチ ${targetRank.icon}${targetRank.name} ─ 第${matchNum}試合（${promotionExam.wins}勝${promotionExam.losses}敗）`;
     }
 
     document.getElementById('play-again-btn').addEventListener('click', () => {
