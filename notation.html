@@ -149,29 +149,38 @@ const ZONE_COLORS = {
   d:  { fill: '#1a5030', stroke: '#0e3820', text: '#c0ffd0' }
 };
 
-// 星型アウトライン
+// 六芒星アウトライン（正三角形2つ重ね）
 function drawStarOutline(svg) {
-  const tips = [];
-  const inners = [];
-  for (let i = 0; i < 6; i++) {
-    const tipAngle = -Math.PI / 2 + i * Math.PI / 3;
-    const innerAngle = tipAngle + Math.PI / 6;
-    const tipR = HEX_SIZE * 8.2;
-    const innerR = HEX_SIZE * 5.9;
-    tips.push([tipR * Math.cos(tipAngle), tipR * Math.sin(tipAngle)]);
-    inners.push([innerR * Math.cos(innerAngle), innerR * Math.sin(innerAngle)]);
+  const R = HEX_SIZE * 8.0; // 三角形の外接円半径
+  const NS = 'http://www.w3.org/2000/svg';
+
+  // 上向き三角形（Q, 4, 8 方向）
+  const tri1 = [];
+  for (let i = 0; i < 3; i++) {
+    const angle = -Math.PI / 2 + i * 2 * Math.PI / 3;
+    tri1.push(`${R * Math.cos(angle)},${R * Math.sin(angle)}`);
   }
-  let pts = '';
-  for (let i = 0; i < 6; i++) {
-    pts += `${tips[i][0]},${tips[i][1]} ${inners[i][0]},${inners[i][1]} `;
+  const p1 = document.createElementNS(NS, 'polygon');
+  p1.setAttribute('points', tri1.join(' '));
+  p1.setAttribute('fill', '#0e3820');
+  p1.setAttribute('stroke', '#082810');
+  p1.setAttribute('stroke-width', '3');
+  p1.setAttribute('opacity', '0.9');
+  svg.appendChild(p1);
+
+  // 下向き三角形（6, X, 2 方向）
+  const tri2 = [];
+  for (let i = 0; i < 3; i++) {
+    const angle = Math.PI / 2 + i * 2 * Math.PI / 3;
+    tri2.push(`${R * Math.cos(angle)},${R * Math.sin(angle)}`);
   }
-  const outline = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  outline.setAttribute('points', pts.trim());
-  outline.setAttribute('fill', '#0e3820');
-  outline.setAttribute('stroke', '#082810');
-  outline.setAttribute('stroke-width', '3');
-  outline.setAttribute('opacity', '0.9');
-  svg.appendChild(outline);
+  const p2 = document.createElementNS(NS, 'polygon');
+  p2.setAttribute('points', tri2.join(' '));
+  p2.setAttribute('fill', '#0e3820');
+  p2.setAttribute('stroke', '#082810');
+  p2.setAttribute('stroke-width', '3');
+  p2.setAttribute('opacity', '0.85');
+  svg.appendChild(p2);
 }
 
 // 時計ラベル（X, J, Q表記）

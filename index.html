@@ -6727,21 +6727,22 @@
         return pts.join(' ');
       }
 
-      // 星型アウトライン
-      let starPts = '';
-      for (let i = 0; i < 6; i++) {
-        const ta = -Math.PI / 2 + i * Math.PI / 3;
-        const ia = ta + Math.PI / 6;
-        starPts += `${HEX_SIZE*8.2*Math.cos(ta)},${HEX_SIZE*8.2*Math.sin(ta)} `;
-        starPts += `${HEX_SIZE*5.9*Math.cos(ia)},${HEX_SIZE*5.9*Math.sin(ia)} `;
+      // 六芒星アウトライン（正三角形2つ重ね）
+      const starR = HEX_SIZE * 8.0;
+      for (let t = 0; t < 2; t++) {
+        const triPts = [];
+        for (let i = 0; i < 3; i++) {
+          const angle = (t === 0 ? -Math.PI/2 : Math.PI/2) + i * 2 * Math.PI / 3;
+          triPts.push(`${starR*Math.cos(angle)},${starR*Math.sin(angle)}`);
+        }
+        const tri = document.createElementNS(NS, 'polygon');
+        tri.setAttribute('points', triPts.join(' '));
+        tri.setAttribute('fill', '#0e3820');
+        tri.setAttribute('stroke', '#082810');
+        tri.setAttribute('stroke-width', '3');
+        tri.setAttribute('opacity', t === 0 ? '0.9' : '0.85');
+        svg.appendChild(tri);
       }
-      const outline = document.createElementNS(NS, 'polygon');
-      outline.setAttribute('points', starPts.trim());
-      outline.setAttribute('fill', '#0e3820');
-      outline.setAttribute('stroke', '#082810');
-      outline.setAttribute('stroke-width', '3');
-      outline.setAttribute('opacity', '0.9');
-      svg.appendChild(outline);
 
       // 時計ラベル（X, J, Q表記）
       const clockLabels = ['Q','1','2','3','4','5','6','7','8','9','X','J'];
