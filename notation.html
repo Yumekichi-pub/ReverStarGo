@@ -156,8 +156,8 @@ function drawStarOutline(svg) {
   for (let i = 0; i < 6; i++) {
     const tipAngle = -Math.PI / 2 + i * Math.PI / 3;
     const innerAngle = tipAngle + Math.PI / 6;
-    const tipR = HEX_SIZE * 7.6;
-    const innerR = HEX_SIZE * 4.2;
+    const tipR = HEX_SIZE * 8.2;
+    const innerR = HEX_SIZE * 4.6;
     tips.push([tipR * Math.cos(tipAngle), tipR * Math.sin(tipAngle)]);
     inners.push([innerR * Math.cos(innerAngle), innerR * Math.sin(innerAngle)]);
   }

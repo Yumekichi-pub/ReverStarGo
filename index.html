@@ -6732,8 +6732,8 @@
       for (let i = 0; i < 6; i++) {
         const ta = -Math.PI / 2 + i * Math.PI / 3;
         const ia = ta + Math.PI / 6;
-        starPts += `${HEX_SIZE*7.6*Math.cos(ta)},${HEX_SIZE*7.6*Math.sin(ta)} `;
-        starPts += `${HEX_SIZE*4.2*Math.cos(ia)},${HEX_SIZE*4.2*Math.sin(ia)} `;
+        starPts += `${HEX_SIZE*8.2*Math.cos(ta)},${HEX_SIZE*8.2*Math.sin(ta)} `;
+        starPts += `${HEX_SIZE*4.6*Math.cos(ia)},${HEX_SIZE*4.6*Math.sin(ia)} `;
       }
       const outline = document.createElementNS(NS, 'polygon');
       outline.setAttribute('points', starPts.trim());
