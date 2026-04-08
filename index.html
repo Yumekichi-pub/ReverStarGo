@@ -874,10 +874,23 @@
       color: #fff8ee;
       border: none;
     }
-    #notation-close-btn {
+    #notation-close-btn, #notation-map-btn, #notation-map-close-btn {
       background: transparent;
       color: #c09020;
       border: 2px solid #c09020;
+    }
+    #notation-map-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 9100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .dark-theme #notation-map-modal .notation-modal-inner {
+      background: #2a2520;
     }
 
     /* 棋譜一覧ページ */
@@ -2874,7 +2887,20 @@
       <div id="notation-text-area"></div>
       <div class="notation-btn-row">
         <button class="notation-btn" id="notation-copy-btn" onclick="copyNotationText()">コピー</button>
+        <button class="notation-btn" id="notation-map-btn" onclick="showNotationMap()">表記法</button>
         <button class="notation-btn" id="notation-close-btn" onclick="closeNotationModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 棋譜表記法マップモーダル -->
+  <div id="notation-map-modal" style="display:none;">
+    <div class="notation-modal-inner" style="max-width:400px;max-height:90vh;">
+      <h3>棋譜表記法</h3>
+      <svg id="notation-map-svg" viewBox="-250 -280 500 560" style="width:100%;display:block;"></svg>
+      <div style="text-align:center;font-size:0.85rem;color:#9a7010;margin-top:4px;">X = 10　　J = 11　　Q = 12</div>
+      <div class="notation-btn-row">
+        <button class="notation-btn" id="notation-map-close-btn" onclick="closeNotationMap()">閉じる</button>
       </div>
     </div>
   </div>
@@ -6669,6 +6695,103 @@
 
     function closeNotationModal() {
       document.getElementById('notation-modal').style.display = 'none';
+    }
+
+    function showNotationMap() {
+      const modal = document.getElementById('notation-map-modal');
+      modal.style.display = 'flex';
+      const svg = document.getElementById('notation-map-svg');
+      if (svg.childNodes.length > 0) return; // 既に描画済み
+
+      const NS = 'http://www.w3.org/2000/svg';
+      // 色設定（内側=薄、外側=濃）
+      const zoneColors = {
+        cp: { fill: '#9b7fd0', stroke: '#7a5fb0', text: '#fff' },
+        a:  { fill: '#a8dbb8', stroke: '#80b890', text: '#1a4028' },
+        b:  { fill: '#5cad78', stroke: '#408a58', text: '#fff' },
+        c:  { fill: '#2d7a4a', stroke: '#1a5a35', text: '#e8ffe8' },
+        d:  { fill: '#1a5030', stroke: '#0e3820', text: '#c0ffd0' }
+      };
+
+      function getZone(label) {
+        if (label === 'CP') return 'cp';
+        return label[0].toLowerCase();
+      }
+
+      function hPts(cx, cy) {
+        const pts = [];
+        for (let i = 0; i < 6; i++) {
+          const a = Math.PI / 6 + i * Math.PI / 3;
+          pts.push(`${cx + HEX_SIZE * Math.cos(a)},${cy + HEX_SIZE * Math.sin(a)}`);
+        }
+        return pts.join(' ');
+      }
+
+      // 星型アウトライン
+      let starPts = '';
+      for (let i = 0; i < 6; i++) {
+        const ta = -Math.PI / 2 + i * Math.PI / 3;
+        const ia = ta + Math.PI / 6;
+        starPts += `${HEX_SIZE*7.6*Math.cos(ta)},${HEX_SIZE*7.6*Math.sin(ta)} `;
+        starPts += `${HEX_SIZE*4.2*Math.cos(ia)},${HEX_SIZE*4.2*Math.sin(ia)} `;
+      }
+      const outline = document.createElementNS(NS, 'polygon');
+      outline.setAttribute('points', starPts.trim());
+      outline.setAttribute('fill', '#0e3820');
+      outline.setAttribute('stroke', '#082810');
+      outline.setAttribute('stroke-width', '3');
+      outline.setAttribute('opacity', '0.9');
+      svg.appendChild(outline);
+
+      // 時計ラベル（X, J, Q表記）
+      const clockLabels = ['Q','1','2','3','4','5','6','7','8','9','X','J'];
+      for (let h = 0; h < 12; h++) {
+        const isTip = (h % 2 === 0);
+        const angle = -Math.PI / 2 + h * Math.PI / 6;
+        const r = isTip ? HEX_SIZE * 8.6 : HEX_SIZE * 5.4;
+        const t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', r * Math.cos(angle));
+        t.setAttribute('y', r * Math.sin(angle));
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('dominant-baseline', 'middle');
+        t.setAttribute('font-size', '13');
+        t.setAttribute('font-weight', 'bold');
+        t.setAttribute('fill', '#a09060');
+        t.textContent = clockLabels[h];
+        svg.appendChild(t);
+      }
+
+      // セル描画
+      for (const [q, r2, s] of ALL_CELLS) {
+        const [cx, cy] = cellToPixel(q, r2);
+        const key = K(q, r2, s);
+        const label = CELL_LABELS[key] || '?';
+        const zone = getZone(label);
+        const colors = zoneColors[zone];
+
+        const poly = document.createElementNS(NS, 'polygon');
+        poly.setAttribute('points', hPts(cx, cy));
+        poly.setAttribute('fill', colors.fill);
+        poly.setAttribute('stroke', colors.stroke);
+        poly.setAttribute('stroke-width', '1.5');
+        svg.appendChild(poly);
+
+        const text = document.createElementNS(NS, 'text');
+        text.setAttribute('x', cx);
+        text.setAttribute('y', cy + 1);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'middle');
+        text.setAttribute('font-size', label === 'CP' ? '16' : '15');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('fill', colors.text);
+        if (label === 'CP') text.setAttribute('letter-spacing', '2');
+        text.textContent = label;
+        svg.appendChild(text);
+      }
+    }
+
+    function closeNotationMap() {
+      document.getElementById('notation-map-modal').style.display = 'none';
     }
 
     function showToast(msg) {
