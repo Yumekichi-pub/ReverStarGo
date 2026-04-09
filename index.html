@@ -2441,7 +2441,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version" onclick="handleDevTap()" style="cursor:default;-webkit-tap-highlight-color:transparent;user-select:none;">RSG-v12</p>
+    <p class="app-version">RSG-v12</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2572,7 +2572,7 @@
     <h1 class="page-title">👤 アカウント</h1>
     <div class="setup-section name-section">
       <h2>プレイヤー名</h2>
-      <input type="text" id="player-name-input" maxlength="7" placeholder="名前（7文字以内）" autocomplete="off">
+      <input type="text" id="player-name-input" maxlength="8" placeholder="名前（7文字以内）" autocomplete="off">
       <div id="account-rank-display"></div>
     </div>
     <div class="setup-section">
@@ -5143,9 +5143,17 @@
       const wTotal = wCount + captured.white;
       let msg;
       let soundType = 'draw';
+      // 同点の場合は囲んで取った石の数で勝敗を決める
+      let tiebreakWinner = null;
+      if (bTotal === wTotal) {
+        if (captured.black > captured.white) tiebreakWinner = 'black';
+        else if (captured.white > captured.black) tiebreakWinner = 'white';
+      }
       if (battleMode === 'two') {
         if (bTotal > wTotal) { sessionWins.black++; msg = `⚫黒の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; }
         else if (wTotal > bTotal) { sessionWins.white++; msg = `⚪白の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; }
+        else if (tiebreakWinner === 'black') { sessionWins.black++; msg = `⚫黒の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; }
+        else if (tiebreakWinner === 'white') { sessionWins.white++; msg = `⚪白の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; }
         else { sessionWins.draw++; msg = `引き分け (黒${bTotal} vs 白${wTotal})`; }
       } else {
         const blackLabel = humanColor === 'black' ? getPlayerName() : 'CPU';
@@ -5158,6 +5166,11 @@
           sessionWins.white++;
           msg = `${whiteLabel}の勝ち！ (黒${bTotal} vs 白${wTotal})`;
           soundType = humanColor === 'white' ? 'win' : 'lose';
+        } else if (tiebreakWinner) {
+          const winnerLabel = tiebreakWinner === 'black' ? blackLabel : whiteLabel;
+          if (tiebreakWinner === 'black') sessionWins.black++; else sessionWins.white++;
+          msg = `${winnerLabel}の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`;
+          soundType = humanColor === tiebreakWinner ? 'win' : 'lose';
         } else { sessionWins.draw++; msg = `引き分け (黒${bTotal} vs 白${wTotal})`; }
         // 戦績を保存
         if (!tutorialMiniGame) {
@@ -5818,24 +5831,15 @@
     // ===== 開発者メニュー =====
     let devMode = false;
     let devOverrideRank = null;
-    let devTapCount = 0;
-    let devTapTimer = null;
-
-    function handleDevTap() {
-      devTapCount++;
-      clearTimeout(devTapTimer);
-      devTapTimer = setTimeout(() => { devTapCount = 0; }, 3000);
-      if (devTapCount >= 3) {
-        devTapCount = 0;
-        document.getElementById('dev-menu').style.display = 'flex';
-        if (!devMode) {
-          const currentRank = calculateRank();
-          devMode = true;
-          devOverrideRank = currentRank;
-        }
-        document.getElementById('dev-mode-toggle-btn').textContent = '🟢 開発者モード ON';
-        document.getElementById('dev-mode-indicator').style.display = '';
+    function activateDevMode() {
+      document.getElementById('dev-menu').style.display = 'flex';
+      if (!devMode) {
+        const currentRank = calculateRank();
+        devMode = true;
+        devOverrideRank = currentRank;
       }
+      document.getElementById('dev-mode-toggle-btn').textContent = '🟢 開発者モード ON';
+      document.getElementById('dev-mode-indicator').style.display = '';
     }
 
 
@@ -6678,9 +6682,12 @@
       }
       const bTotal = bCount + captured.black;
       const wTotal = wCount + captured.white;
-      const result = bTotal > wTotal ? (humanColor === 'black' ? '勝利' : '敗北')
-                   : wTotal > bTotal ? (humanColor === 'white' ? '勝利' : '敗北')
-                   : '引き分け';
+      let result;
+      if (bTotal > wTotal) { result = humanColor === 'black' ? '勝利' : '敗北'; }
+      else if (wTotal > bTotal) { result = humanColor === 'white' ? '勝利' : '敗北'; }
+      else if (captured.black > captured.white) { result = humanColor === 'black' ? '勝利' : '敗北'; }
+      else if (captured.white > captured.black) { result = humanColor === 'white' ? '勝利' : '敗北'; }
+      else { result = '引き分け'; }
 
       let opponent;
       if (battleMode === 'two') {
@@ -6890,14 +6897,24 @@
       const bTotal = bCount + captured.black;
       const wTotal = wCount + captured.white;
       let result;
+      // 同点の場合は囲んで取った石の数で勝敗を決める
+      let kifuTiebreaker = null;
+      if (bTotal === wTotal) {
+        if (captured.black > captured.white) kifuTiebreaker = 'black';
+        else if (captured.white > captured.black) kifuTiebreaker = 'white';
+      }
       if (battleMode === 'two') {
-        result = bTotal > wTotal ? 'black-win' : wTotal > bTotal ? 'white-win' : 'draw';
+        result = bTotal > wTotal ? 'black-win' : wTotal > bTotal ? 'white-win' : kifuTiebreaker ? kifuTiebreaker + '-win' : 'draw';
       } else {
-        result = bTotal > wTotal
-          ? (humanColor === 'black' ? 'win' : 'lose')
-          : wTotal > bTotal
-            ? (humanColor === 'white' ? 'win' : 'lose')
-            : 'draw';
+        if (bTotal > wTotal) {
+          result = humanColor === 'black' ? 'win' : 'lose';
+        } else if (wTotal > bTotal) {
+          result = humanColor === 'white' ? 'win' : 'lose';
+        } else if (kifuTiebreaker) {
+          result = humanColor === kifuTiebreaker ? 'win' : 'lose';
+        } else {
+          result = 'draw';
+        }
       }
 
       // コンパクトなmoveHistory（保存用）
@@ -7149,6 +7166,14 @@
     document.getElementById('player-name-input').addEventListener('input', function() {
       playerName = this.value.trim().slice(0, 7);
       saveSettings();
+      // 開発者モード起動
+      if (this.value === 'devstarG') {
+        activateDevMode();
+        this.value = '';
+        playerName = '';
+        saveSettings();
+        updatePlayerNameDisplay();
+      }
     });
   </script>
 
