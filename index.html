@@ -824,6 +824,7 @@
       max-width: 360px;
       width: 100%;
       max-height: 80vh;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -947,6 +948,28 @@
     .kifu-item .kifu-win { color: #d4a020; }
     .kifu-item .kifu-lose { color: #888; }
     .kifu-item .kifu-draw { color: #6a9; }
+    .kifu-item-memo {
+      font-size: 0.8rem;
+      color: #b0a060;
+    }
+    .kifu-item-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .kifu-notation-btn {
+      background: transparent;
+      border: 1px solid #a9a060;
+      color: #a9a060;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .kifu-notation-btn:hover {
+      background: rgba(169,160,96,0.15);
+    }
     .kifu-delete-btn {
       background: transparent;
       border: 1px solid #c88;
@@ -2441,7 +2464,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v12</p>
+    <p class="app-version">RSG-v13</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2898,10 +2921,22 @@
 
   <!-- 棋譜表記法マップモーダル -->
   <div id="notation-map-modal" style="display:none;">
-    <div class="notation-modal-inner" style="max-width:400px;max-height:90vh;">
+    <div class="notation-modal-inner" style="max-width:400px;max-height:90vh;overflow-y:auto;">
       <h3>棋譜表記法</h3>
       <svg id="notation-map-svg" viewBox="-255 -250 510 500" style="width:100%;max-width:100%;display:block;"></svg>
       <div style="text-align:center;font-size:0.85rem;color:#9a7010;margin-top:4px;">X = 10　　J = 11　　Q = 12</div>
+      <div style="text-align:left;font-size:0.82rem;color:#8a7a50;margin-top:12px;padding:12px;background:rgba(0,0,0,0.15);border-radius:8px;line-height:1.8;">
+        <div style="font-weight:bold;color:#9a7010;margin-bottom:4px;">読み方の例</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">●B1[W] +1</span> → 黒がB1に置き、CPを白でコール、1個取った</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">○C4[B]</span> → 白がC4に置き、CPを黒でコール</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">●A3 +2</span> → 黒がA3に置き、2個囲み取り</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">○B7</span> → 白がB7に置いた（コール・取りなし）</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">●--</span> → 黒がパス</div>
+        <div style="margin-top:8px;font-size:0.78rem;color:#7a6a40;">● = 黒　○ = 白　+N = N個囲み取り</div>
+        <div style="font-size:0.78rem;color:#7a6a40;">[B] = CPを黒でコール　[W] = CPを白でコール</div>
+        <div style="font-size:0.78rem;color:#7a6a40;">※ CPを使って石を挟む手の場合にコールが記録されます</div>
+        <div style="margin-top:8px;font-size:0.78rem;color:#7a6a40;">※ 棋譜は最大30件まで保存できます</div>
+      </div>
       <div class="notation-btn-row">
         <button class="notation-btn" id="notation-map-close-btn" onclick="closeNotationMap()">閉じる</button>
       </div>
@@ -6929,6 +6964,8 @@
         cw: m.capturedAfter.white
       }));
 
+      const memo = prompt('メモを入力（省略可）', '') || '';
+
       const record = {
         id: Date.now(),
         date: new Date().toISOString(),
@@ -6940,7 +6977,9 @@
         bTotal: bTotal,
         wTotal: wTotal,
         moveCount: moveHistory.filter(m => m.type === 'move').length,
-        moves: compactMoves
+        moves: compactMoves,
+        memo: memo.trim().slice(0, 20),
+        notation: generateNotationText()
       };
 
       const games = loadSavedGames();
@@ -6982,13 +7021,17 @@
           : game.cpuLevel >= 6 ? LEVEL_NAMES[game.cpuLevel-1] : `Lv.${game.cpuLevel}`;
         const colorIcon = game.humanColor === 'black' ? '●' : '○';
 
-        html += `<div class="kifu-item" onclick="startReplay(${idx})">`;
-        html += `<div class="kifu-item-info">`;
+        html += `<div class="kifu-item">`;
+        html += `<div class="kifu-item-info" onclick="startReplay(${idx})">`;
         html += `<span class="kifu-item-date">${dateStr}</span>`;
         html += `<span class="kifu-item-result ${resultClass}">${colorIcon} vs ${lvName}  ${resultText}</span>`;
         html += `<span class="kifu-item-detail">黒${game.bTotal} - 白${game.wTotal}（${game.moveCount}手）</span>`;
+        if (game.memo) html += `<span class="kifu-item-memo">📝 ${game.memo}</span>`;
         html += `</div>`;
+        html += `<div class="kifu-item-buttons">`;
+        html += `<button class="kifu-notation-btn" onclick="event.stopPropagation(); showSavedNotation(${idx})">棋譜</button>`;
         html += `<button class="kifu-delete-btn" onclick="event.stopPropagation(); deleteKifu(${idx})">削除</button>`;
+        html += `</div>`;
         html += `</div>`;
       });
 
@@ -7001,6 +7044,16 @@
       games.splice(idx, 1);
       saveSavedGames(games);
       renderKifuList();
+    }
+
+    function showSavedNotation(idx) {
+      const games = loadSavedGames();
+      const game = games[idx];
+      if (!game) return;
+      let text = game.notation || '（棋譜テキストは保存されていません）';
+      if (game.memo) text = '📝 ' + game.memo + '\n\n' + text;
+      document.getElementById('notation-text-area').textContent = text;
+      document.getElementById('notation-modal').style.display = 'flex';
     }
 
     // Phase 3: リプレイ機能
