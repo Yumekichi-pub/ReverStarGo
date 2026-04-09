@@ -2709,7 +2709,7 @@
   <!-- ヘッダー：タイトル -->
   <header id="header">
     <div class="header-title-row">
-      <img src="logo.jpg" alt="ReverStarGo リバースターゴ" class="logo-img" id="header-logo">
+      <img src="logo.png" alt="ReverStarGo リバースターゴ" class="logo-img" id="header-logo">
       <button id="help-btn" title="ルール説明">？</button>
     </div>
   </header>
@@ -3649,7 +3649,7 @@
       container.innerHTML = '';
 
       const img = document.createElement('img');
-      img.src = `trophy_${month}.png`;
+      img.src = `trophy/${month}.jpg`;
       img.alt = `${monthNames[month-1]}トロフィー`;
 
       const label = document.createElement('div');
@@ -3695,7 +3695,7 @@
           div.className = 'trophy-item' + (complete ? '' : ' locked');
 
           const img = document.createElement('img');
-          img.src = `trophy_${m}.png`;
+          img.src = `trophy/${m}.jpg`;
           img.alt = `${monthNames[m-1]}トロフィー`;
 
           const label = document.createElement('div');
@@ -3717,7 +3717,7 @@
         yearDiv.style.textAlign = 'center';
 
         const yearImg = document.createElement('img');
-        yearImg.src = `trophy_${year}.png`;
+        yearImg.src = `trophy/${year}.jpg`;
         yearImg.alt = `${year}年間トロフィー`;
         yearImg.style.width = '120px';
         yearImg.style.maxWidth = '120px';
