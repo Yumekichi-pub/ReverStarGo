@@ -8,12 +8,12 @@
   <meta property="og:title" content="ReverStarGo | リバースターゴ">
   <meta property="og:description" content="リバーシ×囲碁×星型ボードの新感覚ボードゲーム。コンピューターと対局しよう！">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://reverstargo.surge.sh">
-  <meta property="og:image" content="https://reverstargo.surge.sh/ogp.jpg">
+  <meta property="og:url" content="https://play.reverstargo.com">
+  <meta property="og:image" content="https://play.reverstargo.com/ogp.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://reverstargo.surge.sh/ogp.jpg">
+  <meta name="twitter:image" content="https://play.reverstargo.com/ogp.jpg">
   <meta name="twitter:title" content="ReverStarGo | リバースターゴ">
   <meta name="twitter:description" content="リバーシ×囲碁×星型ボードの新感覚ボードゲーム。コンピューターと対局しよう！">
   <link rel="icon" type="image/png" href="favicon.png">
@@ -47,6 +47,7 @@
       min-height: 100vh;
       padding: 16px;
       gap: 12px;
+      overscroll-behavior-y: contain;
     }
 
     /* ===== ヘッダー ===== */
@@ -2440,7 +2441,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version" onclick="handleDevTap()" style="cursor:default;-webkit-tap-highlight-color:transparent;user-select:none;">RSG-v11</p>
+    <p class="app-version" onclick="handleDevTap()" style="cursor:default;-webkit-tap-highlight-color:transparent;user-select:none;">RSG-v12</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -3768,6 +3769,16 @@
 
     // ===== ページナビゲーション =====
     function showPage(page) {
+      // ランクアップマッチ中に他の画面へ移動しようとした場合の警告
+      if (promotionExam && page !== 'game-setup') {
+        const targetRank = RANKS[promotionExam.targetRank];
+        const matchLabel = getMatchLabel(promotionExam.winsNeeded);
+        if (!confirm(`⚔ ランクアップマッチ（${targetRank.icon} ${targetRank.name} ${matchLabel}）が進行中です。\n\n移動すると不合格になりますが、よろしいですか？`)) {
+          return; // キャンセル → 移動しない
+        }
+        // 不合格として処理
+        clearPromotionExam();
+      }
       document.getElementById('setup-main').style.display = 'none';
       document.getElementById('setup-game').style.display = 'none';
       document.getElementById('setup-custom').style.display = 'none';
@@ -5960,6 +5971,10 @@
         const dailyRec = loadDailyRecord();
         dailyRec[lvKey].lose++;
         saveDailyRecord(dailyRec);
+        // ランクアップマッチ中なら1敗として記録
+        if (promotionExam) {
+          recordPromotionResult(false);
+        }
       }
       backToSetupPage();
     }
@@ -5980,6 +5995,9 @@
       if (isDailySetup) {
         isDailySetup = false;
         showPage('daily');
+      } else if (promotionExam) {
+        // ランクアップマッチ中はゲーム設定画面に直接戻す
+        showPage('game-setup');
       } else {
         document.getElementById('setup-main').style.display = 'flex';
         updateRankDisplay();
@@ -7122,6 +7140,10 @@
     updatePlayerNameDisplay();
     updateRankDisplay();
     updateLevelButtons();
+    // ランクアップマッチ中ならゲーム設定画面に自動復帰
+    if (promotionExam) {
+      showPage('game-setup');
+    }
 
     // アカウントページでプレイヤー名変更時に即時保存
     document.getElementById('player-name-input').addEventListener('input', function() {
