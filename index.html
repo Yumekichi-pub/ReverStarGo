@@ -2485,7 +2485,7 @@
 
   <!-- カスタム設定ページ -->
   <div id="setup-custom" class="setup-page dark-theme" style="display:none;">
-    <h1 class="page-title" onclick="handleDevTap()">⚙ カスタム設定</h1>
+    <h1 class="page-title" id="custom-settings-title" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">⚙ カスタム設定</h1>
     <div class="custom-section">
 
       <div class="custom-row">
@@ -5826,6 +5826,18 @@
         document.getElementById('dev-mode-indicator').style.display = '';
       }
     }
+
+    // モバイル対応: touchendイベントで確実にタップ検知
+    document.addEventListener('DOMContentLoaded', () => {
+      const devTapTarget = document.getElementById('custom-settings-title');
+      if (devTapTarget) {
+        devTapTarget.addEventListener('click', handleDevTap);
+        devTapTarget.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          handleDevTap();
+        });
+      }
+    });
 
     function toggleDevMode() {
       if (!devMode) {
