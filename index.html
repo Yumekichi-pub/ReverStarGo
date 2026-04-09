@@ -2440,7 +2440,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v09</p>
+    <p class="app-version" onclick="handleDevTap()" style="cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;">RSG-v10</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2677,7 +2677,7 @@
 
   <!-- 棋譜一覧ページ -->
   <div id="setup-kifu" class="setup-page dark-theme" style="display:none;">
-    <h1 class="page-title" ontouchend="handleDevTap()" onclick="handleDevTap()" style="cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;">📋 棋譜一覧</h1>
+    <h1 class="page-title">📋 棋譜一覧</h1>
     <div id="kifu-list-container" class="kifu-list"></div>
     <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
   </div>
@@ -5811,7 +5811,6 @@
     let devTapTimer = null;
 
     function handleDevTap() {
-      alert('タップ検知: ' + (devTapCount + 1));
       devTapCount++;
       clearTimeout(devTapTimer);
       devTapTimer = setTimeout(() => { devTapCount = 0; }, 3000);
