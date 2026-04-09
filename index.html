@@ -2440,7 +2440,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version" onclick="handleDevTap()" style="cursor:default;-webkit-tap-highlight-color:transparent;user-select:none;">RSG-v10</p>
+    <p class="app-version" onclick="handleDevTap()" style="cursor:default;-webkit-tap-highlight-color:transparent;user-select:none;">RSG-v11</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2984,7 +2984,7 @@
   <script>
     // ===== Service Worker登録 =====
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
+      navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
     }
 
     // ===== 定数 =====
