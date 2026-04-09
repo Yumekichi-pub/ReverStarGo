@@ -2440,7 +2440,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v08</p>
+    <p class="app-version">RSG-v09</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5811,6 +5811,7 @@
     let devTapTimer = null;
 
     function handleDevTap() {
+      alert('タップ検知: ' + (devTapCount + 1));
       devTapCount++;
       clearTimeout(devTapTimer);
       devTapTimer = setTimeout(() => { devTapCount = 0; }, 3000);
