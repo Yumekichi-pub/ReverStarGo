@@ -353,22 +353,20 @@
 
     /* ===== C.P.コールモーダル ===== */
     #gp-modal {
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
       background: #fff8ee;
       border: 2px solid #c09020;
       border-radius: 16px;
-      padding: 16px 28px;
+      padding: 12px 20px;
       text-align: center;
-      z-index: 200;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 8px;
       box-shadow: 0 0 40px rgba(240,192,64,0.4);
-      white-space: nowrap;
+    }
+    #gp-modal .gp-btn-row {
+      display: flex;
+      gap: 16px;
     }
 
     /* ===== 石の取り除きアニメーション ===== */
@@ -2854,11 +2852,6 @@
   </div>
 
   <!-- C.P.コール選択（ゴールデンポイント） -->
-  <div id="gp-modal" style="display:none;">
-    <p>C.P.をどちらにコールしますか？</p>
-    <button id="gp-black">黒</button>
-    <button id="gp-white">白</button>
-  </div>
 
   <!-- パス確認モーダル -->
   <div id="pass-modal" style="display:none;">
@@ -2876,6 +2869,13 @@
   <!-- 昇格試験進捗 -->
   <div id="promotion-game-status" style="display:none;"></div>
 
+  <div id="gp-modal" style="display:none;">
+    <p>C.P.をどちらにコールしますか？</p>
+    <div class="gp-btn-row">
+      <button id="gp-black">黒</button>
+      <button id="gp-white">白</button>
+    </div>
+  </div>
   <footer id="controls">
     <button id="restart-btn">設定に戻る</button>
     <button id="undo-btn" disabled>1手戻る</button>
@@ -5122,6 +5122,7 @@
       if (!undoSnapshot || isAnimating || undoUsed) return;
       document.getElementById('turn-modal').style.display = 'none';
       document.getElementById('gp-modal').style.display = 'none';
+      document.getElementById('controls').style.display = '';
       board           = { ...undoSnapshot.board };
       captured        = { ...undoSnapshot.captured };
       current         = undoSnapshot.current;
@@ -5663,6 +5664,7 @@
         lastMove = null; // 相手の前の手のマーカーを消す
         render([]);
         document.getElementById('gp-modal').style.display = 'flex';
+        document.getElementById('controls').style.display = 'none';
       } else {
         executeMove(q,r,s, bestGPColor(q,r,s,current));
       }
@@ -5722,6 +5724,7 @@
       document.getElementById('pass-modal').style.display = 'none';
       document.getElementById('turn-modal').style.display = 'none';
       document.getElementById('gp-modal').style.display = 'none';
+      document.getElementById('controls').style.display = '';
       updateTodayRecordDisplay();
       updatePromotionGameStatus();
       updateGame();
@@ -6138,6 +6141,7 @@
 
     document.getElementById('gp-black').addEventListener('click', async () => {
       document.getElementById('gp-modal').style.display = 'none';
+      document.getElementById('controls').style.display = '';
       if (pendingMove) {
         let tutFlipCount = 0;
         if (isTutorial) {
@@ -6150,6 +6154,7 @@
 
     document.getElementById('gp-white').addEventListener('click', async () => {
       document.getElementById('gp-modal').style.display = 'none';
+      document.getElementById('controls').style.display = '';
       if (pendingMove) {
         let tutFlipCount = 0;
         if (isTutorial) {
@@ -6500,6 +6505,7 @@
         // Step 5: CPコール → GPモーダルを表示
         pendingMove = [q, r, s];
         document.getElementById('gp-modal').style.display = 'flex';
+        document.getElementById('controls').style.display = 'none';
       }
     }
 
