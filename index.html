@@ -3131,8 +3131,8 @@
       { name: 'アークマスター', icon: 'icon/26.png', condition: 'FINALに累計10勝' },   // 25
       { name: 'オーバーロード', icon: 'icon/27.png', condition: 'FINALに累計30勝' },   // 26
       { name: 'デミゴッド', icon: 'icon/28.png', condition: 'FINALに累計50勝' },       // 27
-      { name: 'ゴッド', icon: 'icon/29.png', condition: '連続11番勝負で勝ち越し' },     // 28
-      { name: 'ゼウス', icon: 'icon/30.png', condition: '連続21番勝負で勝ち越し' },    // 29
+      { name: 'ゴッド', icon: 'icon/29.png', condition: '11番勝負で勝ち越し' },     // 28
+      { name: 'ゼウス', icon: 'icon/30.png', condition: '21番勝負で勝ち越し' },    // 29
     ];
 
     function rankIcon(idx, size) {
@@ -3207,13 +3207,13 @@
       const passed = (r) => hasPassedPromotion(r);
 
       // Check from highest rank down
-      // Rank 30: ゼウス - 連続21番勝負で勝ち越し（昇格試験）
+      // Rank 30: ゼウス - 21番勝負で勝ち越し（昇格試験）
       if (passed(28)) return 29;
-      // Rank 29: ゴッド - 連続21番勝負で勝ち越し（昇格試験）
+      // Rank 29: ゴッド - 21番勝負で勝ち越し（昇格試験）
       if (passed(27)) return 28;
-      // 30. ゼウス - 連続21番勝負で勝ち越し
+      // 30. ゼウス - 21番勝負で勝ち越し
       if (passed(29)) return 29;
-      // 29. ゴッド - 連続11番勝負で勝ち越し
+      // 29. ゴッド - 11番勝負で勝ち越し
       if (passed(28)) return 28;
       // 28. デミゴッド - FINALに累計50勝
       if (getWins(7) >= 50) return 27;
@@ -3293,8 +3293,8 @@
       18: { level: 5, winsNeeded: 4, maxLosses: 4, label: 'MAX 解放', careerWins: 20 },    // ダイヤモンド（7番勝負）
       23: { level: 6, winsNeeded: 4, maxLosses: 4, label: 'レジェンド', careerWins: 0 },    // レジェンド（7番勝負）
       24: { level: 6, winsNeeded: 8, maxLosses: 8, label: 'グランドマスター', careerWins: 0 }, // グランドマスター（15番勝負）
-      28: { level: 7, winsNeeded: 6, maxLosses: 6, label: 'ゴッド', careerWins: 0 },        // ゴッド（連続11番勝負）
-      29: { level: 7, winsNeeded: 11, maxLosses: 11, label: 'ゼウス', careerWins: 0 },      // ゼウス（連続21番勝負）
+      28: { level: 7, winsNeeded: 6, maxLosses: 6, label: 'ゴッド', careerWins: 0 },        // ゴッド（11番勝負）
+      29: { level: 7, winsNeeded: 11, maxLosses: 11, label: 'ゼウス', careerWins: 0 },      // ゼウス（21番勝負）
     };
 
     // 合格済みの昇格試験を読み込み/保存
