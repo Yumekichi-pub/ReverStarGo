@@ -531,6 +531,12 @@
       font-weight: bold;
     }
 
+    #gp-modal button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      text-decoration: line-through;
+    }
+
     #gp-black {
       background: #333;
       color: #fff;
@@ -2456,7 +2462,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v18</p>
+    <p class="app-version">RSG-v19</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2864,6 +2870,7 @@
       <button id="gp-black">黒</button>
       <button id="gp-white">白</button>
     </div>
+    <p id="gp-ko-note" style="display:none;font-size:0.78rem;color:#b03020;margin-top:6px;"></p>
   </div>
   <div id="pass-modal" style="display:none;">
     <p>置ける場所がありません</p>
@@ -4726,12 +4733,32 @@
       return snapshot;
     }
 
+    // CPコールを考慮してコウにならない手かチェック
+    // 戻り値: 非コウのCPコール色の配列 ['black', 'white', null 等]
+    //   - 空配列 → どのコールでもコウになる（コウ手）
+    //   - 非空 → この手は合法（その色でコールすれば非コウ）
+    function getNonKoGPColors(q, r, s, player) {
+      if (!prevBoardSnapshot) return ['black', 'white', null];
+      const needsCall = needsGPCall(q, r, s, player);
+      if (!needsCall) {
+        // コール不要 → 自動色で判定
+        const gp = bestGPColor(q, r, s, player);
+        const snap = simulateFinalSnapshot(q, r, s, player, gp);
+        return snap !== prevBoardSnapshot ? [gp] : [];
+      }
+      // コール必要 → 黒・白それぞれを検証
+      const result = [];
+      const snapB = simulateFinalSnapshot(q, r, s, player, 'black');
+      const snapW = simulateFinalSnapshot(q, r, s, player, 'white');
+      if (snapB !== prevBoardSnapshot) result.push('black');
+      if (snapW !== prevBoardSnapshot) result.push('white');
+      return result;
+    }
+
     // コウ手を除外する（全手がコウなら例外的に全て許可）
     function filterKoMoves(moves, player) {
       if (!prevBoardSnapshot || moves.length === 0) return moves;
-      const nonKo = moves.filter(([q,r,s]) =>
-        simulateMoveSnapshot(q, r, s, player) !== prevBoardSnapshot
-      );
+      const nonKo = moves.filter(([q,r,s]) => getNonKoGPColors(q, r, s, player).length > 0);
       return nonKo.length > 0 ? nonKo : moves; // 全手がコウなら例外許可
     }
 
@@ -5008,15 +5035,29 @@
       try {
         const chosen = cpuChooseMove(validMoves, current);
         const [q, r, s] = chosen || validMoves[0]; // フォールバック
-        const gp = bestGPColor(q, r, s, current);
+        const gp = pickNonKoGPColor(q, r, s, current);
         await executeMove(q, r, s, gp);
       } catch(e) {
         console.error('CPU手選択エラー:', e);
         // エラー時はランダムな有効手でフォールバック
         const [q, r, s] = validMoves[Math.floor(Math.random() * validMoves.length)];
-        const gp = bestGPColor(q, r, s, current);
+        const gp = pickNonKoGPColor(q, r, s, current);
         await executeMove(q, r, s, gp);
       }
+    }
+
+    // CPUのCPコール色選択（コウにならない色を優先）
+    function pickNonKoGPColor(q, r, s, player) {
+      const defaultColor = bestGPColor(q, r, s, player);
+      if (!prevBoardSnapshot) return defaultColor;
+      if (!needsGPCall(q, r, s, player)) return defaultColor;
+      const nonKo = getNonKoGPColors(q, r, s, player);
+      // 両方コウ（例外ルールで許可） → 通常の最適色
+      if (nonKo.length === 0) return defaultColor;
+      // デフォルト色が非コウに含まれていればそれを使用
+      if (nonKo.includes(defaultColor)) return defaultColor;
+      // そうでなければ非コウの色を選ぶ
+      return nonKo[0];
     }
 
     // パス表示（人間もCPUも同じモーダルで確認）
@@ -5676,6 +5717,30 @@
         pendingMoveMarker = [q,r,s];
         lastMove = null; // 相手の前の手のマーカーを消す
         render([]);
+        // コウになるCPコール色を無効化
+        const nonKoColors = getNonKoGPColors(q, r, s, current);
+        const gpBlack = document.getElementById('gp-black');
+        const gpWhite = document.getElementById('gp-white');
+        const gpNote = document.getElementById('gp-ko-note');
+        // 例外: 両方ともコウ → 両方有効（コウ例外ルール）
+        const bothKo = nonKoColors.length === 0;
+        const blackAllowed = bothKo || nonKoColors.includes('black');
+        const whiteAllowed = bothKo || nonKoColors.includes('white');
+        gpBlack.disabled = !blackAllowed;
+        gpWhite.disabled = !whiteAllowed;
+        gpBlack.title = blackAllowed ? '' : 'コウのため選択できません';
+        gpWhite.title = whiteAllowed ? '' : 'コウのため選択できません';
+        if (gpNote) {
+          if (!blackAllowed && whiteAllowed) {
+            gpNote.textContent = '※ 黒コールはコウのため選択できません';
+            gpNote.style.display = '';
+          } else if (!whiteAllowed && blackAllowed) {
+            gpNote.textContent = '※ 白コールはコウのため選択できません';
+            gpNote.style.display = '';
+          } else {
+            gpNote.style.display = 'none';
+          }
+        }
         document.getElementById('gp-modal').style.display = 'flex';
         document.getElementById('controls').style.display = 'none';
       } else {
