@@ -2462,7 +2462,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v19</p>
+    <p class="app-version">RSG-v20</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5323,6 +5323,7 @@
           const newRank = calculateRank();
           if (newRank > prevRank || promotionPassed) {
             const rankToShow = Math.max(newRank, prevRank + 1);
+            lastRankUpPrev = prevRank; // レベル解放判定のため更新前の値を保持
             setTimeout(() => {
               showRankUpModal(rankToShow);
             }, 1800);
@@ -5809,6 +5810,7 @@
     }
 
     let lastRankUpIndex = 0; // ランクアップ時のランクindexを保持
+    let lastRankUpPrev = 0;  // ランクアップ前のランクindexを保持（レベル解放判定用）
 
     function showRankUpModal(rankIdx) {
       lastRankUpIndex = rankIdx;
@@ -5900,9 +5902,10 @@
     // ===== レベル解放演出 =====
     function checkLevelUnlock(rankIdx) {
       // どのレベルが新しく解放されたかチェック（ランクを飛び越えた場合も対応）
+      // 注: prevRank は既に更新済みのため、lastRankUpPrev（更新前の値）と比較する
       let highestUnlock = 0;
       for (let lv = 2; lv <= 7; lv++) {
-        if (LEVEL_UNLOCK_RANK[lv] <= rankIdx && LEVEL_UNLOCK_RANK[lv] > prevRank) {
+        if (LEVEL_UNLOCK_RANK[lv] <= rankIdx && LEVEL_UNLOCK_RANK[lv] > lastRankUpPrev) {
           highestUnlock = lv;
         }
       }
