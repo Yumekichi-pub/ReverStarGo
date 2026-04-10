@@ -2456,7 +2456,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v16</p>
+    <p class="app-version">RSG-v17</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -3371,14 +3371,20 @@
       if (!promo) return;
       // devMode: 現在選択中のレベルで試験を受けられる
       const examLevel = devMode ? cpuLevel : promo.level;
-      promotionExam = {
-        targetRank: promo.targetRank,
-        level: examLevel,
-        wins: 0,
-        losses: 0,
-        winsNeeded: promo.winsNeeded,
-        maxLosses: promo.maxLosses,
-      };
+      // 進行中の試験があり、同じ対象ランクなら継続（勝敗数を保持）
+      const existing = loadPromotionExam();
+      if (existing && existing.targetRank === promo.targetRank) {
+        promotionExam = { ...existing, level: examLevel };
+      } else {
+        promotionExam = {
+          targetRank: promo.targetRank,
+          level: examLevel,
+          wins: 0,
+          losses: 0,
+          winsNeeded: promo.winsNeeded,
+          maxLosses: promo.maxLosses,
+        };
+      }
       savePromotionExam(promotionExam);
       // レベルと対戦モードを設定して開始
       cpuLevel = examLevel;
@@ -5230,10 +5236,11 @@
             dailyChallengeDate = null;
           }
           // devMode: 通常勝利でランク+1（昇格試験中は除く）
+          // 次の昇格試験ランクの1つ手前まで進める（昇格試験は別途挑戦）
           if (devMode && devOverrideRank !== null && soundType === 'win' && !promotionExam) {
             const examRanks = [3, 6, 9, 13, 18, 23, 24, 28, 29];
             const cap = examRanks.find(r => r > devOverrideRank && !hasPassedPromotion(r));
-            const maxRank = cap !== undefined ? cap : 24;
+            const maxRank = cap !== undefined ? cap - 1 : 29;
             if (devOverrideRank < maxRank) {
               devOverrideRank++;
             }
@@ -5246,10 +5253,10 @@
             if (promoResult) {
               if (promoResult.passed) {
                 promotionPassed = true;
-                // devMode: 昇格試験合格でランクを試験ランクの次へ
+                // devMode: 昇格試験合格でランクを試験ランクへ
                 if (devMode && devOverrideRank !== null) {
-                  devOverrideRank = promoResult.exam.targetRank + 1;
-                  if (devOverrideRank > 24) devOverrideRank = 24;
+                  devOverrideRank = promoResult.exam.targetRank;
+                  if (devOverrideRank > 29) devOverrideRank = 29;
                 }
                 if (promoResult.careerPass) {
                   msg += `\n\n🎉 通算${promoResult.career.wins}勝達成！\nランクアップマッチ 合格！`;
@@ -5286,10 +5293,17 @@
       }
       playSound(soundType);
       document.getElementById('result-text').textContent = msg;
+      // もう一度ボタンのラベル（ランクアップマッチ中は「次の試合へ」）
+      const playAgainBtn = document.getElementById('play-again-btn');
+      if (promotionExam) {
+        playAgainBtn.textContent = '次の試合へ ▶';
+      } else {
+        playAgainBtn.textContent = 'もう一度';
+      }
       if (tutorialMiniGame) {
         document.getElementById('result-text').textContent =
           msg + '\n\nチュートリアル完了！\nおめでとうございます！\nReverStarGoの基本ルールを\nマスターしました。\n次は本番ゲームに挑戦してみましょう！';
-        document.getElementById('play-again-btn').textContent = '本番ゲームへ';
+        playAgainBtn.textContent = '本番ゲームへ';
       }
       // デイリーチャレンジの場合は「デイリーへ戻る」ボタンを表示
       document.getElementById('back-to-daily-btn').style.display = isDailySetup ? '' : 'none';
@@ -5913,39 +5927,47 @@
 
     function devResetAll() {
       if (confirm('全データをリセットしますか？')) {
-        localStorage.removeItem('reverstargo-battle-record');
-        localStorage.removeItem('reverstargo-daily-record');
-        localStorage.removeItem('reverstargo-promotions');
-        localStorage.removeItem('reverstargo-promotion-exam');
-        localStorage.removeItem('reverstargo-promotion-career');
-        localStorage.removeItem('reverstargo-daily-complete');
+        localStorage.removeItem(BATTLE_RECORD_KEY);
+        localStorage.removeItem(DAILY_RECORD_KEY);
+        localStorage.removeItem(PROMOTION_KEY);
+        localStorage.removeItem(PROMOTION_EXAM_KEY);
+        localStorage.removeItem(PROMOTION_CAREER_KEY);
+        localStorage.removeItem(DAILY_KEY);
+        // devOverrideRank と進行中の試験もリセット
+        promotionExam = null;
+        if (devMode) devOverrideRank = 0;
         closeDevMenu();
         updateRankDisplay();
         updateLevelButtons();
+        updateTodayRecordDisplay();
+        if (typeof updatePromotionSection === 'function') updatePromotionSection();
         alert('全データをリセットしました');
       }
     }
 
     function devResetBattle() {
       if (confirm('戦績をリセットしますか？')) {
-        localStorage.removeItem('reverstargo-battle-record');
-        localStorage.removeItem('reverstargo-daily-record');
+        localStorage.removeItem(BATTLE_RECORD_KEY);
+        localStorage.removeItem(DAILY_RECORD_KEY);
+        if (devMode) devOverrideRank = 0;
         closeDevMenu();
         updateRankDisplay();
         updateLevelButtons();
+        updateTodayRecordDisplay();
         alert('戦績をリセットしました');
       }
     }
 
     function devResetPromotions() {
       if (confirm('ランクアップマッチの記録をリセットしますか？')) {
-        localStorage.removeItem('reverstargo-promotions');
-        localStorage.removeItem('reverstargo-promotion-exam');
-        localStorage.removeItem('reverstargo-promotion-career');
+        localStorage.removeItem(PROMOTION_KEY);
+        localStorage.removeItem(PROMOTION_EXAM_KEY);
+        localStorage.removeItem(PROMOTION_CAREER_KEY);
         promotionExam = null;
         closeDevMenu();
         updateRankDisplay();
         updateLevelButtons();
+        if (typeof updatePromotionSection === 'function') updatePromotionSection();
         alert('ランクアップマッチをリセットしました');
       }
     }
@@ -5964,7 +5986,7 @@
 
     function devResetDaily() {
       if (confirm('デイリー記録をリセットしますか？')) {
-        localStorage.removeItem('reverstargo-daily-complete');
+        localStorage.removeItem(DAILY_KEY);
         closeDevMenu();
         alert('デイリー記録をリセットしました');
       }
@@ -5999,6 +6021,11 @@
         backToSetupPage();
         return;
       }
+      // 開発者モード中は警告なしでそのまま戻る（負け記録もしない）
+      if (devMode) {
+        backToSetupPage();
+        return;
+      }
       // ゲーム中は確認ポップアップを表示（対戦モードでメッセージ切り替え）
       const quitMsg = document.querySelector('.quit-confirm-inner p');
       if (battleMode === 'two') {
@@ -6011,8 +6038,8 @@
 
     function confirmQuit() {
       document.getElementById('quit-confirm').style.display = 'none';
-      // 負けとして記録（CPU対戦・チュートリアル以外）
-      if (battleMode === 'cpu' && !isTutorial && !tutorialMiniGame) {
+      // 負けとして記録（CPU対戦・チュートリアル以外、開発者モード以外）
+      if (battleMode === 'cpu' && !isTutorial && !tutorialMiniGame && !devMode) {
         const record = loadBattleRecord();
         const lvKey = String(cpuLevel);
         record[lvKey].lose++;
