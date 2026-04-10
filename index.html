@@ -2456,7 +2456,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v17</p>
+    <p class="app-version">RSG-v18</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -3357,9 +3357,7 @@
       const examRanks = [3, 6, 9, 13, 18, 23, 24, 28, 29];
       for (const targetRank of examRanks) {
         if (hasPassedPromotion(targetRank)) continue; // 合格済み
-        // devMode: ランク条件を無視して次の未合格試験を返す
-        if (devMode) return { targetRank, ...PROMOTION_EXAMS[targetRank] };
-        // 受験資格: 一つ手前のランクに到達している
+        // 受験資格: 一つ手前のランクに到達している（devMode も同じ条件）
         if (rank >= targetRank - 1) return { targetRank, ...PROMOTION_EXAMS[targetRank] };
       }
       return null;
