@@ -463,22 +463,16 @@
     }
 
     #pass-modal {
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
       background: #fff8ee;
       border: 2px solid #c09020;
       border-radius: 16px;
-      padding: 16px 28px;
+      padding: 12px 20px;
       text-align: center;
-      z-index: 200;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 8px;
       box-shadow: 0 0 40px rgba(240,192,64,0.4);
-      white-space: nowrap;
     }
 
     /* ===== 2人対戦ターン交代オーバーレイ ===== */
@@ -2462,7 +2456,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v14</p>
+    <p class="app-version">RSG-v15</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2701,6 +2695,7 @@
   <div id="setup-kifu" class="setup-page dark-theme" style="display:none;">
     <h1 class="page-title">📋 棋譜一覧</h1>
     <div id="kifu-list-container" class="kifu-list"></div>
+    <button class="nav-back-btn" onclick="showPage('game-setup')">対戦へ戻る</button>
     <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
   </div>
 
@@ -2853,12 +2848,6 @@
 
   <!-- C.P.コール選択（ゴールデンポイント） -->
 
-  <!-- パス確認モーダル -->
-  <div id="pass-modal" style="display:none;">
-    <p>置ける場所がありません</p>
-    <button id="pass-ok">パスする</button>
-  </div>
-
   <!-- 2人対戦ターン交代オーバーレイ -->
   <div id="turn-modal" style="display:none;">
     <p id="turn-modal-msg">次は⚫黒の番です。</p>
@@ -2876,8 +2865,12 @@
       <button id="gp-white">白</button>
     </div>
   </div>
+  <div id="pass-modal" style="display:none;">
+    <p>置ける場所がありません</p>
+    <button id="pass-ok">パスする</button>
+  </div>
   <footer id="controls">
-    <button id="restart-btn">設定に戻る</button>
+    <button id="restart-btn">ゲーム設定に戻る</button>
     <button id="undo-btn" disabled>1手戻る</button>
   </footer>
 
@@ -2898,8 +2891,8 @@
     <button id="play-again-btn">もう一度</button>
     <button id="back-to-daily-btn" style="display:none;" onclick="backToDaily()">📅 デイリーへ戻る</button>
     <div class="result-btn-row" id="kifu-btn-row">
-      <button class="result-sub-btn" id="copy-notation-btn" onclick="copyNotation()">📋 棋譜コピー</button>
-      <button class="result-sub-btn" id="save-game-btn" onclick="saveGameRecord()">⭐ 保存</button>
+      <button class="result-sub-btn" id="save-game-btn" onclick="saveGameRecord()">⭐ 棋譜の保存</button>
+      <button class="result-sub-btn" id="goto-kifu-btn" style="display:none;" onclick="document.getElementById('result-modal').style.display='none';showPage('kifu')">📋 棋譜一覧へ</button>
     </div>
   </div>
 
@@ -5024,8 +5017,10 @@
         pm.querySelector('p').textContent = message;
         document.getElementById('pass-ok').textContent = 'OK';
         pm.style.display = 'flex';
+        document.getElementById('controls').style.display = 'none';
         const handler = () => {
           pm.style.display = 'none';
+          document.getElementById('controls').style.display = '';
           document.getElementById('pass-ok').removeEventListener('click', handler);
           resolve();
         };
@@ -5295,8 +5290,9 @@
       document.getElementById('back-to-daily-btn').style.display = isDailySetup ? '' : 'none';
       // 棋譜ボタン表示（チュートリアル以外）
       document.getElementById('kifu-btn-row').style.display = tutorialMiniGame ? 'none' : 'flex';
-      document.getElementById('save-game-btn').textContent = '⭐ 保存';
+      document.getElementById('save-game-btn').textContent = '⭐ 棋譜の保存';
       document.getElementById('save-game-btn').disabled = false;
+      document.getElementById('goto-kifu-btn').style.display = 'none';
       document.getElementById('result-modal').style.display = 'flex';
       if (!tutorialMiniGame) updateSessionScore();
     }
@@ -5739,6 +5735,7 @@
       document.getElementById('rankup-name').textContent = `ランク${rankIdx + 1}：${rank.name}`;
       document.getElementById('rankup-condition').textContent = rank.condition;
       document.getElementById('rankup-modal').style.display = 'flex';
+      launchFireworks(4000);
     }
 
     // ===== 花火アニメーション =====
@@ -6041,9 +6038,7 @@
         // ランクアップマッチ中はゲーム設定画面に直接戻す
         showPage('game-setup');
       } else {
-        document.getElementById('setup-main').style.display = 'flex';
-        updateRankDisplay();
-        updateLevelButtons();
+        showPage('game-setup');
       }
     }
 
@@ -6258,7 +6253,7 @@
       // 次へボタンのラベル
       const nextBtn = document.getElementById('tutorial-next-btn');
       if (tutorialStep === TUTORIAL_STEPS.length - 1) {
-        nextBtn.textContent = '設定に戻る';
+        nextBtn.textContent = 'ゲーム設定に戻る';
       } else {
         nextBtn.textContent = '次へ';
       }
@@ -6997,6 +6992,7 @@
       const btn = document.getElementById('save-game-btn');
       btn.textContent = '⭐ 保存済み';
       btn.disabled = true;
+      document.getElementById('goto-kifu-btn').style.display = '';
       showToast('棋譜を保存しました！');
     }
 
