@@ -2456,7 +2456,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v15</p>
+    <p class="app-version">RSG-v16</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -3103,37 +3103,42 @@
 
     // ===== プレイヤーランクシステム =====
     const RANKS = [
-      { name: 'ペーパー', icon: '📄', condition: '初期ランク' },              // 0  🔓Lv.1
-      { name: 'レザー', icon: '👝', condition: 'Lv.1に初勝利' },             // 1
-      { name: 'ウッド', icon: '🪵', condition: 'Lv.1に累計3勝' },            // 2
-      { name: 'ストーン', icon: '🪨', condition: '3番勝負で勝ち越し' },       // 3  🔓Lv.2
-      { name: 'アイアン', icon: '⚙️', condition: 'Lv.2に累計5勝' },          // 4
-      { name: 'スチール', icon: '⚔️', condition: 'Lv.2に累計10勝' },         // 5
-      { name: 'ブロンズ', icon: '🟤', condition: '5番勝負で勝ち越し' },       // 6  🔓Lv.3
-      { name: 'シルバー', icon: '⚪', condition: 'Lv.3に累計5勝' },          // 7
-      { name: 'ゴールド', icon: '🟡', condition: 'Lv.3に累計10勝' },         // 8
-      { name: 'プラチナ', icon: '💠', condition: '7番勝負で勝ち越し' },       // 9  🔓Lv.4
-      { name: 'ターコイズ', icon: '🩵', condition: 'Lv.4に累計2勝' },        // 10
-      { name: 'アクアマリン', icon: '💧', condition: 'Lv.4に累計5勝' },       // 11
-      { name: 'ガーネット', icon: '🔴', condition: 'Lv.4に累計10勝' },       // 12
-      { name: 'トパーズ', icon: '💛', condition: '7番勝負で勝ち越し' },       // 13 🔓Lv.5
-      { name: 'アメジスト', icon: '💜', condition: 'Lv.5に累計2勝' },        // 14
-      { name: 'ルビー', icon: '❤️', condition: 'Lv.5に累計5勝' },           // 15
-      { name: 'サファイア', icon: '💙', condition: 'Lv.5に累計10勝' },       // 16
-      { name: 'エメラルド', icon: '💚', condition: 'Lv.5に累計20勝' },       // 17
-      { name: 'ダイヤモンド', icon: '💎', condition: '7番勝負で勝ち越し' },   // 18 🔓MAX
-      { name: 'スペシャリスト', icon: '✨', condition: 'MAXに累計2勝' },      // 19
-      { name: 'エキスパート', icon: '🛡️', condition: 'MAXに累計5勝' },       // 20
-      { name: 'チャンピオン', icon: '⚜️', condition: 'MAXに累計10勝' },      // 21
-      { name: 'マスター', icon: '🌟', condition: 'MAXに累計20勝' },          // 22
-      { name: 'レジェンド', icon: '🔱', condition: '7番勝負で勝ち越し' },     // 23
-      { name: 'グランドマスター', icon: '👑', condition: '15番勝負で勝ち越し' }, // 24 🔓FINAL
-      { name: 'アークマスター', icon: '🌀', condition: 'FINALに累計10勝' },   // 25
-      { name: 'オーバーロード', icon: '👁️', condition: 'FINALに累計30勝' },   // 26
-      { name: 'デミゴッド', icon: '🔥', condition: 'FINALに累計50勝' },       // 27
-      { name: 'ゴッド', icon: '⚡', condition: '連続11番勝負で勝ち越し' },     // 28
-      { name: 'ゼウス', icon: '🏛️', condition: '連続21番勝負で勝ち越し' },    // 29
+      { name: 'ペーパー', icon: 'icon/1.png', condition: '初期ランク' },              // 0  🔓Lv.1
+      { name: 'レザー', icon: 'icon/2.png', condition: 'Lv.1に初勝利' },             // 1
+      { name: 'ウッド', icon: 'icon/3.png', condition: 'Lv.1に累計3勝' },            // 2
+      { name: 'ストーン', icon: 'icon/4.png', condition: '3番勝負で勝ち越し' },       // 3  🔓Lv.2
+      { name: 'アイアン', icon: 'icon/5.png', condition: 'Lv.2に累計5勝' },          // 4
+      { name: 'スチール', icon: 'icon/6.png', condition: 'Lv.2に累計10勝' },         // 5
+      { name: 'ブロンズ', icon: 'icon/7.png', condition: '5番勝負で勝ち越し' },       // 6  🔓Lv.3
+      { name: 'シルバー', icon: 'icon/8.png', condition: 'Lv.3に累計5勝' },          // 7
+      { name: 'ゴールド', icon: 'icon/9.png', condition: 'Lv.3に累計10勝' },         // 8
+      { name: 'プラチナ', icon: 'icon/10.png', condition: '7番勝負で勝ち越し' },       // 9  🔓Lv.4
+      { name: 'ターコイズ', icon: 'icon/11.png', condition: 'Lv.4に累計2勝' },        // 10
+      { name: 'アクアマリン', icon: 'icon/12.png', condition: 'Lv.4に累計5勝' },       // 11
+      { name: 'ガーネット', icon: 'icon/13.png', condition: 'Lv.4に累計10勝' },       // 12
+      { name: 'トパーズ', icon: 'icon/14.png', condition: '7番勝負で勝ち越し' },       // 13 🔓Lv.5
+      { name: 'アメジスト', icon: 'icon/15.png', condition: 'Lv.5に累計2勝' },        // 14
+      { name: 'ルビー', icon: 'icon/16.png', condition: 'Lv.5に累計5勝' },           // 15
+      { name: 'サファイア', icon: 'icon/17.png', condition: 'Lv.5に累計10勝' },       // 16
+      { name: 'エメラルド', icon: 'icon/18.png', condition: 'Lv.5に累計20勝' },       // 17
+      { name: 'ダイヤモンド', icon: 'icon/19.png', condition: '7番勝負で勝ち越し' },   // 18 🔓MAX
+      { name: 'スペシャリスト', icon: 'icon/20.png', condition: 'MAXに累計2勝' },      // 19
+      { name: 'エキスパート', icon: 'icon/21.png', condition: 'MAXに累計5勝' },       // 20
+      { name: 'チャンピオン', icon: 'icon/22.png', condition: 'MAXに累計10勝' },      // 21
+      { name: 'マスター', icon: 'icon/23.png', condition: 'MAXに累計20勝' },          // 22
+      { name: 'レジェンド', icon: 'icon/24.png', condition: '7番勝負で勝ち越し' },     // 23
+      { name: 'グランドマスター', icon: 'icon/25.png', condition: '15番勝負で勝ち越し' }, // 24 🔓FINAL
+      { name: 'アークマスター', icon: 'icon/26.png', condition: 'FINALに累計10勝' },   // 25
+      { name: 'オーバーロード', icon: 'icon/27.png', condition: 'FINALに累計30勝' },   // 26
+      { name: 'デミゴッド', icon: 'icon/28.png', condition: 'FINALに累計50勝' },       // 27
+      { name: 'ゴッド', icon: 'icon/29.png', condition: '連続11番勝負で勝ち越し' },     // 28
+      { name: 'ゼウス', icon: 'icon/30.png', condition: '連続21番勝負で勝ち越し' },    // 29
     ];
+
+    function rankIcon(idx, size) {
+      size = size || 20;
+      return `<img src="${RANKS[idx].icon}" alt="${RANKS[idx].name}" style="width:${size}px;height:${size}px;vertical-align:middle;">`;
+    }
 
     function calculateRank() {
       const record = loadBattleRecord();  // 累計
@@ -3270,7 +3275,7 @@
 
     function getRankDisplay() {
       const idx = calculateRank();
-      return `${RANKS[idx].icon} ${RANKS[idx].name}`;
+      return `${rankIcon(idx)} ${RANKS[idx].name}`;
     }
 
     // ===== 昇格試験システム =====
@@ -3437,7 +3442,7 @@
 
     function getLevelUnlockHint(level) {
       const requiredRank = LEVEL_UNLOCK_RANK[level];
-      return `${RANKS[requiredRank].icon} ${RANKS[requiredRank].name}（ランク${requiredRank + 1}）で解放`;
+      return `${rankIcon(requiredRank)} ${RANKS[requiredRank].name}（ランク${requiredRank + 1}）で解放`;
     }
 
     function loadBattleRecord() {
@@ -3801,7 +3806,7 @@
       if (promotionExam && page !== 'game-setup') {
         const targetRank = RANKS[promotionExam.targetRank];
         const matchLabel = getMatchLabel(promotionExam.winsNeeded);
-        if (!confirm(`⚔ ランクアップマッチ（${targetRank.icon} ${targetRank.name} ${matchLabel}）が進行中です。\n\n移動すると不合格になりますが、よろしいですか？`)) {
+        if (!confirm(`⚔ ランクアップマッチ（${targetRank.name} ${matchLabel}）が進行中です。\n\n移動すると不合格になりますが、よろしいですか？`)) {
           return; // キャンセル → 移動しない
         }
         // 不合格として処理
@@ -3887,7 +3892,7 @@
       const el = document.getElementById('player-rank-display');
       if (el) {
         const idx = calculateRank();
-        el.innerHTML = `${RANKS[idx].icon} ランク${idx + 1}：${RANKS[idx].name}`;
+        el.innerHTML = `${rankIcon(idx, 28)} ランク${idx + 1}：${RANKS[idx].name}`;
       }
     }
 
@@ -3895,7 +3900,7 @@
       const el = document.getElementById('account-rank-display');
       if (el) {
         const idx = calculateRank();
-        el.innerHTML = `${RANKS[idx].icon} ランク${idx + 1}：${RANKS[idx].name}`;
+        el.innerHTML = `${rankIcon(idx, 28)} ランク${idx + 1}：${RANKS[idx].name}`;
       }
     }
 
@@ -3922,7 +3927,7 @@
         const clickAttr = devMode ? ` onclick="devSetRank(${i})"` : '';
         const cursorStyle = devMode ? ' style="cursor:pointer;"' : '';
         html += `<tr${cls}${clickAttr}${cursorStyle}>`;
-        html += `<td>${RANKS[i].icon}</td>`;
+        html += `<td>${rankIcon(i, 24)}</td>`;
         html += `<td>${i + 1}. ${RANKS[i].name}</td>`;
         html += `<td>${RANKS[i].condition}</td>`;
         html += `<td>${unlockLabel}</td>`;
@@ -5709,9 +5714,9 @@
         document.getElementById('white-role').textContent = '';
         document.getElementById('level-badge').style.display = 'none';
       } else {
-        const rankIcon = RANKS[calculateRank()].icon;
-        document.getElementById('black-role').textContent = humanColor === 'black' ? `${rankIcon} ${getPlayerName()}` : 'CPU';
-        document.getElementById('white-role').textContent = humanColor === 'white' ? `${rankIcon} ${getPlayerName()}` : 'CPU';
+        const rIdx = calculateRank();
+        document.getElementById('black-role').innerHTML = humanColor === 'black' ? `${rankIcon(rIdx, 18)} ${getPlayerName()}` : 'CPU';
+        document.getElementById('white-role').innerHTML = humanColor === 'white' ? `${rankIcon(rIdx, 18)} ${getPlayerName()}` : 'CPU';
         document.getElementById('level-badge').style.display = '';
         document.getElementById('level-badge').textContent = cpuLevel >= 6 ? LEVEL_NAMES[cpuLevel-1] : `Lv.${cpuLevel}`;
       }
@@ -5731,7 +5736,7 @@
     function showRankUpModal(rankIdx) {
       lastRankUpIndex = rankIdx;
       const rank = RANKS[rankIdx];
-      document.getElementById('rankup-icon').textContent = rank.icon;
+      document.getElementById('rankup-icon').innerHTML = rankIcon(rankIdx, 48);
       document.getElementById('rankup-name').textContent = `ランク${rankIdx + 1}：${rank.name}`;
       document.getElementById('rankup-condition').textContent = rank.condition;
       document.getElementById('rankup-modal').style.display = 'flex';
@@ -5969,7 +5974,7 @@
       const targetRank = RANKS[promo.targetRank];
       const matchLabel = getMatchLabel(promo.winsNeeded);
       document.getElementById('promo-announce-title').textContent = `🎉 ${promo.label}への挑戦権を獲得！`;
-      document.getElementById('promo-announce-desc').textContent = `${targetRank.icon} ${targetRank.name} ランクアップマッチ（${matchLabel}）に挑戦できます！\nゲーム設定画面から開始できます。`;
+      document.getElementById('promo-announce-desc').textContent = `${targetRank.name} ランクアップマッチ（${matchLabel}）に挑戦できます！\nゲーム設定画面から開始できます。`;
       document.getElementById('promo-announce-help').style.display = 'none';
       document.getElementById('promo-announce-modal').style.display = 'flex';
     }
@@ -5994,7 +5999,13 @@
         backToSetupPage();
         return;
       }
-      // ゲーム中は確認ポップアップを表示
+      // ゲーム中は確認ポップアップを表示（対戦モードでメッセージ切り替え）
+      const quitMsg = document.querySelector('.quit-confirm-inner p');
+      if (battleMode === 'two') {
+        quitMsg.innerHTML = '⚠ 対戦を中止しますか？';
+      } else {
+        quitMsg.innerHTML = '⚠ ゲームを中断すると<br><strong>負け</strong>になります。<br>よろしいですか？';
+      }
       document.getElementById('quit-confirm').style.display = 'flex';
     });
 
@@ -6056,7 +6067,7 @@
       section.style.display = '';
       const targetRank = RANKS[promo.targetRank];
       const matchLabel = getMatchLabel(promo.winsNeeded);
-      document.getElementById('promotion-title').textContent = `⚔ ランクアップマッチ → ${targetRank.icon} ${targetRank.name}`;
+      document.getElementById('promotion-title').innerHTML = `⚔ ランクアップマッチ → ${rankIcon(promo.targetRank, 22)} ${targetRank.name}`;
 
       let descText = `${matchLabel}で勝ち越しで昇格`;
       if (promo.careerWins > 0) {
@@ -6105,7 +6116,7 @@
       const matchLabel = getMatchLabel(promotionExam.winsNeeded);
       statusEl.style.display = '';
       const colorMark = humanColor === 'black' ? '●黒' : '○白';
-      statusEl.textContent = `⚔ ランクアップマッチ ${targetRank.icon}${targetRank.name}（${matchLabel}）\n第${matchNum}試合 ${colorMark}（${promotionExam.wins}勝${promotionExam.losses}敗）`;
+      statusEl.innerHTML = `⚔ ランクアップマッチ ${rankIcon(promotionExam.targetRank, 18)}${targetRank.name}（${matchLabel}）<br>第${matchNum}試合 ${colorMark}（${promotionExam.wins}勝${promotionExam.losses}敗）`;
     }
 
     document.getElementById('play-again-btn').addEventListener('click', () => {

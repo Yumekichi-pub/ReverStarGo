@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reverstargo-v15';
+const CACHE_NAME = 'reverstargo-v16';
 const ASSETS = [
   '/',
   '/index.html',
@@ -23,7 +23,37 @@ const ASSETS = [
   '/trophy/2027.jpg',
   '/trophy/2028.jpg',
   '/trophy/2029.jpg',
-  '/trophy/2030.jpg'
+  '/trophy/2030.jpg',
+  '/icon/1.png',
+  '/icon/2.png',
+  '/icon/3.png',
+  '/icon/4.png',
+  '/icon/5.png',
+  '/icon/6.png',
+  '/icon/7.png',
+  '/icon/8.png',
+  '/icon/9.png',
+  '/icon/10.png',
+  '/icon/11.png',
+  '/icon/12.png',
+  '/icon/13.png',
+  '/icon/14.png',
+  '/icon/15.png',
+  '/icon/16.png',
+  '/icon/17.png',
+  '/icon/18.png',
+  '/icon/19.png',
+  '/icon/20.png',
+  '/icon/21.png',
+  '/icon/22.png',
+  '/icon/23.png',
+  '/icon/24.png',
+  '/icon/25.png',
+  '/icon/26.png',
+  '/icon/27.png',
+  '/icon/28.png',
+  '/icon/29.png',
+  '/icon/30.png'
 ];
 
 self.addEventListener('install', event => {
