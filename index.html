@@ -2462,7 +2462,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v20</p>
+    <p class="app-version">RSG-v21</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2630,6 +2630,7 @@
     <div class="setup-section rules-section">
       <h2>⭕ 囲んで取る</h2>
       <p>リバーシにはない特別なルールです。自分の石で相手の石を<strong>完全に囲む</strong>と、その石を盤面から取り除けます。取った石の数がポイントに加算されます。取り除かれたマスには再び石を置けます。</p>
+      <p>ただし、<strong>すでに前から囲まれていた相手の石</strong>は、その囲みと関係のない別の手では取れません。あくまで<strong>自分のその手によって新しく完成した囲み</strong>だけが、相手の石を取る対象になります。</p>
     </div>
 
     <div class="setup-section rules-section">
@@ -2806,6 +2807,7 @@
           <p><strong>① 石の置き方</strong><br>必ず相手の石を挟める場所にしか置くことができません。置く場所がない場合はパスとなります。</p>
           <p><strong>② ひっくり返す</strong><br>挟んだ相手の石はすべてひっくり返し、自分の石にします。</p>
           <p><strong>③ 囲んで取る</strong><br>自分の石で相手の石を完全に囲むと、その石を取り、取った数が自分のポイントになります。取られたマスには再び石を置くことができます。<br>ただし、囲碁とは異なり、盤面の端（壁）を使って囲んでも石を取ることはできません。必ず自分の石だけで完全に囲む必要があります。</p>
+          <p><strong>④ 既存の囲みは保護される</strong><br>すでに前から囲まれていた相手の石は、その囲みと関係のない別の手では取ることができません。あくまで「自分のその手によって新しく完成した囲み」だけが、相手の石を取る対象になります。</p>
         </div>
 
         <div class="rules-section">
@@ -2835,6 +2837,31 @@
           <p><strong>② 例外</strong><br>その手以外に置ける場所が全くない場合のみ、同じ盤面に戻る手でも打つことができます。</p>
           <p><strong>③ 例外後のルール</strong><br>例外が適用された場合、今度は相手が同じ盤面に戻す手をすぐに打つことはできません。</p>
           <p><strong>④ ゲーム終了</strong><br>両者とも同じ盤面に戻る手しか打てない状態が続く場合、ゲーム終了とし、その時点での合計ポイントで勝敗を決します。</p>
+        </div>
+
+        <div class="rules-section">
+          <h3>8. ランクアップマッチ</h3>
+          <p>⚔ 次のレベルのCPUを解放するための特別な連戦です。デイリーチャレンジとは別に挑戦できます。</p>
+          <p><strong>① 発生タイミング</strong><br>特定のランクに到達すると、次の昇格ランクへの挑戦権が自動的に発生します。</p>
+          <ul>
+            <li>ウッド → <strong>3番勝負</strong>（先に2勝）→ ストーンに昇格、<strong>Lv.2</strong>解放</li>
+            <li>スチール → <strong>5番勝負</strong>（先に3勝）→ ブロンズに昇格、<strong>Lv.3</strong>解放</li>
+            <li>ゴールド → <strong>7番勝負</strong>（先に4勝）→ プラチナに昇格、<strong>Lv.4</strong>解放</li>
+            <li>ガーネット → <strong>7番勝負</strong>（先に4勝）→ トパーズに昇格、<strong>Lv.5</strong>解放</li>
+            <li>エメラルド → <strong>7番勝負</strong>（先に4勝）→ ダイヤモンドに昇格、<strong>MAX（Lv.6）</strong>解放</li>
+            <li>マスター → <strong>7番勝負</strong>（先に4勝）→ レジェンドに昇格</li>
+            <li>レジェンド → <strong>15番勝負</strong>（先に8勝）→ グランドマスターに昇格、<strong>FINAL（Lv.7）</strong>解放</li>
+            <li>デミゴッド → <strong>11番勝負</strong>（先に6勝）→ ゴッドに昇格</li>
+            <li>ゴッド → <strong>21番勝負</strong>（先に11勝）→ ゼウスに昇格</li>
+          </ul>
+          <p><strong>② 基本ルール</strong></p>
+          <ul>
+            <li>必ず連続で全試合を戦い抜く必要があります</li>
+            <li>途中で他の画面に移動すると不合格になります</li>
+            <li>白黒は1試合ごとに自動で交代します</li>
+            <li>ブロンズからダイヤモンドまでは、通算20勝の累計勝利要件もあります</li>
+          </ul>
+          <p><strong>③ 不合格でも大丈夫</strong><br>不合格になっても何度でも再挑戦できます。納得できるまで挑戦してください。</p>
         </div>
 
       </div>
@@ -3004,11 +3031,23 @@
       <p class="promo-announce-desc" id="promo-announce-desc"></p>
       <div class="promo-announce-help" id="promo-announce-help" style="display:none;">
         <p><strong>ランクアップマッチとは？</strong></p>
-        <p>次のレベルを解放するための特別な連戦です。</p>
-        <p>🟤 ブロンズ：5番勝負（先に3勝で合格）</p>
-        <p>💠 プラチナ以降：7番勝負（先に4勝で合格）</p>
-        <p>デイリーチャレンジとは別に行います。</p>
-        <p>不合格でも何度でも再挑戦できます！</p>
+        <p>次のランク（および新しいレベル）を解放するための特別な連戦です。デイリーチャレンジとは別に挑戦できます。</p>
+        <p><strong>昇格戦の一覧</strong></p>
+        <p>🪵 ウッド → ストーン：<strong>3番勝負</strong>（先に2勝）／Lv.2 解放</p>
+        <p>⚙ スチール → ブロンズ：<strong>5番勝負</strong>（先に3勝）／Lv.3 解放</p>
+        <p>🥇 ゴールド → プラチナ：<strong>7番勝負</strong>（先に4勝）／Lv.4 解放</p>
+        <p>🔴 ガーネット → トパーズ：<strong>7番勝負</strong>（先に4勝）／Lv.5 解放</p>
+        <p>🟢 エメラルド → ダイヤモンド：<strong>7番勝負</strong>（先に4勝）／MAX（Lv.6）解放</p>
+        <p>🎓 マスター → レジェンド：<strong>7番勝負</strong>（先に4勝）</p>
+        <p>👑 レジェンド → グランドマスター：<strong>15番勝負</strong>（先に8勝）／FINAL（Lv.7）解放</p>
+        <p>✨ デミゴッド → ゴッド：<strong>11番勝負</strong>（先に6勝）</p>
+        <p>⚡ ゴッド → ゼウス：<strong>21番勝負</strong>（先に11勝）</p>
+        <p><strong>基本ルール</strong></p>
+        <p>・必ず連続で全試合を戦い抜く必要があります</p>
+        <p>・途中で他の画面に移動すると不合格になります</p>
+        <p>・白黒は1試合ごとに自動で交代します</p>
+        <p>・ブロンズからダイヤモンドまでは、通算20勝の累計勝利要件もあります</p>
+        <p>不合格でも何度でも再挑戦できますので、納得できるまで挑戦してください！</p>
       </div>
       <div style="display:flex; gap:12px; justify-content:center; align-items:center;">
         <button class="promo-announce-ok-btn" id="promo-announce-ok-btn">OK</button>
@@ -3106,7 +3145,7 @@
 
     // ===== 戦績保存（localStorage） =====
     const BATTLE_RECORD_KEY = 'reverstargo-battle-record';
-    const LEVEL_NAMES = ['初級','中級','上級','強敵','達人','MAX','FINAL'];
+    const LEVEL_NAMES = ['入門','初級','中級','上級','強敵','MAX','FINAL'];
 
     // ===== プレイヤーランクシステム =====
     const RANKS = [
@@ -3214,10 +3253,6 @@
       const passed = (r) => hasPassedPromotion(r);
 
       // Check from highest rank down
-      // Rank 30: ゼウス - 21番勝負で勝ち越し（昇格試験）
-      if (passed(28)) return 29;
-      // Rank 29: ゴッド - 21番勝負で勝ち越し（昇格試験）
-      if (passed(27)) return 28;
       // 30. ゼウス - 21番勝負で勝ち越し
       if (passed(29)) return 29;
       // 29. ゴッド - 11番勝負で勝ち越し
@@ -4349,6 +4384,8 @@
       const saved = new Map();
       const save = (k) => { if (!saved.has(k)) saved.set(k, board[k]); };
 
+      // Rule 4: 既存囲み保護用に手を打つ前のボード状態を保存
+      const preBoardSnap = snapshotBoardForCapture();
       // 石を置く前にCPが既に囲まれていたか記録
       const gpWasAlreadySurrounded = DIRS.every(([dq,dr,ds]) => board[K(dq,dr,ds)] === player);
 
@@ -4371,11 +4408,9 @@
         board[gpK] = opp(player);
       }
 
-      const groups = findCaptureGroups(player);
-      // 既に囲まれていたCPのキャプチャは除外
-      const result = groups.flat()
-        .filter(([cq,cr,cs]) => !(cq === 0 && cr === 0 && cs === 0 && gpWasAlreadySurrounded))
-        .map(c => c.join(',')).sort().join('|');
+      // Rule 4: 既存囲みを除外した実取り除きのみを返す
+      const groups = filterRealCaptures(findCaptureGroups(player), preBoardSnap);
+      const result = groups.flat().map(c => c.join(',')).sort().join('|');
 
       // ボードを元に戻す
       for (const [k, v] of saved) board[k] = v;
@@ -4387,6 +4422,8 @@
       const saved = new Map();
       const save = (k) => { if (!saved.has(k)) saved.set(k, board[k]); };
 
+      // Rule 4: 既存囲み保護用に手を打つ前のボード状態を保存
+      const preBoardSnap = snapshotBoardForCapture();
       const gpK = K(0,0,0);
       const gpWasAlreadySurrounded = DIRS.every(([dq,dr,ds]) => board[K(dq,dr,ds)] === player);
 
@@ -4407,11 +4444,10 @@
         board[gpK] = opp(player);
       }
 
-      // 取り除き（既に囲まれていたCPは除外）
-      const groups = findCaptureGroups(player);
+      // Rule 4: 既存囲みを除外した実取り除き
+      const groups = filterRealCaptures(findCaptureGroups(player), preBoardSnap);
       for (const group of groups) {
         for (const [cq,cr,cs] of group) {
-          if (cq === 0 && cr === 0 && cs === 0 && gpWasAlreadySurrounded) continue;
           save(K(cq,cr,cs));
           board[K(cq,cr,cs)] = null;
         }
@@ -4505,6 +4541,8 @@
     // 仮に手を適用してevalFnを実行し、ボードを完全スナップショットで確実に復元する
     function withMove(q, r, s, player, evalFn) {
       const snap = Object.assign({}, board); // 全セルの完全コピー
+      // Rule 4: snap を pre-board snapshot として再利用
+      const preBoardSnap = snap;
       const gpK = K(0,0,0);
       const gpWasAlreadySurrounded = DIRS.every(([dq,dr,ds]) => board[K(dq,dr,ds)] === player);
       const gp = bestGPColor(q, r, s, player);
@@ -4520,9 +4558,9 @@
           DIRS.every(([dq,dr,ds]) => board[K(dq,dr,ds)] === player)) {
         board[gpK] = opp(player);
       }
-      const groups = findCaptureGroups(player);
+      // Rule 4: 既存囲みを除外した実取り除き
+      const groups = filterRealCaptures(findCaptureGroups(player), preBoardSnap);
       for (const group of groups) for (const [cq,cr,cs] of group) {
-        if (cq === 0 && cr === 0 && cs === 0 && gpWasAlreadySurrounded) continue;
         board[K(cq,cr,cs)] = null;
       }
       if (board[gpK] !== null) board[gpK] = null; // CPリセット
@@ -4564,6 +4602,8 @@
       const saved = new Map();
       const save = (k) => { if (!saved.has(k)) saved.set(k, board[k]); };
 
+      // Rule 4: 既存囲み保護用に手を打つ前のボード状態を保存
+      const preBoardSnap = snapshotBoardForCapture();
       const gpK = K(0,0,0);
       const gpWasAlreadySurrounded = DIRS.every(([dq,dr,ds]) => board[K(dq,dr,ds)] === player);
       const gp = bestGPColor(q, r, s, player);
@@ -4588,12 +4628,11 @@
         board[gpK] = opp(player);
       }
 
-      // 取り除き（既に囲まれていたCPは除外）
-      const groups = findCaptureGroups(player);
+      // Rule 4: 既存囲みを除外した実取り除き
+      const groups = filterRealCaptures(findCaptureGroups(player), preBoardSnap);
       let capCount = 0;
       for (const group of groups) {
         for (const [cq,cr,cs] of group) {
-          if (cq === 0 && cr === 0 && cs === 0 && gpWasAlreadySurrounded) continue;
           save(K(cq,cr,cs));
           board[K(cq,cr,cs)] = null;
           capCount++;
@@ -4619,7 +4658,23 @@
       if (validMoves.length === 0) return null;
 
       if (cpuLevel === 1) {
-        // Lv.1 初級: ランダム（少しだけ賢い - 明らかに悪い手は避ける）
+        // Lv.1 入門: わざと弱い — 下位の手を優先選択
+        const scored = validMoves.map(([q,r,s]) => ({
+          move: [q,r,s],
+          score: evaluateMove(q,r,s,player)
+        }));
+        scored.sort((a,b) => a.score - b.score); // 昇順（悪い手が先）
+        const pool = scored.slice(0, Math.max(1, Math.ceil(scored.length * 0.5)));
+        return pool[Math.floor(Math.random() * pool.length)].move;
+      }
+
+      if (cpuLevel === 2) {
+        // Lv.2 初級: 完全ランダム
+        return validMoves[Math.floor(Math.random() * validMoves.length)];
+      }
+
+      if (cpuLevel === 3) {
+        // Lv.3 中級: ランダム（少しだけ賢い — 上位60%から選択）
         const scored = validMoves.map(([q,r,s]) => ({
           move: [q,r,s],
           score: evaluateMove(q,r,s,player)
@@ -4629,8 +4684,8 @@
         return pool[Math.floor(Math.random() * pool.length)].move;
       }
 
-      if (cpuLevel === 2) {
-        // Lv.2 中級: フリップ数で最善手を選ぶ（位置戦略なし）
+      if (cpuLevel === 4) {
+        // Lv.4 上級: フリップ数で最善手を選ぶ（位置戦略なし）
         let bestScore = -Infinity;
         let bestMoves = [];
         for (const [q,r,s] of validMoves) {
@@ -4641,8 +4696,8 @@
         return bestMoves[Math.floor(Math.random() * bestMoves.length)];
       }
 
-      if (cpuLevel === 3) {
-        // Lv.3 上級: フリップ数＋取り除き＋位置価値で選ぶ
+      if (cpuLevel === 5) {
+        // Lv.5 強敵: フリップ数＋位置価値で選ぶ
         let bestScore = -Infinity;
         let bestMoves = [];
         for (const [q,r,s] of validMoves) {
@@ -4655,9 +4710,9 @@
         return bestMoves[Math.floor(Math.random() * bestMoves.length)];
       }
 
-      // Lv.4〜7: negamax with alpha-beta（先読み深さをレベルで変える）
-      // Lv.4: 3手先読み(depth=2), Lv.5: 4手先読み(depth=3), Lv.6(MAX): 5手先読み(depth=4), Lv.7(FINAL): 6手先読み(depth=5)
-      const searchDepth = cpuLevel === 7 ? 5 : cpuLevel === 6 ? 4 : cpuLevel === 5 ? 3 : 2;
+      // Lv.6〜7: negamax with alpha-beta（先読み深さをレベルで変える）
+      // Lv.6(MAX): 3手先読み(depth=2), Lv.7(FINAL): 6手先読み(depth=5)
+      const searchDepth = cpuLevel === 7 ? 5 : 2;
 
       const ranked = validMoves.map(([q,r,s]) => ({
         move:[q,r,s],
@@ -4711,6 +4766,9 @@
       const saved = new Map();
       const save = (k) => { if (!saved.has(k)) saved.set(k, board[k]); };
 
+      // Rule 4: 既存囲み保護用に手を打つ前のボード状態を保存
+      const preBoardSnap = snapshotBoardForCapture();
+
       save(K(q,r,s));
       board[K(q,r,s)] = player;
 
@@ -4720,7 +4778,8 @@
         board[K(fq,fr,fs)] = player;
       }
 
-      const groups = findCaptureGroups(player);
+      // Rule 4: 既存囲みを除外した実取り除き
+      const groups = filterRealCaptures(findCaptureGroups(player), preBoardSnap);
       for (const group of groups) {
         for (const [cq,cr,cs] of group) {
           save(K(cq,cr,cs));
@@ -4796,6 +4855,39 @@
         }
       }
       return groupsToRemove;
+    }
+
+    // ===== Rule 4: 既存囲み保護 =====
+    // 手を打つ前のボード状態を浅くコピー（37セル）。後の境界変化判定に使う。
+    function snapshotBoardForCapture() {
+      const snap = {};
+      for (const [q,r,s] of ALL_CELLS) snap[K(q,r,s)] = board[K(q,r,s)];
+      return snap;
+    }
+
+    // 取り除きグループが「今回の手で生まれた囲み」かを判定。
+    // 境界（グループ外の隣接セル）のいずれかが手前後で状態変化していれば真の取り除き。
+    // CP は手の終わりにリセットされるため、CP の一時的な色変化は境界変化として扱わない。
+    function isRealCapture(group, preBoard) {
+      const groupSet = new Set(group.map(([q,r,s]) => K(q,r,s)));
+      const CP_KEY = K(0,0,0);
+      for (const [q,r,s] of group) {
+        for (const [dq,dr,ds] of DIRS) {
+          const nq = q+dq, nr = r+dr, ns = s+ds;
+          if (!isOnBoard(nq,nr,ns)) continue;
+          const nk = K(nq,nr,ns);
+          if (groupSet.has(nk)) continue;
+          if (nk === CP_KEY) continue; // Rule 4: CPの一時変化は境界変化に含めない
+          if (preBoard[nk] !== board[nk]) return true;
+        }
+      }
+      return false;
+    }
+
+    // 手後の取り除きグループから「既存囲み」を除外
+    function filterRealCaptures(groups, preBoard) {
+      if (!preBoard) return groups;
+      return groups.filter(g => isRealCapture(g, preBoard));
     }
 
     // +N がスコアボックスへ飛んでいくアニメーション
@@ -4903,6 +4995,8 @@
         // コウ判定用：手を打つ前のボード状態を記録
         prevBoardSnapshot = serializeBoard();
 
+        // Rule 4: 既存囲み保護用に手を打つ前のボード状態を保存
+        const preBoardSnap = snapshotBoardForCapture();
         // 手を打つ前にCPが既に囲まれていたか記録（今の手で初めて囲まれた場合のみ自動配置）
         const gpWasAlreadySurrounded = DIRS.every(([dq,dr,ds]) => board[K(dq,dr,ds)] === current);
 
@@ -4927,13 +5021,11 @@
           render([]);
         }
 
-        // e. 取り除き判定（CP参加）
-        const groups = findCaptureGroups(current);
+        // e. 取り除き判定（CP参加 / Rule 4 で既存囲みを除外）
+        const groups = filterRealCaptures(findCaptureGroups(current), preBoardSnap);
 
         if (groups.length > 0) {
-          // 既に囲まれていたCPのキャプチャは除外（得点に含めない）
-          const allCaptured = groups.flat()
-            .filter(([cq,cr,cs]) => !(cq === 0 && cr === 0 && cs === 0 && gpWasAlreadySurrounded));
+          const allCaptured = groups.flat();
           let total = 0;
 
           for (const [cq,cr,cs] of allCaptured) {
@@ -5214,6 +5306,14 @@
 
     // 終了処理
     function endGame() {
+      // ゲーム終了時は「1手戻る」を完全に無効化（勝利2重カウント防止）
+      undoUsed = true;
+      undoSnapshot = null;
+      const undoBtnEnd = document.getElementById('undo-btn');
+      if (undoBtnEnd) {
+        undoBtnEnd.disabled = true;
+        undoBtnEnd.textContent = '1手戻る（済）';
+      }
       let bCount = 0, wCount = 0;
       for (const [q,r,s] of ALL_CELLS) {
         const c = board[K(q,r,s)];
@@ -6063,7 +6163,14 @@
       const matchLabel = getMatchLabel(promo.winsNeeded);
       document.getElementById('promo-announce-title').textContent = `🎉 ${promo.label}への挑戦権を獲得！`;
       document.getElementById('promo-announce-desc').textContent = `${targetRank.name} ランクアップマッチ（${matchLabel}）に挑戦できます！\nゲーム設定画面から開始できます。`;
-      document.getElementById('promo-announce-help').style.display = 'none';
+      // 初回のランクアップマッチのみヘルプを自動展開（以降は？ボタンで確認可能）
+      const helpSeen = localStorage.getItem('rankupHelpSeen');
+      if (!helpSeen) {
+        document.getElementById('promo-announce-help').style.display = '';
+        localStorage.setItem('rankupHelpSeen', '1');
+      } else {
+        document.getElementById('promo-announce-help').style.display = 'none';
+      }
       document.getElementById('promo-announce-modal').style.display = 'flex';
     }
 
