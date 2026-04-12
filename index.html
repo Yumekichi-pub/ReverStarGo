@@ -4798,27 +4798,35 @@
     //   - 非空 → この手は合法（その色でコールすれば非コウ）
     function getNonKoGPColors(q, r, s, player) {
       if (!prevBoardSnapshot) return ['black', 'white', null];
+
+      // スーパーコウ判定：直前の局面だけでなく全履歴と照合
+      function isRepeatedPosition(snap) {
+        if (snap === prevBoardSnapshot) return true;           // 単純コウ
+        const fullSnap = snap + ':' + opp(player);
+        return boardHistory.indexOf(fullSnap) !== -1;          // スーパーコウ
+      }
+
       const needsCall = needsGPCall(q, r, s, player);
       if (!needsCall) {
         // コール不要 → 自動色で判定
         const gp = bestGPColor(q, r, s, player);
         const snap = simulateFinalSnapshot(q, r, s, player, gp);
-        return snap !== prevBoardSnapshot ? [gp] : [];
+        return !isRepeatedPosition(snap) ? [gp] : [];
       }
       // コール必要 → 黒・白それぞれを検証
       const result = [];
       const snapB = simulateFinalSnapshot(q, r, s, player, 'black');
       const snapW = simulateFinalSnapshot(q, r, s, player, 'white');
-      if (snapB !== prevBoardSnapshot) result.push('black');
-      if (snapW !== prevBoardSnapshot) result.push('white');
+      if (!isRepeatedPosition(snapB)) result.push('black');
+      if (!isRepeatedPosition(snapW)) result.push('white');
       return result;
     }
 
-    // コウ手を除外する（全手がコウなら例外的に全て許可）
+    // コウ手を除外する（全手がコウならパス扱い＝空配列を返す）
     function filterKoMoves(moves, player) {
       if (!prevBoardSnapshot || moves.length === 0) return moves;
       const nonKo = moves.filter(([q,r,s]) => getNonKoGPColors(q, r, s, player).length > 0);
-      return nonKo.length > 0 ? nonKo : moves; // 全手がコウなら例外許可
+      return nonKo; // 全手がコウなら空配列 → パス → 両者パスで終局
     }
 
     // 囲まれたグループを検出（ボードは変更しない）

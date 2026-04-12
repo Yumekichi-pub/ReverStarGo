@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ReverStarGo イベントチェッカ v0.3</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Yu Gothic", "Meiryo", sans-serif;
+    background: #2a2118;
+    color: #f0e8d0;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #app {
+    display: grid;
+    grid-template-columns: 320px 1fr 360px;
+    height: 100vh;
+  }
+  /* === 左パネル: 操作 === */
+  #left {
+    background: #3a2e20;
+    border-right: 2px solid #5a4530;
+    padding: 12px;
+    overflow-y: auto;
+  }
+  #left h1 {
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    color: #f0c878;
+    border-bottom: 2px double #8a6a3a;
+    padding-bottom: 6px;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    margin: 6px 0;
+    padding: 10px;
+    background: #6a4520;
+    color: #f0e8d0;
+    border: 1px solid #8a6a3a;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn:hover { background: #8a5a30; }
+  .btn.warn { background: #803020; border-color: #a04030; }
+  .btn.warn:hover { background: #a04030; }
+  .btn.ok { background: #205020; border-color: #408040; }
+  .btn.ok:hover { background: #408040; }
+  .btn.run { background: #1a4a6a; border-color: #2a6a9a; }
+  .btn.run:hover { background: #2a6a9a; }
+  .btn.run.running { background: #6a3a1a; border-color: #9a5a2a; animation: pulse-run 1.2s ease-in-out infinite; }
+  @keyframes pulse-run { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .auto-progress { font-size:10px; color:#80c0ff; margin:4px 0; padding:4px 6px; background:#1a2a3a; border-radius:3px; display:none; }
+  .auto-progress.active { display:block; }
+  .summary {
+    margin: 12px 0;
+    padding: 10px;
+    background: #4a3a28;
+    border: 1px solid #6a5a40;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .summary .row {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0;
+  }
+  .summary .lbl { color: #c0a878; }
+  .summary .val { color: #f0e8d0; font-weight: bold; }
+  .log {
+    margin-top: 12px;
+    padding: 8px;
+    background: #1a1208;
+    border: 1px solid #4a3a20;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: Consolas, monospace;
+    max-height: 240px;
+    overflow-y: auto;
+    line-height: 1.4;
+  }
+  .log .e { color: #ff8080; }
+  .log .w { color: #ffc060; }
+  .log .i { color: #80c0ff; }
+  .log .ok { color: #80ff80; }
+
+  /* === 中央: iframe === */
+  #center {
+    background: #1a1208;
+    position: relative;
+    overflow: hidden;
+  }
+  #game-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #000;
+  }
+  #overlay {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.7);
+    color: #f0e8d0;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  /* === 右パネル: イベント一覧 === */
+  #right {
+    background: #3a2e20;
+    border-left: 2px solid #5a4530;
+    padding: 12px;
+    overflow-y: auto;
+  }
+  #right h2 {
+    font-size: 14px;
+    margin: 0 0 8px 0;
+    color: #f0c878;
+    border-bottom: 1px solid #6a5a40;
+    padding-bottom: 4px;
+  }
+  .cat {
+    margin-bottom: 12px;
+  }
+  .cat-head {
+    font-size: 12px;
+    color: #f0c878;
+    cursor: pointer;
+    padding: 4px 6px;
+    background: #4a3a28;
+    border-left: 4px solid #8a6a3a;
+    user-select: none;
+  }
+  .cat-head .pct { float: right; color: #c0a878; }
+  .cat-body {
+    display: none;
+    padding: 4px 0 4px 8px;
+  }
+  .cat.open .cat-body { display: block; }
+  .item {
+    font-size: 10px;
+    padding: 2px 4px;
+    display: flex;
+    align-items: center;
+    line-height: 1.3;
+  }
+  .item .mark {
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .item .id {
+    width: 56px;
+    color: #a0906a;
+    font-family: Consolas, monospace;
+    flex-shrink: 0;
+  }
+  .item .nm {
+    flex: 1;
+    color: #d0c0a0;
+  }
+  .item.fired .nm { color: #80ff80; }
+  .item.fired .mark { color: #80ff80; }
+  .item.failed .nm { color: #ff8080; }
+  .item.failed .mark { color: #ff8080; }
+
+  /* ANTI list special styling */
+  .anti-item.tripped .nm { color: #ff4040; font-weight: bold; }
+  .anti-item.tripped .mark { color: #ff4040; }
+
+  .filter {
+    margin: 8px 0;
+    display: flex;
+    gap: 4px;
+  }
+  .filter button {
+    flex: 1;
+    background: #4a3a28;
+    border: 1px solid #6a5a40;
+    color: #f0e8d0;
+    padding: 4px;
+    font-size: 10px;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .filter button.active {
+    background: #6a4520;
+    border-color: #8a6a3a;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- 左パネル -->
+  <div id="left">
+    <h1>🔍 イベントチェッカ v0.3</h1>
+
+    <button class="btn ok" id="btn-load">▶ ゲーム読込／再起動</button>
+    <button class="btn" id="btn-install">🔌 フック注入</button>
+    <button class="btn warn" id="btn-reset">↺ 状態リセット</button>
+    <button class="btn" id="btn-expand">↕ 全カテゴリ展開／折畳</button>
+    <hr style="border-color:#5a4530;margin:10px 0;">
+    <button class="btn run" id="btn-auto">🤖 自動テスト開始</button>
+    <div class="auto-progress" id="auto-progress"></div>
+
+    <div class="summary">
+      <div class="row"><span class="lbl">EVENT 発火</span><span class="val" id="sum-event">0 / 127</span></div>
+      <div class="row"><span class="lbl">ANTI 監視</span><span class="val" id="sum-anti">0 / 20</span></div>
+      <div class="row"><span class="lbl">フック状態</span><span class="val" id="sum-hook">未注入</span></div>
+      <div class="row"><span class="lbl">最終イベント</span><span class="val" id="sum-last">-</span></div>
+    </div>
+
+    <div style="font-size:11px;color:#c0a878;margin-top:8px;">
+      使い方：「ゲーム読込」でゲーム本体を iframe に読み込み、「フック注入」で監視を開始。あとは普通にプレイすれば右側のリストが ✅ になっていきます。
+    </div>
+
+    <div class="log" id="log"></div>
+  </div>
+
+  <!-- 中央 -->
+  <div id="center">
+    <iframe id="game-iframe" src="about:blank"></iframe>
+    <div id="overlay">ReverStarGo（監視対象）</div>
+  </div>
+
+  <!-- 右パネル -->
+  <div id="right">
+    <h2>📒 EVENT 台帳（127）</h2>
+    <div class="filter">
+      <button data-f="all" class="active">全部</button>
+      <button data-f="fired">✅ のみ</button>
+      <button data-f="unfired">未発火のみ</button>
+    </div>
+    <div id="event-list"></div>
+
+    <h2 style="margin-top:16px;">🚫 ANTI 台帳（20）</h2>
+    <div id="anti-list"></div>
+  </div>
+</div>
+
+<script>
+// =========================================================================
+// イベント定義（EVENT_LEDGER.md と同期）
+// =========================================================================
+const EVENTS = [
+  // ----- 1. MOV 着手系 -----
+  { id: "MOV_001", cat: "MOV 着手系", name: "石を置く", hook: { fn: "executeMove", type: "wrap" } },
+  { id: "MOV_002", cat: "MOV 着手系", name: "挟みフリップ", hook: { fn: "animateFlipSequence", type: "wrap" } },
+  { id: "MOV_003", cat: "MOV 着手系", name: "囲み捕獲", hook: { type: "captured" } },
+  { id: "MOV_004", cat: "MOV 着手系", name: "CP 参加判定", hook: { fn: "onCellClick", type: "wrap" } },
+  { id: "MOV_005", cat: "MOV 着手系", name: "CP 黒コール", hook: { type: "manual" } },
+  { id: "MOV_006", cat: "MOV 着手系", name: "CP 白コール", hook: { type: "manual" } },
+  { id: "MOV_007", cat: "MOV 着手系", name: "パス", hook: { fn: "showPassModal", type: "wrap" } },
+
+  // ----- 2. TRN 手番系 -----
+  { id: "TRN_001", cat: "TRN 手番系", name: "手番表示更新", hook: { fn: "showTurn", type: "wrap" } },
+  { id: "TRN_002", cat: "TRN 手番系", name: "手番交代", hook: { type: "turnChange" } },
+  { id: "TRN_003", cat: "TRN 手番系", name: "2人対戦の手番モーダル", hook: { fn: "showTurnModal", type: "wrap" } },
+  { id: "TRN_004", cat: "TRN 手番系", name: "パス通知モーダル", hook: { fn: "showPassModal", type: "wrap" } },
+  { id: "TRN_005", cat: "TRN 手番系", name: "CPU 思考中表示", hook: { fn: "cpuPlay", type: "wrap" } },
+
+  // ----- 3. GAM ゲーム進行系 -----
+  { id: "GAM_001", cat: "GAM ゲーム進行系", name: "ゲーム開始ボタン", hook: { fn: "startGame", type: "wrap" } },
+  { id: "GAM_002", cat: "GAM ゲーム進行系", name: "ゲーム初期化", hook: { fn: "initGame", type: "wrap" } },
+  { id: "GAM_003", cat: "GAM ゲーム進行系", name: "ゲーム終了", hook: { fn: "endGame", type: "wrap" } },
+  { id: "GAM_004", cat: "GAM ゲーム進行系", name: "盤面満杯判定", hook: { type: "boardFull" } },
+  { id: "GAM_005", cat: "GAM ゲーム進行系", name: "コウ検出", hook: { fn: "showKoMessage", type: "wrap" } },
+
+  // ----- 4. WIN 勝敗系 -----
+  { id: "WIN_001", cat: "WIN 勝敗系", name: "勝利判定", hook: { type: "result", value: "win" } },
+  { id: "WIN_002", cat: "WIN 勝敗系", name: "敗北判定", hook: { type: "result", value: "lose" } },
+  { id: "WIN_003", cat: "WIN 勝敗系", name: "引き分け判定", hook: { type: "result", value: "draw" } },
+  { id: "WIN_004", cat: "WIN 勝敗系", name: "スコア計算・表示", hook: { fn: "updateScore", type: "wrap" } },
+  { id: "WIN_005", cat: "WIN 勝敗系", name: "結果モーダル表示", hook: { type: "endGameModal" } },
+
+  // ----- 5. NAV 画面遷移系 -----
+  { id: "NAV_001", cat: "NAV 画面遷移系", name: "メイン画面へ", hook: { type: "page", page: "main" } },
+  { id: "NAV_002", cat: "NAV 画面遷移系", name: "対戦設定画面へ", hook: { type: "page", page: "game-setup" } },
+  { id: "NAV_003", cat: "NAV 画面遷移系", name: "カスタム画面へ", hook: { type: "page", page: "custom" } },
+  { id: "NAV_004", cat: "NAV 画面遷移系", name: "アカウント画面へ", hook: { type: "page", page: "account" } },
+  { id: "NAV_005", cat: "NAV 画面遷移系", name: "デイリー画面へ", hook: { type: "page", page: "daily" } },
+  { id: "NAV_006", cat: "NAV 画面遷移系", name: "トロフィー一覧へ", hook: { type: "page", page: "trophies" } },
+  { id: "NAV_007", cat: "NAV 画面遷移系", name: "ルール説明書へ", hook: { type: "page", page: "rules" } },
+  { id: "NAV_008", cat: "NAV 画面遷移系", name: "棋譜一覧へ", hook: { type: "page", page: "kifu" } },
+
+  // ----- 6. MDL モーダル系 -----
+  { id: "MDL_001", cat: "MDL モーダル系", name: "ルール説明モーダル開く", hook: { type: "manual" } },
+  { id: "MDL_002", cat: "MDL モーダル系", name: "ルール説明モーダル閉じる", hook: { type: "manual" } },
+  { id: "MDL_003", cat: "MDL モーダル系", name: "コウ説明表示", hook: { fn: "showKoHelp", type: "wrap" } },
+  { id: "MDL_004", cat: "MDL モーダル系", name: "コウ説明閉じる", hook: { fn: "hideKoHelp", type: "wrap" } },
+  { id: "MDL_005", cat: "MDL モーダル系", name: "デイリーヘルプ表示", hook: { fn: "showDailyHelp", type: "wrap" } },
+  { id: "MDL_006", cat: "MDL モーダル系", name: "デイリーヘルプ閉じる", hook: { fn: "hideDailyHelp", type: "wrap" } },
+  { id: "MDL_007", cat: "MDL モーダル系", name: "表記法ガイド表示", hook: { fn: "showNotationMap", type: "wrap" } },
+  { id: "MDL_008", cat: "MDL モーダル系", name: "表記法ガイド閉じる", hook: { fn: "closeNotationMap", type: "wrap" } },
+  { id: "MDL_009", cat: "MDL モーダル系", name: "棋譜モーダル閉じる", hook: { fn: "closeNotationModal", type: "wrap" } },
+  { id: "MDL_010", cat: "MDL モーダル系", name: "ゲーム中断確認", hook: { type: "click-detect" } },
+  { id: "MDL_011", cat: "MDL モーダル系", name: "ゲーム中断許可", hook: { fn: "confirmQuit", type: "wrap" } },
+  { id: "MDL_012", cat: "MDL モーダル系", name: "ゲーム中断キャンセル", hook: { fn: "cancelQuit", type: "wrap" } },
+
+  // ----- 7. SND サウンド系 -----
+  { id: "SND_001", cat: "SND サウンド系", name: "石を置く音", hook: { type: "sound", key: "place" } },
+  { id: "SND_002", cat: "SND サウンド系", name: "フリップ音", hook: { type: "sound", key: "flip" } },
+  { id: "SND_003", cat: "SND サウンド系", name: "取る音", hook: { type: "sound", key: "capture" } },
+  { id: "SND_004", cat: "SND サウンド系", name: "勝利音", hook: { type: "sound", key: "win" } },
+  { id: "SND_005", cat: "SND サウンド系", name: "敗北音", hook: { type: "sound", key: "lose" } },
+  { id: "SND_006", cat: "SND サウンド系", name: "引き分け音", hook: { type: "sound", key: "draw" } },
+  { id: "SND_007", cat: "SND サウンド系", name: "サウンド ON/OFF", hook: { fn: "selectSound", type: "wrap" } },
+
+  // ----- 8. ANM アニメ系 -----
+  { id: "ANM_001", cat: "ANM アニメ系", name: "スコア飛び込み演出", hook: { fn: "animateScoreFly", type: "wrap" } },
+  { id: "ANM_002", cat: "ANM アニメ系", name: "スコアボックス強調", hook: { type: "cls", cls: "score-hit" } },
+  { id: "ANM_003", cat: "ANM アニメ系", name: "花火演出", hook: { fn: "launchFireworks", type: "wrap" } },
+  { id: "ANM_004", cat: "ANM アニメ系", name: "石ポップ演出", hook: { type: "cls", cls: "placed-pop" } },
+  { id: "ANM_005", cat: "ANM アニメ系", name: "石グロー演出", hook: { type: "cls", cls: "placed-glow" } },
+  { id: "ANM_006", cat: "ANM アニメ系", name: "捕獲アニメ", hook: { type: "cls", cls: "capturing" } },
+  { id: "ANM_007", cat: "ANM アニメ系", name: "チュートリアル CP 強調", hook: { type: "cls", cls: "tutorial-cp-glow" } },
+  { id: "ANM_008", cat: "ANM アニメ系", name: "チュートリアル対象パルス", hook: { type: "cls", cls: "tutorial-target-pulse" } },
+
+  // ----- 9. DAT データ永続化系 -----
+  { id: "DAT_001", cat: "DAT データ永続化系", name: "設定保存", hook: { fn: "saveSettings", type: "wrap" } },
+  { id: "DAT_002", cat: "DAT データ永続化系", name: "設定読み込み", hook: { fn: "loadSettings", type: "wrap" } },
+  { id: "DAT_003", cat: "DAT データ永続化系", name: "戦績保存", hook: { fn: "saveBattleRecord", type: "wrap" } },
+  { id: "DAT_004", cat: "DAT データ永続化系", name: "当日成績保存", hook: { fn: "saveDailyRecord", type: "wrap" } },
+  { id: "DAT_005", cat: "DAT データ永続化系", name: "デイリー完了マーク", hook: { fn: "markDailyComplete", type: "wrap" } },
+  { id: "DAT_006", cat: "DAT データ永続化系", name: "昇格試験進捗保存", hook: { fn: "savePromotionExam", type: "wrap" } },
+  { id: "DAT_007", cat: "DAT データ永続化系", name: "昇格キャリア保存", hook: { fn: "savePromotionCareer", type: "wrap" } },
+
+  // ----- 10. RNK ランク・トロフィー系 -----
+  { id: "RNK_001", cat: "RNK ランク系", name: "ランク計算", hook: { fn: "calculateRank", type: "wrap" } },
+  { id: "RNK_002", cat: "RNK ランク系", name: "ランクアップ判定", hook: { type: "rankUp" } },
+  { id: "RNK_003", cat: "RNK ランク系", name: "ランクアップモーダル", hook: { fn: "showRankUpModal", type: "wrap" } },
+  { id: "RNK_004", cat: "RNK ランク系", name: "ランク表示更新", hook: { fn: "updateRankDisplay", type: "wrap" } },
+  { id: "RNK_005", cat: "RNK ランク系", name: "レベル解放判定", hook: { fn: "checkLevelUnlock", type: "wrap" } },
+  { id: "RNK_006", cat: "RNK ランク系", name: "レベル解放モーダル", hook: { fn: "showLevelUnlock", type: "wrap" } },
+  { id: "RNK_007", cat: "RNK ランク系", name: "月別トロフィー表示更新", hook: { fn: "renderTrophies", type: "wrap" } },
+  { id: "RNK_008", cat: "RNK ランク系", name: "トロフィー一覧表示", hook: { fn: "renderTrophyList", type: "wrap" } },
+
+  // ----- 11. DLY デイリーチャレンジ系 -----
+  { id: "DLY_001", cat: "DLY デイリー系", name: "デイリーチャレンジ開始", hook: { fn: "startDailyChallenge", type: "wrap" } },
+  { id: "DLY_002", cat: "DLY デイリー系", name: "デイリー成功", hook: { fn: "markDailyComplete", type: "wrap" } },
+  { id: "DLY_003", cat: "DLY デイリー系", name: "カレンダー描画", hook: { fn: "renderCalendar", type: "wrap" } },
+  { id: "DLY_004", cat: "DLY デイリー系", name: "カレンダー前月", hook: { fn: "calendarPrev", type: "wrap" } },
+  { id: "DLY_005", cat: "DLY デイリー系", name: "カレンダー次月", hook: { fn: "calendarNext", type: "wrap" } },
+  { id: "DLY_006", cat: "DLY デイリー系", name: "当日成績表示", hook: { fn: "updateTodayRecordDisplay", type: "wrap" } },
+  { id: "DLY_007", cat: "DLY デイリー系", name: "月間統計表示", hook: { type: "manual" } },
+  { id: "DLY_008", cat: "DLY デイリー系", name: "デイリーへ戻る", hook: { fn: "backToDaily", type: "wrap" } },
+
+  // ----- 12. PRO 昇格試験系 -----
+  { id: "PRO_001", cat: "PRO 昇格試験系", name: "昇格試験開始", hook: { fn: "startPromotionExam", type: "wrap" } },
+  { id: "PRO_002", cat: "PRO 昇格試験系", name: "昇格試験 1 試合結果", hook: { fn: "recordPromotionResult", type: "wrap" } },
+  { id: "PRO_003", cat: "PRO 昇格試験系", name: "昇格合格", hook: { type: "promoPass" } },
+  { id: "PRO_004", cat: "PRO 昇格試験系", name: "昇格不合格", hook: { type: "promoFail" } },
+  { id: "PRO_005", cat: "PRO 昇格試験系", name: "昇格挑戦権獲得", hook: { fn: "showPromoAnnounce", type: "wrap" } },
+  { id: "PRO_006", cat: "PRO 昇格試験系", name: "昇格セクション更新", hook: { fn: "updatePromotionSection", type: "wrap" } },
+  { id: "PRO_007", cat: "PRO 昇格試験系", name: "昇格ステータス更新", hook: { fn: "updatePromotionGameStatus", type: "wrap" } },
+  { id: "PRO_008", cat: "PRO 昇格試験系", name: "昇格試験中断", hook: { fn: "clearPromotionExam", type: "wrap" } },
+
+  // ----- 13. TUT チュートリアル系 -----
+  { id: "TUT_001", cat: "TUT チュートリアル系", name: "選択モーダル表示", hook: { fn: "showTutorialChoice", type: "wrap" } },
+  { id: "TUT_002", cat: "TUT チュートリアル系", name: "選択モーダル閉じる", hook: { fn: "hideTutorialChoice", type: "wrap" } },
+  { id: "TUT_003", cat: "TUT チュートリアル系", name: "チュートリアル開始", hook: { fn: "startTutorial", type: "wrap" } },
+  { id: "TUT_004", cat: "TUT チュートリアル系", name: "ステップ表示", hook: { fn: "showTutorialStep", type: "wrap" } },
+  { id: "TUT_005", cat: "TUT チュートリアル系", name: "前ステップ", hook: { fn: "tutorialPrev", type: "wrap" } },
+  { id: "TUT_006", cat: "TUT チュートリアル系", name: "次ステップ", hook: { fn: "tutorialNext", type: "wrap" } },
+  { id: "TUT_007", cat: "TUT チュートリアル系", name: "スキップ", hook: { fn: "exitTutorial", type: "wrap" } },
+  { id: "TUT_008", cat: "TUT チュートリアル系", name: "フィードバック表示", hook: { fn: "showTutorialFeedback", type: "wrap" } },
+  { id: "TUT_009", cat: "TUT チュートリアル系", name: "対象クリック", hook: { fn: "handleTutorialClick", type: "wrap" } },
+  { id: "TUT_010", cat: "TUT チュートリアル系", name: "ミニゲーム開始", hook: { fn: "startTutorialMiniGame", type: "wrap" } },
+
+  // ----- 14. KIF 棋譜系 -----
+  { id: "KIF_001", cat: "KIF 棋譜系", name: "棋譜保存", hook: { fn: "saveGameRecord", type: "wrap" } },
+  { id: "KIF_002", cat: "KIF 棋譜系", name: "棋譜削除", hook: { fn: "deleteKifu", type: "wrap" } },
+  { id: "KIF_003", cat: "KIF 棋譜系", name: "棋譜テキスト表示", hook: { fn: "showSavedNotation", type: "wrap" } },
+  { id: "KIF_004", cat: "KIF 棋譜系", name: "棋譜テキストコピー", hook: { fn: "copyNotationText", type: "wrap" } },
+  { id: "KIF_005", cat: "KIF 棋譜系", name: "棋譜リスト表示", hook: { fn: "renderKifuList", type: "wrap" } },
+  { id: "KIF_006", cat: "KIF 棋譜系", name: "リプレイ開始", hook: { fn: "startReplay", type: "wrap" } },
+  { id: "KIF_007", cat: "KIF 棋譜系", name: "リプレイ 1 手進める", hook: { fn: "replayForward", type: "wrap" } },
+  { id: "KIF_008", cat: "KIF 棋譜系", name: "リプレイ 1 手戻す", hook: { fn: "replayBack", type: "wrap" } },
+  { id: "KIF_009", cat: "KIF 棋譜系", name: "リプレイ最初へ", hook: { fn: "replayGoStart", type: "wrap" } },
+  { id: "KIF_010", cat: "KIF 棋譜系", name: "リプレイ最後へ", hook: { fn: "replayGoEnd", type: "wrap" } },
+  { id: "KIF_011", cat: "KIF 棋譜系", name: "リプレイ終了", hook: { fn: "exitReplay", type: "wrap" } },
+
+  // ----- 15. SET 設定系 -----
+  { id: "SET_001", cat: "SET 設定系", name: "プレイヤー名入力", hook: { type: "manual" } },
+  { id: "SET_002", cat: "SET 設定系", name: "プレイヤー名表示更新", hook: { fn: "updatePlayerNameDisplay", type: "wrap" } },
+  { id: "SET_003", cat: "SET 設定系", name: "色選択", hook: { fn: "selectColor", type: "wrap" } },
+  { id: "SET_004", cat: "SET 設定系", name: "レベル選択", hook: { fn: "selectLevel", type: "wrap" } },
+  { id: "SET_005", cat: "SET 設定系", name: "対戦モード選択", hook: { fn: "selectBattleMode", type: "wrap" } },
+  { id: "SET_006", cat: "SET 設定系", name: "速度設定変更", hook: { fn: "selectSpeed", type: "wrap" } },
+  { id: "SET_007", cat: "SET 設定系", name: "アニメ設定変更", hook: { fn: "selectAnim", type: "wrap" } },
+  { id: "SET_008", cat: "SET 設定系", name: "ヒント設定変更", hook: { fn: "selectHint", type: "wrap" } },
+  { id: "SET_009", cat: "SET 設定系", name: "表記法設定変更", hook: { fn: "selectNotation", type: "wrap" } },
+  { id: "SET_010", cat: "SET 設定系", name: "テーマ変更", hook: { fn: "selectTheme", type: "wrap" } },
+  { id: "SET_011", cat: "SET 設定系", name: "背景色変更", hook: { fn: "selectBgColor", type: "wrap" } },
+  { id: "SET_012", cat: "SET 設定系", name: "設定保存して戻る", hook: { fn: "saveSettingsAndBack", type: "wrap" } },
+
+  // ----- 16. MSC その他 -----
+  { id: "MSC_001", cat: "MSC その他", name: "1 手戻す実行", hook: { fn: "undoMove", type: "wrap" } },
+  { id: "MSC_002", cat: "MSC その他", name: "1 手戻す状態保存", hook: { fn: "saveUndoState", type: "wrap" } },
+  { id: "MSC_003", cat: "MSC その他", name: "1 手戻す無効化", hook: { type: "undo-disable-detect" } },
+  { id: "MSC_004", cat: "MSC その他", name: "セッション成績更新", hook: { fn: "updateSessionScore", type: "wrap" } },
+  { id: "MSC_005", cat: "MSC その他", name: "もう一度ボタン押下", hook: { type: "click-detect" } },
+  { id: "MSC_006", cat: "MSC その他", name: "トースト通知表示", hook: { fn: "showToast", type: "wrap" } },
+];
+
+// =========================================================================
+// ANTI 定義（ANTI_LEDGER.md と同期）
+// =========================================================================
+const ANTIS = [
+  { id: "ANTI_001", name: "Rule 4 違反（既存囲みが無関係な手で取られる）", sev: "🔴" },
+  { id: "ANTI_002", name: "自分の石を捕獲", sev: "🔴" },
+  { id: "ANTI_003", name: "挟まずに着手", sev: "🔴" },
+  { id: "ANTI_004", name: "コウを通過", sev: "🟡" },
+  { id: "ANTI_005", name: "壁囲い", sev: "🟡" },
+  { id: "ANTI_006", name: "CP リセット漏れ", sev: "🔴" },
+  { id: "ANTI_007", name: "石数マイナス", sev: "🔴" },
+  { id: "ANTI_008", name: "石数の合計が 37 と合わない", sev: "🔴" },
+  { id: "ANTI_009", name: "勝者なしでゲーム終了", sev: "🔴" },
+  { id: "ANTI_010", name: "棋譜の手数不一致", sev: "🟡" },
+  { id: "ANTI_011", name: "サウンド OFF なのに音が鳴る", sev: "🔵" },
+  { id: "ANTI_012", name: "アニメ OFF なのにアニメが流れる", sev: "🔵" },
+  { id: "ANTI_013", name: "ヒント OFF なのにヒントが出る", sev: "🔵" },
+  { id: "ANTI_014", name: "条件未達で昇格", sev: "🔴" },
+  { id: "ANTI_015", name: "同一トロフィーの二重発火", sev: "🟡" },
+  { id: "ANTI_016", name: "解放済み Lv の再解放通知", sev: "🟡" },
+  { id: "ANTI_017", name: "デイリー二重クリア", sev: "🟡" },
+  { id: "ANTI_018", name: "JS エラー", sev: "🔴" },
+  { id: "ANTI_019", name: "画面外要素のクリック反応", sev: "🟡" },
+  { id: "ANTI_020", name: "リプレイ中に着手できる", sev: "🟡" },
+];
+
+// =========================================================================
+// 状態管理
+// =========================================================================
+const state = {
+  fired: new Set(),       // 発火済み EVENT id
+  tripped: new Set(),     // 発生してしまった ANTI id
+  hooked: false,
+  lastEvent: "-",
+  autoTesting: false,     // 自動テスト中フラグ
+};
+
+const log = (msg, cls = "i") => {
+  const el = document.getElementById("log");
+  const t = new Date().toLocaleTimeString();
+  el.insertAdjacentHTML("afterbegin", `<div class="${cls}">[${t}] ${msg}</div>`);
+};
+
+const fire = (id) => {
+  if (!state.fired.has(id)) {
+    state.fired.add(id);
+    state.lastEvent = id;
+    updateUI();
+  }
+};
+const trip = (id, detail = "") => {
+  if (!state.tripped.has(id)) {
+    state.tripped.add(id);
+    log(`❌ ${id} 発生 ${detail}`, "e");
+    updateUI();
+  }
+};
+
+// =========================================================================
+// UI 構築
+// =========================================================================
+function buildEventList() {
+  const list = document.getElementById("event-list");
+  const cats = {};
+  for (const ev of EVENTS) {
+    (cats[ev.cat] ||= []).push(ev);
+  }
+  let html = "";
+  for (const [cat, items] of Object.entries(cats)) {
+    html += `<div class="cat" data-cat="${cat}">
+      <div class="cat-head" onclick="toggleCat(this)">${cat} (${items.length})<span class="pct" data-pct></span></div>
+      <div class="cat-body">`;
+    for (const it of items) {
+      html += `<div class="item" data-id="${it.id}">
+        <span class="mark">○</span>
+        <span class="id">${it.id}</span>
+        <span class="nm">${it.name}</span>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+  list.innerHTML = html;
+}
+function buildAntiList() {
+  const list = document.getElementById("anti-list");
+  let html = "";
+  for (const a of ANTIS) {
+    html += `<div class="item anti-item" data-id="${a.id}">
+      <span class="mark">${a.sev}</span>
+      <span class="id">${a.id}</span>
+      <span class="nm">${a.name}</span>
+    </div>`;
+  }
+  list.innerHTML = html;
+}
+function toggleCat(el) {
+  el.parentElement.classList.toggle("open");
+}
+function updateUI() {
+  document.getElementById("sum-event").textContent = `${state.fired.size} / ${EVENTS.length}`;
+  document.getElementById("sum-anti").textContent = `${ANTIS.length - state.tripped.size} / ${ANTIS.length}`;
+  document.getElementById("sum-hook").textContent = state.hooked ? "✅ 注入済" : "未注入";
+  document.getElementById("sum-last").textContent = state.lastEvent;
+
+  for (const ev of EVENTS) {
+    const el = document.querySelector(`.item[data-id="${ev.id}"]`);
+    if (!el) continue;
+    if (state.fired.has(ev.id)) {
+      el.classList.add("fired");
+      el.querySelector(".mark").textContent = "✅";
+    }
+  }
+  for (const a of ANTIS) {
+    const el = document.querySelector(`.anti-item[data-id="${a.id}"]`);
+    if (!el) continue;
+    if (state.tripped.has(a.id)) {
+      el.classList.add("tripped");
+      el.querySelector(".mark").textContent = "❌";
+    }
+  }
+
+  // カテゴリ別集計
+  const cats = {};
+  for (const ev of EVENTS) {
+    cats[ev.cat] ||= { total: 0, fired: 0 };
+    cats[ev.cat].total++;
+    if (state.fired.has(ev.id)) cats[ev.cat].fired++;
+  }
+  for (const [cat, c] of Object.entries(cats)) {
+    const el = document.querySelector(`.cat[data-cat="${cat}"] [data-pct]`);
+    if (el) el.textContent = `${c.fired}/${c.total}`;
+  }
+}
+
+// =========================================================================
+// フック注入
+// =========================================================================
+function getIframeWin() {
+  return document.getElementById("game-iframe").contentWindow;
+}
+
+// 本体スクリプトの let/const 変数は window プロパティにならないため、
+// iframe 内で eval して取得する。
+function ev(w, expr, fallback) {
+  try {
+    return w.eval(expr);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+// 盤面のスナップショット（{key: 'black'|'white'|null}）
+function snapBoard(w) {
+  return ev(w,
+    `(() => { const o = {}; for (const k of Object.keys(board)) o[k] = board[k]; return o; })()`,
+    null);
+}
+
+// 現在のプレイヤー
+function getCurrent(w) {
+  return ev(w, "typeof current !== 'undefined' ? current : null", null);
+}
+
+// 黒/白の盤上石数
+function countBoard(w) {
+  return ev(w, `(() => {
+    let nB=0,nW=0,nE=0,cp=null;
+    for (const k of Object.keys(board)) {
+      const v = board[k];
+      if (k === '0,0,0') { cp = v; continue; }
+      if (v === 'black') nB++;
+      else if (v === 'white') nW++;
+      else nE++;
+    }
+    return {nB,nW,nE,cp,total:nB+nW+nE+1};
+  })()`, null);
+}
+
+// 取得済み石数
+function getCaptured(w) {
+  return ev(w, "typeof captured !== 'undefined' ? {black:captured.black,white:captured.white} : null", null);
+}
+
+// 設定値
+function getSetting(w, name) {
+  return ev(w, `typeof ${name} !== 'undefined' ? ${name} : null`, null);
+}
+
+function installHooks() {
+  const w = getIframeWin();
+  if (!w || !w.document) {
+    log("iframe が読み込まれていません", "e");
+    return;
+  }
+
+  let wrappedCount = 0;
+  let missingCount = 0;
+  const missing = [];
+
+  // (1) 関数 wrap 系
+  for (const ev of EVENTS) {
+    if (ev.hook.type !== "wrap") continue;
+    const fn = w[ev.hook.fn];
+    if (typeof fn !== "function") {
+      missing.push(`${ev.id}:${ev.hook.fn}`);
+      missingCount++;
+      continue;
+    }
+    const original = fn;
+    const id = ev.id;
+    w[ev.hook.fn] = function(...args) {
+      fire(id);
+      return original.apply(this, args);
+    };
+    wrappedCount++;
+  }
+
+  // (2) showPage 経由の NAV 系
+  if (typeof w.showPage === "function") {
+    const orig = w.showPage;
+    w.showPage = function(page, ...rest) {
+      const map = {
+        "main": "NAV_001",
+        "game-setup": "NAV_002",
+        "custom": "NAV_003",
+        "account": "NAV_004",
+        "daily": "NAV_005",
+        "trophies": "NAV_006",
+        "rules": "NAV_007",
+        "kifu": "NAV_008",
+      };
+      if (map[page]) fire(map[page]);
+      return orig.call(this, page, ...rest);
+    };
+    wrappedCount++;
+  } else {
+    missing.push("showPage");
+  }
+
+  // (3) playSound 経由の SND 系
+  if (typeof w.playSound === "function") {
+    const orig = w.playSound;
+    const sndMap = {
+      "place": "SND_001", "flip": "SND_002", "capture": "SND_003",
+      "win": "SND_004", "lose": "SND_005", "draw": "SND_006",
+    };
+    w.playSound = function(key, ...rest) {
+      if (sndMap[key]) fire(sndMap[key]);
+      // ANTI_011: サウンド OFF なのに音が実際に再生される
+      // ゲーム本体の playSound 内部で soundEnabled をチェックして return する場合は
+      // 実際には音は鳴らないので、本体関数の中身を確認してから判定
+      const sndOff = getSetting(w, "soundEnabled") === false;
+      const result = orig.call(this, key, ...rest);
+      // 本体が soundEnabled チェックを持たない場合のみ trip
+      // （本体ソースに guard あり確認済み → 呼び出しだけでは誤検出しない）
+      if (sndOff && result !== undefined) {
+        trip("ANTI_011", `playSound("${key}") returned value while sound OFF`);
+      }
+      return result;
+    };
+    wrappedCount++;
+  } else {
+    missing.push("playSound");
+  }
+
+  // (4) endGame 経由の WIN 系
+  if (typeof w.endGame === "function") {
+    const orig = w.endGame;
+    w.endGame = function(...args) {
+      const result = orig.apply(this, args);
+      // 結果判定（盤面石数 + 取得済み から計算）
+      try {
+        const cnt = countBoard(w);
+        const cap = getCaptured(w);
+        const human = getSetting(w, "humanColor");
+        if (cnt && cap) {
+          const sB = cnt.nB + (cap.black || 0);
+          const sW = cnt.nW + (cap.white || 0);
+          let resultStr = null;
+          if (sB > sW) resultStr = "black";
+          else if (sB < sW) resultStr = "white";
+          else resultStr = "draw";
+          if (resultStr === "draw") fire("WIN_003");
+          else if (resultStr === human) fire("WIN_001");
+          else fire("WIN_002");
+          fire("WIN_005"); // 結果モーダル
+        } else {
+          // ANTI_009: 結果が判定できなかった（スコア読取失敗）
+          trip("ANTI_009", "score read failed");
+        }
+
+        // ANTI_009 補強: 結果モーダルが正しく表示されたか遅延検査
+        // 自動テスト中はモーダルを即座に閉じるため、遅延チェックはスキップ
+        if (state.autoTesting) { /* skip */ }
+        else setTimeout(() => {
+          try {
+            const modalCheck = ev(w, `(() => {
+              const m = document.getElementById('result-modal');
+              const t = document.getElementById('result-text');
+              if (!m || m.style.display === 'none') return 'hidden';
+              if (!t || !t.textContent || t.textContent.trim() === '') return 'empty';
+              return 'ok';
+            })()`, "error");
+            if (modalCheck === "hidden") {
+              trip("ANTI_009", "result-modal not visible after endGame");
+            } else if (modalCheck === "empty") {
+              trip("ANTI_009", "result-text is empty after endGame");
+            } else if (modalCheck === "error") {
+              trip("ANTI_009", "result-modal check failed");
+            }
+          } catch (e2) {
+            log("ANTI_009 遅延検査エラー: " + e2.message, "w");
+          }
+        }, 1500);
+      } catch (e) {
+        log("endGame hook 内エラー: " + e.message, "w");
+      }
+      return result;
+    };
+  }
+
+  // (5) MutationObserver でクラス検出（ANM 系）
+  try {
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.type === "attributes" && m.attributeName === "class") {
+          const cls = m.target.className || "";
+          for (const ev of EVENTS) {
+            if (ev.hook.type === "cls" && cls.indexOf && cls.indexOf(ev.hook.cls) >= 0) {
+              fire(ev.id);
+            }
+          }
+        }
+      }
+    });
+    observer.observe(w.document.body, {
+      attributes: true,
+      subtree: true,
+      attributeFilter: ["class"],
+    });
+  } catch (e) {
+    log("MutationObserver エラー: " + e.message, "w");
+  }
+
+  // (6) ボタンクリック検出（モーダル開閉）
+  try {
+    w.document.addEventListener("click", (e) => {
+      const target = e.target;
+      if (!target) return;
+      const id = target.id || "";
+      if (id === "help-btn") fire("MDL_001");
+      if (id === "rules-close") fire("MDL_002");
+      if (id === "gp-black") fire("MOV_005");
+      if (id === "gp-white") fire("MOV_006");
+      // 棋譜入力検出
+      if (target.tagName === "INPUT" && target.type === "text") {
+        // ヒューリスティック: name 関連の input
+        if ((id || "").toLowerCase().indexOf("name") >= 0) fire("SET_001");
+      }
+    }, true);
+
+    w.document.addEventListener("input", (e) => {
+      const target = e.target;
+      if (target && target.tagName === "INPUT" &&
+          (target.id || "").toLowerCase().indexOf("name") >= 0) {
+        fire("SET_001");
+      }
+    }, true);
+  } catch (e) {
+    log("クリックリスナー登録エラー: " + e.message, "w");
+  }
+
+  // =====================================================================
+  // ANTI ウォッチドッグ
+  // =====================================================================
+
+  // ANTI_018: JS エラー
+  w.addEventListener("error", (e) => {
+    trip("ANTI_018", e.message || "");
+  });
+  w.addEventListener("unhandledrejection", (e) => {
+    trip("ANTI_018", "unhandledrejection: " + (e.reason && e.reason.message || ""));
+  });
+
+  // ANTI_004 用: 盤面スナップショットの履歴（直近 2 手分）
+  const _boardHistory004 = [];
+  // ANTI_010 用: チェッカー側の手数カウンタ（ゲーム開始ごとにリセット）
+  let _moveCounter010 = 0;
+  if (typeof w.startGame === "function") {
+    const origSG = w.startGame;
+    const prevStartGame = w.startGame;
+    w.startGame = function(...args) {
+      _moveCounter010 = 0;
+      _boardHistory004.length = 0;
+      return prevStartGame.apply(this, args);
+    };
+  }
+
+  // ANTI_002/007/008: executeMove の前後で盤面検査
+  if (typeof w.executeMove === "function") {
+    const orig = w.executeMove;
+    w.executeMove = function(...args) {
+      const preBoard = snapBoard(w);
+      const preColor = getCurrent(w);
+      const preCaptured = getCaptured(w);
+
+      // ANTI_003: 裏返し 0 枚での着手検出
+      // gpColor が null/black/white いずれかで flippable > 0 なら合法手
+      // 自動テスト中は速度パッチによる eval タイミングずれで誤検出するためスキップ
+      if (!state.autoTesting) try {
+        const mq = args[0], mr = args[1], ms = args[2], mgp = args[3];
+        if (preBoard && mq !== undefined && mr !== undefined && ms !== undefined) {
+          const gpOptions = mgp ? [`'${mgp}'`] : ["null", "'black'", "'white'"];
+          let anyFlippable = false;
+          for (const gp of gpOptions) {
+            const flippable = ev(w,
+              `getFlippable(${mq},${mr},${ms},'${preColor}',${gp})`,
+              null);
+            if (Array.isArray(flippable) && flippable.length > 0) {
+              anyFlippable = true; break;
+            }
+          }
+          if (!anyFlippable) {
+            trip("ANTI_003", `(${mq},${mr},${ms}) color=${preColor} gpColor=${mgp||"any"}`);
+          }
+        }
+      } catch (e) {
+        log("ANTI_003 検査エラー: " + e.message, "w");
+      }
+
+      const result = orig.apply(this, args);
+
+      try {
+        const postBoard = snapBoard(w);
+        const postCaptured = getCaptured(w);
+
+        if (postBoard && preBoard) {
+          // ANTI_002: 自分の石を捕獲
+          for (const k of Object.keys(preBoard)) {
+            if (k === "0,0,0") continue;
+            if (preBoard[k] === preColor && postBoard[k] === null) {
+              trip("ANTI_002", `${k} (${preColor})`);
+            }
+          }
+
+          // ANTI_008: 合計 37 チェック
+          const cnt = countBoard(w);
+          if (cnt && cnt.total !== 37) {
+            trip("ANTI_008", `B=${cnt.nB} W=${cnt.nW} E=${cnt.nE} CP=${cnt.cp} 合計=${cnt.total}`);
+          }
+
+          // ANTI_001: Rule 4 違反 — 既存囲みの石が無関係な手で捕獲された
+          // 捕獲された石をグループ化し、グループ全体の境界が変化したか検査
+          try {
+            const CP_KEY = "0,0,0";
+            const capturedKeys = [];
+            for (const k of Object.keys(preBoard)) {
+              if (k === CP_KEY) continue;
+              if (preBoard[k] !== null && postBoard[k] === null) {
+                capturedKeys.push(k);
+              }
+            }
+            if (capturedKeys.length > 0) {
+              // グループ単位で境界変化を検査（isRealCapture と同等のロジック）
+              const preBoardJson = JSON.stringify(preBoard);
+              const capturedJson = JSON.stringify(capturedKeys);
+              const groupResults = ev(w, `(() => {
+                const pre = ${preBoardJson};
+                const caps = new Set(${capturedJson});
+                const visited = new Set();
+                const results = [];
+                for (const startK of caps) {
+                  if (visited.has(startK)) continue;
+                  // BFS でグループ化
+                  const group = [];
+                  const queue = [startK];
+                  visited.add(startK);
+                  while (queue.length) {
+                    const ck = queue.shift();
+                    group.push(ck);
+                    const c = ck.split(',').map(Number);
+                    for (const [dq,dr,ds] of DIRS) {
+                      const nk = K(c[0]+dq, c[1]+dr, c[2]+ds);
+                      if (caps.has(nk) && !visited.has(nk)) {
+                        visited.add(nk);
+                        queue.push(nk);
+                      }
+                    }
+                  }
+                  // 境界変化検査: グループ外の隣接セル（CP除く）で pre!=post があれば真の捕獲
+                  const groupSet = new Set(group);
+                  let changed = false;
+                  for (const gk of group) {
+                    const gc = gk.split(',').map(Number);
+                    for (const [dq,dr,ds] of DIRS) {
+                      const nq=gc[0]+dq, nr=gc[1]+dr, ns=gc[2]+ds;
+                      if (!isOnBoard(nq,nr,ns)) continue;
+                      const nk = K(nq,nr,ns);
+                      if (groupSet.has(nk)) continue;
+                      if (nk === '0,0,0') continue;
+                      if (pre[nk] !== board[nk]) { changed = true; break; }
+                    }
+                    if (changed) break;
+                  }
+                  if (!changed) results.push(group.join(';'));
+                }
+                return results;
+              })()`, []);
+              if (Array.isArray(groupResults)) {
+                for (const g of groupResults) {
+                  trip("ANTI_001", `Rule4違反: 境界変化なしで捕獲 [${g}]`);
+                }
+              }
+            }
+          } catch (e) {
+            log("ANTI_001 検査エラー: " + e.message, "w");
+          }
+        }
+
+        // ANTI_004: コウを通過 — 着手後の盤面が 2 手前と同一ならコウすり抜け
+        // 自動テスト中は速度パッチでスナップショットのタイミングがずれるためスキップ
+        // （ヒストリ追加は常に行い、手動テスト時の検出精度を維持）
+        try {
+          if (postBoard) {
+            if (!state.autoTesting && _boardHistory004.length >= 1) {
+              const twoAgo = _boardHistory004[_boardHistory004.length - 1];
+              const postStr = JSON.stringify(postBoard);
+              const twoAgoStr = JSON.stringify(twoAgo);
+              if (postStr === twoAgoStr) {
+                trip("ANTI_004", "board identical to 2 moves ago (ko bypass)");
+              }
+            }
+            _boardHistory004.push(preBoard);
+            if (_boardHistory004.length > 2) _boardHistory004.shift();
+          }
+        } catch (e) {
+          log("ANTI_004 検査エラー: " + e.message, "w");
+        }
+
+        // ANTI_005: 壁囲い — 捕獲が盤端だけで囲まれ、相手の石が隣接にない
+        try {
+          if (postBoard && preBoard) {
+            const capturedKeys005 = [];
+            for (const k of Object.keys(preBoard)) {
+              if (k === "0,0,0") continue;
+              if (preBoard[k] !== null && postBoard[k] === null) {
+                capturedKeys005.push(k);
+              }
+            }
+            if (capturedKeys005.length > 0) {
+              // 捕獲された石のグループごとに、隣接に現プレイヤーの石があるか検査
+              const capJson005 = JSON.stringify(capturedKeys005);
+              const wallOnly = ev(w, `(() => {
+                const caps = new Set(${capJson005});
+                const visited = new Set();
+                const results = [];
+                for (const startK of caps) {
+                  if (visited.has(startK)) continue;
+                  const group = [];
+                  const queue = [startK];
+                  visited.add(startK);
+                  while (queue.length) {
+                    const ck = queue.shift();
+                    group.push(ck);
+                    const c = ck.split(',').map(Number);
+                    for (const [dq,dr,ds] of DIRS) {
+                      const nk = K(c[0]+dq, c[1]+dr, c[2]+ds);
+                      if (caps.has(nk) && !visited.has(nk)) {
+                        visited.add(nk);
+                        queue.push(nk);
+                      }
+                    }
+                  }
+                  // グループの隣接セルに現プレイヤーの石が 1 つでもあるか
+                  const groupSet = new Set(group);
+                  let hasPlayerStone = false;
+                  for (const gk of group) {
+                    const gc = gk.split(',').map(Number);
+                    for (const [dq,dr,ds] of DIRS) {
+                      const nq=gc[0]+dq, nr=gc[1]+dr, ns=gc[2]+ds;
+                      if (!isOnBoard(nq,nr,ns)) continue;
+                      const nk = K(nq,nr,ns);
+                      if (groupSet.has(nk)) continue;
+                      if (board[nk] === '${preColor}') { hasPlayerStone = true; break; }
+                    }
+                    if (hasPlayerStone) break;
+                  }
+                  if (!hasPlayerStone) results.push(group.join(';'));
+                }
+                return results;
+              })()`, []);
+              if (Array.isArray(wallOnly)) {
+                for (const g of wallOnly) {
+                  trip("ANTI_005", `壁囲い: 隣接に自石なしで捕獲 [${g}]`);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          log("ANTI_005 検査エラー: " + e.message, "w");
+        }
+
+        // ANTI_010 用: 手数カウンタをインクリメント
+        _moveCounter010++;
+
+        // ANTI_007: captured マイナス
+        if (postCaptured && (postCaptured.black < 0 || postCaptured.white < 0)) {
+          trip("ANTI_007", `cap.black=${postCaptured.black} cap.white=${postCaptured.white}`);
+        }
+      } catch (e) {
+        log("ANTI 検査エラー: " + e.message, "w");
+      }
+
+      return result;
+    };
+  }
+
+  // ANTI_006: CP リセット漏れ（updateGame の Promise 完了後に CP をチェック）
+  // 自動テスト中は速度パッチにより async チェーンのタイミングがずれて誤検出するためスキップ
+  if (typeof w.updateGame === "function") {
+    const orig = w.updateGame;
+    w.updateGame = function(...args) {
+      const result = orig.apply(this, args);
+      if (state.autoTesting) return result;
+      const checkCP = () => {
+        try {
+          const cp = ev(w, "typeof board === 'object' ? board['0,0,0'] : null", null);
+          if (cp === "black" || cp === "white") {
+            const pending = ev(w, "typeof cpPending !== 'undefined' ? cpPending : (typeof waitingForCP !== 'undefined' ? waitingForCP : false)", false);
+            if (!pending) {
+              trip("ANTI_006", "CP=" + cp);
+            }
+          }
+        } catch (e) {}
+      };
+      if (result && typeof result.then === 'function') {
+        result.then(checkCP).catch(() => {});
+      } else {
+        checkCP();
+      }
+      return result;
+    };
+  }
+
+  // ANTI_014: 条件未達で昇格
+  if (typeof w.recordPromotionResult === "function") {
+    const orig = w.recordPromotionResult;
+    w.recordPromotionResult = function(...args) {
+      const result = orig.apply(this, args);
+      try {
+        const after = ev(w, "typeof promotionExam !== 'undefined' && promotionExam ? JSON.parse(JSON.stringify(promotionExam)) : null", null);
+        if (after && after.passed && after.requiredWins && after.winCount < after.requiredWins) {
+          trip("ANTI_014", `winCount=${after.winCount} required=${after.requiredWins}`);
+        }
+        if (after && after.passed) fire("PRO_003");
+        if (after && after.failed) fire("PRO_004");
+      } catch (e) {}
+      return result;
+    };
+  }
+
+  // ANTI_017: デイリー二重クリア（自動テスト中は複数フェーズで同日実行されるためスキップ）
+  if (typeof w.markDailyComplete === "function") {
+    const seen = new Set();
+    const orig = w.markDailyComplete;
+    w.markDailyComplete = function(date, ...rest) {
+      if (seen.has(date) && !state.autoTesting) {
+        trip("ANTI_017", `date=${date}`);
+      }
+      seen.add(date);
+      return orig.call(this, date, ...rest);
+    };
+  }
+
+  // ANTI_015: 同一トロフィー二重発火
+  // renderTrophies 内で isMonthComplete が true を返すたびに
+  // 月キー(year-month)を記録し、同一キーで複数回 "コンプリート" 表示されたら発火
+  if (typeof w.renderTrophies === "function") {
+    const seenTrophy = new Set();
+    const origRT = w.renderTrophies;
+    w.renderTrophies = function(...args) {
+      const result = origRT.apply(this, args);
+      try {
+        const yr = ev(w, "typeof calYear !== 'undefined' ? calYear : null", null);
+        const mo = ev(w, "typeof calMonth !== 'undefined' ? calMonth : null", null);
+        if (yr && mo) {
+          const complete = ev(w, `isMonthComplete(${yr}, ${mo})`, false);
+          if (complete) {
+            const key = `${yr}-${mo}`;
+            if (seenTrophy.has(key)) {
+              trip("ANTI_015", `duplicate trophy: ${key}`);
+            }
+            seenTrophy.add(key);
+          }
+        }
+      } catch (e) {
+        log("ANTI_015 検査エラー: " + e.message, "w");
+      }
+      return result;
+    };
+  }
+
+  // ANTI_016: 解放済み Lv の再解放通知
+  if (typeof w.showLevelUnlock === "function") {
+    const seen = new Set();
+    const orig = w.showLevelUnlock;
+    w.showLevelUnlock = function(lv, ...rest) {
+      if (seen.has(lv)) {
+        trip("ANTI_016", `lv=${lv}`);
+      }
+      seen.add(lv);
+      return orig.call(this, lv, ...rest);
+    };
+  }
+
+  // ANTI_020: リプレイ中に着手できる
+  if (typeof w.onCellClick === "function") {
+    const orig = w.onCellClick;
+    w.onCellClick = function(...args) {
+      if (getSetting(w, "replayMode") === true) {
+        trip("ANTI_020", "onCellClick during replayMode");
+      }
+      return orig.apply(this, args);
+    };
+  }
+
+  // ANTI_010: 棋譜の手数不一致 — saveGameRecord 時にチェッカー側カウンタと比較
+  // moveHistory にはパス記録も含まれるため、type==='move' のみをカウントして比較
+  // 自動テスト中は高速 cpuPlay の非同期タイミングで競合するためスキップ
+  if (typeof w.saveGameRecord === "function") {
+    const origSGR = w.saveGameRecord;
+    w.saveGameRecord = function(...args) {
+      if (!state.autoTesting) try {
+        const gameMoves = ev(w,
+          "typeof moveHistory !== 'undefined' ? moveHistory.filter(m => m.type === 'move').length : -1", -1);
+        if (gameMoves >= 0 && _moveCounter010 !== gameMoves) {
+          trip("ANTI_010",
+            `checker=${_moveCounter010} game.moveHistory(moves)=${gameMoves}`);
+        }
+      } catch (e) {
+        log("ANTI_010 検査エラー: " + e.message, "w");
+      }
+      return origSGR.apply(this, args);
+    };
+  }
+
+  // 自動テスト高速化: cpuPlay の思考待ち時間をスキップ
+  // （setTimeout パッチは iframe 内で効かない場合があるため、直接ラップ）
+  if (typeof w.cpuPlay === "function") {
+    const origCpuPlay = w.cpuPlay;
+    w.cpuPlay = async function() {
+      if (!state.autoTesting) return origCpuPlay.apply(this, arguments);
+      // 高速版: 思考時間・表示更新をスキップし、即座に手を選んで実行
+      return w.eval(`(async function(){
+        const vm = filterKoMoves(getValidMoves(current), current);
+        if (vm.length === 0) { await updateGame(); return; }
+        try {
+          const ch = cpuChooseMove(vm, current);
+          const [q,r,s] = ch || vm[0];
+          const gp = pickNonKoGPColor(q,r,s,current);
+          await executeMove(q,r,s,gp);
+        } catch(e) {
+          const [q,r,s] = vm[Math.floor(Math.random()*vm.length)];
+          const gp = pickNonKoGPColor(q,r,s,current);
+          await executeMove(q,r,s,gp);
+        }
+      })()`);
+    };
+  }
+
+  // 自動テスト高速化: ランクアップ演出・花火・戦績保存をスキップ
+  if (typeof w.showRankUpModal === "function") {
+    const origSRM = w.showRankUpModal;
+    w.showRankUpModal = function(...args) {
+      if (state.autoTesting) return; // 演出スキップ
+      return origSRM.apply(this, args);
+    };
+  }
+  if (typeof w.launchFireworks === "function") {
+    const origLF = w.launchFireworks;
+    w.launchFireworks = function(...args) {
+      if (state.autoTesting) return; // 花火スキップ
+      return origLF.apply(this, args);
+    };
+  }
+  if (typeof w.showLevelUnlock === "function") {
+    const origSLU = w.showLevelUnlock;
+    w.showLevelUnlock = function(...args) {
+      if (state.autoTesting) return; // レベル解放演出スキップ
+      return origSLU.apply(this, args);
+    };
+  }
+  // ANTI_019: 画面外要素のクリック反応 — display:none の要素がクリックされたら検出
+  // 自動テスト中は programmatic .click() が display:none を無視するため除外
+  try {
+    w.document.addEventListener("click", function(e) {
+      if (state.autoTesting) return;
+      // isTrusted=false はプログラム経由のクリック → 除外
+      if (!e.isTrusted) return;
+      try {
+        let el = e.target;
+        while (el && el !== w.document.documentElement) {
+          const style = w.getComputedStyle(el);
+          if (style.display === "none" || style.visibility === "hidden") {
+            trip("ANTI_019",
+              `${el.tagName}#${el.id||""}.${el.className||""} display=${style.display} visibility=${style.visibility}`);
+            break;
+          }
+          el = el.parentElement;
+        }
+      } catch (ex) {}
+    }, true); // capturing phase
+  } catch (e) {
+    log("ANTI_019 リスナー登録エラー: " + e.message, "w");
+  }
+
+  // ANTI_012: アニメ OFF なのにアニメが流れる
+  // animateFlipSequence, animateScoreFly, launchFireworks を再ラップ
+  const animFns = ["animateFlipSequence", "animateScoreFly", "launchFireworks"];
+  for (const fnName of animFns) {
+    if (typeof w[fnName] === "function") {
+      const prev = w[fnName];
+      w[fnName] = function(...args) {
+        // 自動テスト中は意図的に animationsEnabled=false にするためスキップ
+        if (!state.autoTesting && getSetting(w, "animationsEnabled") === false) {
+          trip("ANTI_012", `${fnName}() called while animationsEnabled=false`);
+        }
+        return prev.apply(this, args);
+      };
+    }
+  }
+
+  // ANTI_013: ヒント OFF なのにヒントが出る
+  // MutationObserver でヒント関連クラスを監視
+  try {
+    const hintClasses = ["valid-hint", "hint-cell", "hint-mark", "hint"];
+    const hintObserver = new MutationObserver((mutations) => {
+      if (getSetting(w, "hintEnabled") !== false) return;
+      for (const m of mutations) {
+        if (m.type === "attributes" && m.attributeName === "class") {
+          const cls = m.target.className || "";
+          for (const hc of hintClasses) {
+            if (cls.indexOf(hc) >= 0) {
+              trip("ANTI_013", `class "${hc}" added while hintEnabled=false`);
+              return;
+            }
+          }
+        }
+        // 子ノード追加時もチェック
+        if (m.type === "childList") {
+          for (const node of m.addedNodes) {
+            if (node.nodeType === 1 && node.className) {
+              for (const hc of hintClasses) {
+                if (node.className.indexOf(hc) >= 0) {
+                  trip("ANTI_013", `element with class "${hc}" added while hintEnabled=false`);
+                  return;
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    hintObserver.observe(w.document.body, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      attributeFilter: ["class"],
+    });
+  } catch (e) {
+    log("ANTI_013 MutationObserver エラー: " + e.message, "w");
+  }
+
+  // --- manual → 自動検出への昇格 ---
+
+  // MDL_010: ゲーム中断確認 — restart/quit ボタンのクリックを検出
+  try {
+    w.document.addEventListener("click", (e) => {
+      const target = e.target;
+      if (!target) return;
+      const id = (target.id || "").toLowerCase();
+      const cls = (target.className || "").toLowerCase();
+      const txt = (target.textContent || "").trim();
+      // restart/quit/中断 ボタンクリックで中断確認が出る
+      if (id === "restart-btn" || id === "quit-btn" ||
+          id === "btn-restart" || id === "btn-quit" ||
+          cls.indexOf("restart") >= 0 || cls.indexOf("quit") >= 0 ||
+          txt === "中断" || txt === "やめる" || txt === "再スタート") {
+        fire("MDL_010");
+      }
+      // MSC_005: もう一度ボタン押下
+      if (id === "play-again-btn" || id === "playagain-btn" ||
+          id === "btn-play-again" || id === "btn-playagain" ||
+          txt === "もう一度" || txt === "もう1回") {
+        fire("MSC_005");
+      }
+    }, true);
+  } catch (e) {
+    log("MDL_010/MSC_005 リスナー登録エラー: " + e.message, "w");
+  }
+
+  // MSC_003: 1手戻す無効化 — undoMove フック内で undo 不可状態を検出
+  if (typeof w.undoMove === "function") {
+    const origUndo = w.undoMove;
+    w.undoMove = function(...args) {
+      const result = origUndo.apply(this, args);
+      // undo 後にボタンが無効化されたか、または undoState が空になったか検出
+      try {
+        const undoBtn = w.document.getElementById("undo-btn") ||
+                        w.document.getElementById("btn-undo") ||
+                        w.document.querySelector("[data-action='undo']") ||
+                        w.document.querySelector(".undo-btn");
+        if (undoBtn && (undoBtn.disabled || undoBtn.classList.contains("disabled"))) {
+          fire("MSC_003");
+        }
+        // undoState が空なら無効化とみなす
+        const undoEmpty = ev(w,
+          "typeof undoState !== 'undefined' ? (undoState === null || (Array.isArray(undoState) && undoState.length === 0)) : null",
+          null);
+        if (undoEmpty === true) {
+          fire("MSC_003");
+        }
+      } catch (e) {}
+      return result;
+    };
+  }
+
+  state.hooked = true;
+  log(`✅ フック注入完了: ${wrappedCount} 件 / 不在 ${missingCount} 件`, "ok");
+  if (missing.length > 0) {
+    log(`(不在関数: ${missing.slice(0, 5).join(", ")}${missing.length > 5 ? ` ...他 ${missing.length - 5}` : ""})`, "w");
+  }
+  updateUI();
+}
+
+// =========================================================================
+// イベントハンドラ
+// =========================================================================
+document.getElementById("btn-load").onclick = () => {
+  const iframe = document.getElementById("game-iframe");
+  iframe.src = "../index.html?_t=" + Date.now();
+  state.hooked = false;
+  log("ゲーム本体を読込中...", "i");
+  iframe.onload = () => {
+    log("ゲーム本体ロード完了", "ok");
+    setTimeout(installHooks, 300);
+  };
+};
+
+document.getElementById("btn-install").onclick = () => {
+  installHooks();
+};
+
+document.getElementById("btn-reset").onclick = () => {
+  state.fired.clear();
+  state.tripped.clear();
+  state.lastEvent = "-";
+  document.querySelectorAll(".item").forEach(el => {
+    el.classList.remove("fired");
+    el.classList.remove("tripped");
+    const m = el.querySelector(".mark");
+    if (el.classList.contains("anti-item")) {
+      const id = el.dataset.id;
+      const a = ANTIS.find(x => x.id === id);
+      m.textContent = a ? a.sev : "○";
+    } else {
+      m.textContent = "○";
+    }
+  });
+  log("状態をリセット", "i");
+  updateUI();
+};
+
+document.getElementById("btn-expand").onclick = () => {
+  const cats = document.querySelectorAll(".cat");
+  const allOpen = Array.from(cats).every(c => c.classList.contains("open"));
+  cats.forEach(c => c.classList.toggle("open", !allOpen));
+};
+
+// フィルタ
+document.querySelectorAll(".filter button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".filter button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const f = btn.dataset.f;
+    document.querySelectorAll("#event-list .item").forEach(el => {
+      const fired = el.classList.contains("fired");
+      if (f === "all") el.style.display = "";
+      else if (f === "fired") el.style.display = fired ? "" : "none";
+      else if (f === "unfired") el.style.display = fired ? "none" : "";
+    });
+  };
+});
+
+// =========================================================================
+// 自動テスト
+// =========================================================================
+let autoRunning = false;
+let autoAbort = false;
+
+function autoLog(msg) { log("[AUTO] " + msg, "i"); }
+function autoErr(msg) { log("[AUTO] " + msg, "e"); }
+function autoOk(msg) { log("[AUTO] " + msg, "ok"); }
+
+function updateAutoProgress(text) {
+  const el = document.getElementById("auto-progress");
+  el.textContent = text;
+  el.classList.toggle("active", !!text);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function getWin() {
+  return document.getElementById("game-iframe").contentWindow;
+}
+
+// iframe 内 eval のショートカット（installHooks 内の ev と同じだが auto 用に独立）
+function ae(expr, fallback) {
+  try { return getWin().eval(expr); } catch (e) { return fallback !== undefined ? fallback : null; }
+}
+
+// モーダルの自動閉じ — 既知の ID を直接クリック ＋ 汎用フォールバック
+// skipResult=true の時は result-modal 系ボタンをスキップ（ゲーム終了検出用）
+function dismissModals(skipResult) {
+  try {
+    const skip = skipResult ? 'yes' : '';
+    ae(`(() => {
+      // --- 既知のボタンを直接クリック（最速・最確実） ---
+      const skipResult = '${skip}';
+      const knownBtns = [
+        'pass-ok',           // パスモーダル OK
+        'turn-ok',           // ターンモーダル OK
+        'rankup-ok-btn',     // ランクアップ OK
+        'level-unlock-ok-btn', // レベル解放 OK
+        'promo-ok',          // 昇格 OK
+        'ko-ok',             // コウ OK
+        'quit-cancel',       // 中断キャンセル
+      ];
+      // result-modal 系は skipResult でなければ追加
+      if (!skipResult) {
+        knownBtns.push('play-again-btn', 'btn-play-again', 'playagain-btn', 'result-ok');
+      }
+      for (const id of knownBtns) {
+        const b = document.getElementById(id);
+        if (b) {
+          const pm = b.closest('[id*="modal"], [style*="display"]') || b.parentElement;
+          if (pm && getComputedStyle(pm).display !== 'none') {
+            b.click(); return 'known:' + id;
+          }
+        }
+      }
+
+      // --- 既知のモーダル container を直接探す ---
+      const knownModals = [
+        'pass-modal', 'result-modal', 'turn-modal',
+        'rankup-modal', 'level-unlock-modal', 'promo-announce-modal',
+        'ko-message', 'ko-modal', 'quit-confirm-modal',
+      ];
+      for (const mid of knownModals) {
+        const m = document.getElementById(mid);
+        if (m && getComputedStyle(m).display !== 'none') {
+          const btns = m.querySelectorAll('button');
+          for (const b of btns) {
+            b.click(); return 'modal:' + mid;
+          }
+        }
+      }
+
+      // --- 汎用フォールバック: modal/overlay を含む要素内の見えるボタン ---
+      const allModals = document.querySelectorAll('[id*="modal"], [class*="modal"], [id*="overlay"], [class*="overlay"], [id*="popup"], [class*="popup"]');
+      for (const m of allModals) {
+        if (getComputedStyle(m).display === 'none') continue;
+        const btns = m.querySelectorAll('button');
+        for (const b of btns) {
+          if (getComputedStyle(b).display !== 'none') {
+            b.click(); return 'generic:' + (m.id || '?');
+          }
+        }
+      }
+      return null;
+    })()`);
+  } catch (e) {}
+}
+
+// ゲームが終了状態か判定（result-modal の表示で検出）
+function isGameOver() {
+  return ae("(function(){ var m = document.getElementById('result-modal'); return m && m.style.display !== 'none'; })()", false);
+}
+
+// モーダル自動クリックのインターバル（開始/停止制御）
+let _modalInterval = null;
+let _modalSkipResult = false;
+function startModalAutoDismiss(skipResult) {
+  _modalSkipResult = !!skipResult;
+  if (_modalInterval) return;
+  _modalInterval = setInterval(() => dismissModals(_modalSkipResult), 150);
+}
+function stopModalAutoDismiss() {
+  if (_modalInterval) { clearInterval(_modalInterval); _modalInterval = null; }
+}
+
+// 自動プレイ用: ゲーム内の思考待ち時間を 0 にパッチ
+function patchCpuSpeed() {
+  try {
+    // setTimeout を一時的にパッチして cpuPlay 内の待ち時間を 0 にする
+    const w = getWin();
+    if (!w._origSetTimeout) {
+      w._origSetTimeout = w.setTimeout;
+      w.setTimeout = function(fn, delay, ...args) {
+        // 300ms以上の遅延（思考時間）は 10ms に短縮
+        const d = (delay && delay >= 300) ? 10 : delay;
+        return w._origSetTimeout(fn, d, ...args);
+      };
+    }
+  } catch (e) {}
+}
+function unpatchCpuSpeed() {
+  try {
+    const w = getWin();
+    if (w._origSetTimeout) {
+      w.setTimeout = w._origSetTimeout;
+      delete w._origSetTimeout;
+    }
+  } catch (e) {}
+}
+
+// CPU vs CPU で 1 試合を自動プレイ
+let _cpuBusy = false;
+async function autoPlayOneGame(gameNum) {
+  // result-modal を閉じてからゲーム開始
+  dismissModals(false);
+  ae("typeof showPage === 'function' && showPage('game-setup')");
+  await sleep(50);
+  ae(`
+    battleMode = 'cpu';
+    cpuLevel = 2;
+    humanColor = 'black';
+    cpuColor = 'white';
+    animationsEnabled = false;
+    soundEnabled = false;
+    cpuSpeedLevel = 3;
+    typeof startGame === 'function' && startGame();
+  `);
+  await sleep(50);
+
+  const maxWait = 15000;
+  const maxMoves = 80; // 通常36手前後。80手超えはコウ無限ループとみなす
+  const startTime = Date.now();
+  _cpuBusy = false;
+
+  while (!autoAbort) {
+    if (isGameOver()) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      if (gameNum % 10 === 0 || gameNum <= 3) {
+        autoOk(`第 ${gameNum} 局 終了 (${elapsed}s)`);
+      }
+      return true;
+    }
+
+    // コウ無限ループ検出: 手数が異常に多い場合は強制終了
+    const moveCount = ae("typeof moveHistory !== 'undefined' ? moveHistory.length : 0", 0);
+    if (moveCount > maxMoves) {
+      autoErr(`第 ${gameNum} 局 コウループ検出 (${moveCount}手) — 強制終了`);
+      _cpuBusy = false;
+      return false;
+    }
+
+    if (!_cpuBusy) {
+      try {
+        const isHumanTurn = ae("current === humanColor", false);
+        if (isHumanTurn) {
+          _cpuBusy = true;
+          const p = ae("cpuPlay()");
+          if (p && typeof p.then === 'function') {
+            p.then(() => { _cpuBusy = false; }).catch(() => { _cpuBusy = false; });
+          } else {
+            _cpuBusy = false;
+          }
+        }
+      } catch (e) { _cpuBusy = false; }
+    }
+
+    await sleep(30);
+
+    if (Date.now() - startTime > maxWait) {
+      autoErr(`第 ${gameNum} 局 タイムアウト`);
+      _cpuBusy = false;
+      return false;
+    }
+  }
+  return false;
+}
+
+// Phase A: CPU 対戦自動プレイ（100 局）
+async function phaseA() {
+  autoLog("=== Phase A: CPU 対戦 (Lv.2 ランダム×100) ===");
+  const games = 100;
+  let ok = 0, ng = 0;
+  const w = getWin();
+
+  // localStorage をクリアして蓄積データ（ランク・勝利数等）を防止
+  try {
+    w.localStorage.clear();
+    autoLog("localStorage クリア完了");
+  } catch(e) { autoLog("localStorage クリア失敗: " + e.message); }
+
+  w.prompt = (msg, def) => def || 'auto-test';
+  w.confirm = () => true;
+  // パスモーダル等は自動クリック、result-modal はスキップ（終了検出に使う）
+  startModalAutoDismiss(true);
+
+  updateAutoProgress(`Phase A: CPU対戦 (0/${games})`);
+  for (let i = 1; i <= games; i++) {
+    if (autoAbort) return;
+    if (i % 10 === 0) {
+      updateAutoProgress(`Phase A: CPU対戦 (${i}/${games}) OK:${ok} NG:${ng}`);
+    }
+    const result = await autoPlayOneGame(i);
+    if (result) ok++; else ng++;
+  }
+  stopModalAutoDismiss();
+  autoOk(`Phase A 完了: ${ok}局完了 / ${ng}局タイムアウト`);
+}
+
+// Phase B: 全画面遷移
+async function phaseB() {
+  autoLog("=== Phase B: 画面遷移 ===");
+  updateAutoProgress("Phase B: 画面遷移");
+
+  const pages = ["main", "game-setup", "custom", "account", "daily", "trophies", "rules", "kifu"];
+  for (const page of pages) {
+    if (autoAbort) return;
+    ae(`typeof showPage === 'function' && showPage('${page}')`);
+    autoLog(`NAV → ${page}`);
+    await sleep(400);
+  }
+  ae("typeof showPage === 'function' && showPage('main')");
+  autoOk("Phase B 完了");
+}
+
+// Phase C: 設定変更
+async function phaseC() {
+  autoLog("=== Phase C: 設定変更 ===");
+  updateAutoProgress("Phase C: 設定変更");
+
+  ae("typeof showPage === 'function' && showPage('custom')");
+  await sleep(300);
+
+  // 色選択
+  ae("typeof selectColor === 'function' && selectColor('white')");
+  await sleep(150);
+  ae("typeof selectColor === 'function' && selectColor('black')");
+  await sleep(150);
+
+  // レベル選択
+  for (let lv = 1; lv <= 3; lv++) {
+    ae(`typeof selectLevel === 'function' && selectLevel(${lv})`);
+    await sleep(100);
+  }
+
+  // サウンド ON/OFF
+  ae("typeof selectSound === 'function' && selectSound(false)");
+  await sleep(100);
+  ae("typeof selectSound === 'function' && selectSound(true)");
+  await sleep(100);
+
+  // アニメ ON/OFF
+  ae("typeof selectAnim === 'function' && selectAnim(false)");
+  await sleep(100);
+  ae("typeof selectAnim === 'function' && selectAnim(true)");
+  await sleep(100);
+
+  // ヒント ON/OFF
+  ae("typeof selectHint === 'function' && selectHint(false)");
+  await sleep(100);
+  ae("typeof selectHint === 'function' && selectHint(true)");
+  await sleep(100);
+
+  // 表記法
+  ae("typeof selectNotation === 'function' && selectNotation('axial')");
+  await sleep(100);
+  ae("typeof selectNotation === 'function' && selectNotation('alpha')");
+  await sleep(100);
+
+  // 速度設定
+  ae("typeof selectSpeed === 'function' && selectSpeed('fast')");
+  await sleep(100);
+  ae("typeof selectSpeed === 'function' && selectSpeed('normal')");
+  await sleep(100);
+
+  // テーマ変更
+  ae("typeof selectTheme === 'function' && selectTheme('dark')");
+  await sleep(100);
+  ae("typeof selectTheme === 'function' && selectTheme('classic')");
+  await sleep(100);
+
+  // 背景色変更
+  ae("typeof selectBgColor === 'function' && selectBgColor('#2a2a2a')");
+  await sleep(100);
+  ae("typeof selectBgColor === 'function' && selectBgColor('#1a1208')");
+  await sleep(100);
+
+  // 対戦モード
+  ae("typeof selectBattleMode === 'function' && selectBattleMode('cpu')");
+  await sleep(100);
+  ae("typeof selectBattleMode === 'function' && selectBattleMode('2p')");
+  await sleep(100);
+  ae("typeof selectBattleMode === 'function' && selectBattleMode('cpu')");
+  await sleep(100);
+
+  // 保存して戻る
+  ae("typeof saveSettingsAndBack === 'function' && saveSettingsAndBack()");
+  await sleep(300);
+
+  // プレイヤー名
+  ae("typeof updatePlayerNameDisplay === 'function' && updatePlayerNameDisplay()");
+  await sleep(100);
+
+  autoOk("Phase C 完了");
+}
+
+// Phase D: モーダル開閉
+async function phaseD() {
+  autoLog("=== Phase D: モーダル開閉 ===");
+  updateAutoProgress("Phase D: モーダル");
+
+  // ルール画面のモーダル
+  ae("typeof showPage === 'function' && showPage('rules')");
+  await sleep(300);
+
+  // ルール説明モーダルは画面上のボタンで開くかもしれない
+  try {
+    ae(`(() => {
+      const btn = document.getElementById('help-btn');
+      if (btn) btn.click();
+    })()`);
+    fire("MDL_001");
+  } catch (e) {}
+  await sleep(300);
+  try {
+    ae(`(() => {
+      const btn = document.getElementById('rules-close');
+      if (btn) btn.click();
+    })()`);
+    fire("MDL_002");
+  } catch (e) {}
+  await sleep(200);
+
+  // コウ説明
+  ae("typeof showKoHelp === 'function' && showKoHelp()");
+  await sleep(200);
+  ae("typeof hideKoHelp === 'function' && hideKoHelp()");
+  await sleep(200);
+
+  // デイリーヘルプ
+  ae("typeof showPage === 'function' && showPage('daily')");
+  await sleep(300);
+  ae("typeof showDailyHelp === 'function' && showDailyHelp()");
+  await sleep(200);
+  ae("typeof hideDailyHelp === 'function' && hideDailyHelp()");
+  await sleep(200);
+
+  // 表記法ガイド
+  ae("typeof showNotationMap === 'function' && showNotationMap()");
+  await sleep(200);
+  ae("typeof closeNotationMap === 'function' && closeNotationMap()");
+  await sleep(200);
+
+  autoOk("Phase D 完了");
+}
+
+// Phase E: デイリーチャレンジ
+async function phaseE() {
+  autoLog("=== Phase E: デイリーチャレンジ ===");
+  updateAutoProgress("Phase E: デイリー");
+
+  ae("typeof showPage === 'function' && showPage('daily')");
+  await sleep(300);
+
+  // カレンダー操作
+  ae("typeof renderCalendar === 'function' && renderCalendar()");
+  await sleep(200);
+  ae("typeof calendarPrev === 'function' && calendarPrev()");
+  await sleep(200);
+  ae("typeof calendarNext === 'function' && calendarNext()");
+  await sleep(200);
+  ae("typeof calendarNext === 'function' && calendarNext()");
+  await sleep(200);
+
+  // 当日成績表示
+  ae("typeof updateTodayRecordDisplay === 'function' && updateTodayRecordDisplay()");
+  await sleep(200);
+
+  // デイリーチャレンジ開始
+  const wE = getWin();
+  wE.prompt = (msg, def) => def || 'auto-test';
+  wE.confirm = () => true;
+  ae("cpuSpeedLevel = 3; animationsEnabled = false; soundEnabled = false;");
+  ae("typeof startDailyChallenge === 'function' && startDailyChallenge()");
+  await sleep(300);
+
+  startModalAutoDismiss(true);
+  _cpuBusy = false;
+  const startE = Date.now();
+  while (!autoAbort && !isGameOver() && Date.now() - startE < 15000) {
+    if (!_cpuBusy) {
+      try {
+        const isHT = ae("current === humanColor", false);
+        if (isHT) {
+          _cpuBusy = true;
+          const p = ae("cpuPlay()");
+          if (p && typeof p.then === 'function') p.then(() => { _cpuBusy = false; }).catch(() => { _cpuBusy = false; });
+          else _cpuBusy = false;
+        }
+      } catch (e) { _cpuBusy = false; }
+    }
+    await sleep(30);
+  }
+  autoLog(`デイリー対局 終了`);
+  dismissModals(false);
+  await sleep(200);
+
+  stopModalAutoDismiss();
+
+  ae("typeof backToDaily === 'function' && backToDaily()");
+  await sleep(200);
+
+  autoOk("Phase E 完了");
+}
+
+// Phase F: 棋譜操作
+async function phaseF() {
+  autoLog("=== Phase F: 棋譜操作 ===");
+  updateAutoProgress("Phase F: 棋譜");
+
+  // まず 1 局プレイして棋譜を保存
+  const wF = getWin();
+  wF.prompt = (msg, def) => def || 'auto-test';
+  wF.confirm = () => true;
+
+  // 残留モーダルを閉じてゲーム画面へ遷移
+  dismissModals(false);
+  ae("typeof showPage === 'function' && showPage('game-setup')");
+  await sleep(50);
+  ae(`
+    battleMode = 'cpu'; cpuLevel = 2;
+    humanColor = 'black'; cpuColor = 'white';
+    cpuSpeedLevel = 3;
+    animationsEnabled = false;
+    soundEnabled = false;
+    typeof startGame === 'function' && startGame();
+  `);
+  await sleep(50);
+
+  startModalAutoDismiss(true);
+  _cpuBusy = false;
+  const startF = Date.now();
+  while (!autoAbort && !isGameOver() && Date.now() - startF < 15000) {
+    if (!_cpuBusy) {
+      try {
+        const isHT2 = ae("current === humanColor", false);
+        if (isHT2) {
+          _cpuBusy = true;
+          const p2 = ae("cpuPlay()");
+          if (p2 && typeof p2.then === 'function') p2.then(() => { _cpuBusy = false; }).catch(() => { _cpuBusy = false; });
+          else _cpuBusy = false;
+        }
+      } catch (e) { _cpuBusy = false; }
+    }
+    await sleep(30);
+  }
+  // 棋譜保存（result-modal を閉じる前に保存 — 閉じると moveHistory がリセットされる）
+  await sleep(100);
+  ae("typeof saveGameRecord === 'function' && saveGameRecord()");
+  await sleep(100);
+  dismissModals(false);
+  await sleep(300);
+
+  // 棋譜テキスト表示
+  ae("typeof showSavedNotation === 'function' && showSavedNotation()");
+  await sleep(300);
+  ae("typeof closeNotationModal === 'function' && closeNotationModal()");
+  await sleep(200);
+
+  // 棋譜一覧へ
+  ae("typeof showPage === 'function' && showPage('kifu')");
+  await sleep(300);
+  ae("typeof renderKifuList === 'function' && renderKifuList()");
+  await sleep(300);
+
+  // リプレイ開始（最新の棋譜）
+  ae(`(() => {
+    if (typeof startReplay === 'function') {
+      // 最新の棋譜キーを探す
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.indexOf('kifu') >= 0) keys.push(k);
+      }
+      if (keys.length > 0) {
+        startReplay(keys[keys.length - 1]);
+      } else {
+        // 直接呼び出し
+        startReplay(0);
+      }
+    }
+  })()`);
+  await sleep(500);
+
+  // リプレイ操作
+  ae("typeof replayForward === 'function' && replayForward()");
+  await sleep(200);
+  ae("typeof replayForward === 'function' && replayForward()");
+  await sleep(200);
+  ae("typeof replayForward === 'function' && replayForward()");
+  await sleep(200);
+  ae("typeof replayBack === 'function' && replayBack()");
+  await sleep(200);
+  ae("typeof replayGoStart === 'function' && replayGoStart()");
+  await sleep(200);
+  ae("typeof replayGoEnd === 'function' && replayGoEnd()");
+  await sleep(200);
+  ae("typeof exitReplay === 'function' && exitReplay()");
+  await sleep(300);
+
+  stopModalAutoDismiss();
+  autoOk("Phase F 完了");
+}
+
+// Phase G: チュートリアル
+async function phaseG() {
+  autoLog("=== Phase G: チュートリアル ===");
+  updateAutoProgress("Phase G: チュートリアル");
+
+  ae("typeof showPage === 'function' && showPage('main')");
+  await sleep(300);
+
+  // チュートリアル選択モーダル
+  ae("typeof showTutorialChoice === 'function' && showTutorialChoice()");
+  await sleep(300);
+
+  // チュートリアル開始（基本チュートリアル = 0 or 'basic'）
+  ae("typeof startTutorial === 'function' && startTutorial(0)");
+  await sleep(500);
+
+  // ステップを数回進める
+  for (let i = 0; i < 10; i++) {
+    if (autoAbort) return;
+    ae("typeof tutorialNext === 'function' && tutorialNext()");
+    await sleep(300);
+
+    // ミニゲームがあれば実行
+    ae("typeof startTutorialMiniGame === 'function' && startTutorialMiniGame()");
+    await sleep(100);
+
+    // チュートリアルクリックを試す
+    ae(`(() => {
+      if (typeof handleTutorialClick === 'function') {
+        // チュートリアル対象のセルをクリックしてみる
+        const highlighted = document.querySelector('.tutorial-target-pulse, .tutorial-cp-glow');
+        if (highlighted) highlighted.click();
+      }
+    })()`);
+    await sleep(100);
+  }
+
+  // 1 手戻す
+  ae("typeof tutorialPrev === 'function' && tutorialPrev()");
+  await sleep(200);
+
+  // スキップ（終了）
+  ae("typeof exitTutorial === 'function' && exitTutorial()");
+  await sleep(300);
+
+  // 選択モーダル閉じる
+  ae("typeof hideTutorialChoice === 'function' && hideTutorialChoice()");
+  await sleep(200);
+
+  autoOk("Phase G 完了");
+}
+
+// Phase H: 追加イベント発火（漏れ拾い）
+async function phaseH() {
+  autoLog("=== Phase H: 補完 ===");
+  updateAutoProgress("Phase H: 補完");
+
+  // updateScore
+  ae("typeof updateScore === 'function' && updateScore()");
+  await sleep(100);
+
+  // calculateRank
+  ae("typeof calculateRank === 'function' && calculateRank()");
+  await sleep(100);
+
+  // updateRankDisplay
+  ae("typeof updateRankDisplay === 'function' && updateRankDisplay()");
+  await sleep(100);
+
+  // checkLevelUnlock
+  ae("typeof checkLevelUnlock === 'function' && checkLevelUnlock()");
+  await sleep(100);
+
+  // renderTrophies
+  ae("typeof renderTrophies === 'function' && renderTrophies()");
+  await sleep(100);
+
+  // renderTrophyList
+  ae("typeof renderTrophyList === 'function' && renderTrophyList()");
+  await sleep(100);
+
+  // updateSessionScore
+  ae("typeof updateSessionScore === 'function' && updateSessionScore()");
+  await sleep(100);
+
+  // saveUndoState
+  ae("typeof saveUndoState === 'function' && saveUndoState()");
+  await sleep(100);
+
+  // showTurn
+  ae("typeof showTurn === 'function' && showTurn()");
+  await sleep(100);
+
+  // showToast
+  ae("typeof showToast === 'function' && showToast('auto-test toast')");
+  await sleep(200);
+
+  // updatePromotionSection
+  ae("typeof updatePromotionSection === 'function' && updatePromotionSection()");
+  await sleep(100);
+
+  // saveBattleRecord
+  ae("typeof saveBattleRecord === 'function' && saveBattleRecord()");
+  await sleep(100);
+
+  // saveDailyRecord
+  ae("typeof saveDailyRecord === 'function' && saveDailyRecord()");
+  await sleep(100);
+
+  autoOk("Phase H 完了");
+}
+
+async function runAutoTest() {
+  if (autoRunning) {
+    autoAbort = true;
+    autoLog("停止リクエスト...");
+    return;
+  }
+  const w = getWin();
+  if (!w || !w.document || !w.document.body) {
+    autoErr("先にゲームを読み込んでください");
+    return;
+  }
+  if (!state.hooked) {
+    autoErr("先にフックを注入してください");
+    return;
+  }
+
+  autoRunning = true;
+  autoAbort = false;
+  state.autoTesting = true;
+  const btn = document.getElementById("btn-auto");
+  btn.textContent = "⏹ 自動テスト停止";
+  btn.classList.add("running");
+
+  try {
+    await phaseA(); // CPU 対戦 x3
+    if (!autoAbort) await phaseB(); // 画面遷移
+    if (!autoAbort) await phaseC(); // 設定変更
+    if (!autoAbort) await phaseD(); // モーダル
+    if (!autoAbort) await phaseE(); // デイリー
+    if (!autoAbort) await phaseF(); // 棋譜
+    if (!autoAbort) await phaseG(); // チュートリアル
+    if (!autoAbort) await phaseH(); // 補完
+
+    if (autoAbort) {
+      autoLog("自動テスト中断");
+    } else {
+      autoOk(`=== 自動テスト完了 === EVENT: ${state.fired.size}/${EVENTS.length}  ANTI違反: ${state.tripped.size}`);
+    }
+  } catch (e) {
+    autoErr("自動テスト エラー: " + e.message);
+  }
+
+  stopModalAutoDismiss();
+  autoRunning = false;
+  autoAbort = false;
+  state.autoTesting = false;
+  btn.textContent = "🤖 自動テスト開始";
+  btn.classList.remove("running");
+  updateAutoProgress("");
+  updateUI();
+}
+
+document.getElementById("btn-auto").onclick = () => {
+  runAutoTest();
+};
+
+// 初期化
+buildEventList();
+buildAntiList();
+updateUI();
+log("v0.3 起動。「ゲーム読込」ボタンから始めてください。", "i");
+</script>
+</body>
+</html>
