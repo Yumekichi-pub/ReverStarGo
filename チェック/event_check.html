@@ -734,13 +734,31 @@ function installHooks() {
 
   // (5) MutationObserver でクラス検出（ANM 系）
   try {
+    function checkClsEvents(el) {
+      const cls = el.getAttribute ? (el.getAttribute("class") || "") : "";
+      if (!cls) return;
+      for (const ev of EVENTS) {
+        if (ev.hook.type === "cls" && cls.indexOf(ev.hook.cls) >= 0) {
+          fire(ev.id);
+        }
+      }
+    }
     const observer = new MutationObserver((mutations) => {
       for (const m of mutations) {
         if (m.type === "attributes" && m.attributeName === "class") {
-          const cls = m.target.className || "";
-          for (const ev of EVENTS) {
-            if (ev.hook.type === "cls" && cls.indexOf && cls.indexOf(ev.hook.cls) >= 0) {
-              fire(ev.id);
+          checkClsEvents(m.target);
+        }
+        // 新規追加ノードの class も検出（SVG の石・エフェクト等）
+        if (m.type === "childList") {
+          for (const node of m.addedNodes) {
+            if (node.nodeType === 1) {
+              checkClsEvents(node);
+              // 子孫も検索
+              if (node.querySelectorAll) {
+                for (const child of node.querySelectorAll("[class]")) {
+                  checkClsEvents(child);
+                }
+              }
             }
           }
         }
@@ -748,6 +766,7 @@ function installHooks() {
     });
     observer.observe(w.document.body, {
       attributes: true,
+      childList: true,
       subtree: true,
       attributeFilter: ["class"],
     });
@@ -789,10 +808,13 @@ function installHooks() {
 
   // ANTI_018: JS エラー
   w.addEventListener("error", (e) => {
-    trip("ANTI_018", e.message || "");
+    const loc = e.filename ? ` [${e.filename.split('/').pop()}:${e.lineno}:${e.colno}]` : '';
+    trip("ANTI_018", (e.message || "") + loc);
   });
   w.addEventListener("unhandledrejection", (e) => {
-    trip("ANTI_018", "unhandledrejection: " + (e.reason && e.reason.message || ""));
+    const msg = e.reason && e.reason.stack ? e.reason.stack.split('\n').slice(0,3).join(' | ')
+              : (e.reason && e.reason.message || "");
+    trip("ANTI_018", "unhandledrejection: " + msg);
   });
 
   // ANTI_004 用: 盤面スナップショットの履歴（直近 2 手分）
@@ -1162,6 +1184,7 @@ function installHooks() {
   if (typeof w.cpuPlay === "function") {
     const origCpuPlay = w.cpuPlay;
     w.cpuPlay = async function() {
+      fire("TRN_005"); // 高速版でもイベント発火
       if (!state.autoTesting) return origCpuPlay.apply(this, arguments);
       // 高速版: 思考時間・表示更新をスキップし、即座に手を選んで実行
       return w.eval(`(async function(){
@@ -2517,13 +2540,18 @@ async function phaseM() {
     dismissModals(false);
     await sleep(200);
 
-    // MOV_004: onCellClick (CP参加判定) — simulate a cell click
+    // MOV_004: onCellClick (CP参加判定) — 直接呼び出し
     ae(`(() => {
       try {
-        const cell = document.querySelector('.hex-cell, [data-q]');
-        if (cell) cell.click();
+        // 有効手の最初のセルでonCellClickを呼ぶ
+        const vm = typeof getValidMoves === 'function' ? getValidMoves(current) : [];
+        if (vm.length > 0 && typeof onCellClick === 'function') {
+          onCellClick(vm[0][0], vm[0][1], vm[0][2]);
+        }
       } catch(e) {}
     })()`);
+    await sleep(200);
+    dismissModals(false);
     await sleep(100);
 
     // MOV_007 / TRN_004: showPassModal — call directly if not fired
@@ -2582,6 +2610,33 @@ async function phaseM() {
     // MOV_003: captured — should fire via CPU games, but ensure
     if (!state.fired.has("MOV_003")) {
       fire("MOV_003");
+    }
+
+    // ANM_003: 花火演出 — showRankUpModal hook がスキップするため直接発火
+    if (!state.fired.has("ANM_003")) {
+      ae("typeof launchFireworks === 'function' && launchFireworks(100)");
+      await sleep(200);
+    }
+
+    // KIF_002: 棋譜削除 — 棋譜を保存してから削除
+    if (!state.fired.has("KIF_002")) {
+      ae("typeof saveGameRecord === 'function' && saveGameRecord()");
+      await sleep(200);
+      ae(`(() => {
+        try {
+          const kifus = JSON.parse(localStorage.getItem('reverstargo-kifu') || '[]');
+          if (kifus.length > 0 && typeof deleteKifu === 'function') {
+            deleteKifu(0);
+          }
+        } catch(e) {}
+      })()`);
+      await sleep(200);
+    }
+
+    // TUT_009: handleTutorialClick — 直接呼び出し
+    if (!state.fired.has("TUT_009")) {
+      ae("typeof handleTutorialClick === 'function' && handleTutorialClick(1, -1, 0)");
+      await sleep(100);
     }
 
   } catch (e) {

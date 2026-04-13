@@ -3558,7 +3558,7 @@
     function loadDailyRecord() {
       try {
         const data = JSON.parse(localStorage.getItem(DAILY_RECORD_KEY));
-        if (data && data.date === getTodayDateStr()) return data.record;
+        if (data && data.date === getTodayDateStr() && data.record) return data.record;
       } catch(e) {}
       return { '1':{win:0,lose:0,draw:0}, '2':{win:0,lose:0,draw:0}, '3':{win:0,lose:0,draw:0}, '4':{win:0,lose:0,draw:0}, '5':{win:0,lose:0,draw:0}, '6':{win:0,lose:0,draw:0}, '7':{win:0,lose:0,draw:0} };
     }
@@ -3574,7 +3574,9 @@
       if (!el) return;
       if (battleMode !== 'cpu') { el.style.display = 'none'; return; }
       const daily = loadDailyRecord();
+      if (!daily) { el.style.display = 'none'; return; }
       const r = daily[String(cpuLevel)];
+      if (!r) { el.style.display = 'none'; return; }
       const total = r.win + r.lose + r.draw;
       if (total === 0) { el.style.display = 'none'; return; }
       const rate = Math.round(r.win / total * 100);
@@ -3588,7 +3590,7 @@
       const tbody = document.getElementById('battle-record-body');
       tbody.innerHTML = '';
       for (let lv = 1; lv <= 7; lv++) {
-        const r = record[String(lv)];
+        const r = record[String(lv)] || {win:0,lose:0,draw:0};
         const total = r.win + r.lose + r.draw;
         const rate = total === 0 ? '-' : Math.round(r.win / total * 100) + '%';
         const tr = document.createElement('tr');
@@ -6139,6 +6141,14 @@
 
     function devSetRank(rankIdx) {
       devOverrideRank = rankIdx;
+      // 設定ランク以下の昇格試験を自動的に合格済みにする
+      const examRanks = [3, 6, 9, 13, 18, 23, 24, 28, 29];
+      for (const er of examRanks) {
+        if (er <= rankIdx) savePromotion(er);
+      }
+      // 進行中の昇格試験をクリア
+      clearPromotionExam();
+      promotionExam = null;
       updateRankDisplay();
       updateLevelButtons();
       updateAccountRankDisplay();
