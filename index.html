@@ -2483,7 +2483,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v22</p>
+    <p class="app-version">RSG-v23</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2858,6 +2858,7 @@
           <p><strong>② 例外</strong><br>その手以外に置ける場所が全くない場合のみ、同じ盤面に戻る手でも打つことができます。</p>
           <p><strong>③ 例外後のルール</strong><br>例外が適用された場合、今度は相手が同じ盤面に戻す手をすぐに打つことはできません。</p>
           <p><strong>④ ゲーム終了</strong><br>両者とも同じ盤面に戻る手しか打てない状態が続く場合、ゲーム終了とし、その時点での合計ポイントで勝敗を決します。</p>
+          <p><strong>⑤ 盤面の表示</strong><br>コウにより完全に置けないマスはドット（ヒント）が消えます。CPコールの一方の色のみ制限されるマスは<span style="color:#d07020;font-weight:bold;">オレンジ色</span>のドットで表示されます。</p>
         </div>
 
         <div class="rules-section">
@@ -2896,6 +2897,7 @@
       <p>囲んで相手の石を取った直後、相手がすぐ同じ場所に置き返すと、同じ盤面が永遠に繰り返されてしまいます。</p>
       <p>これを防ぐため、<strong>1手前とまったく同じ盤面に戻してしまう手は打てません。</strong></p>
       <p>他の場所に一手置いてからなら、再び石を置くことができます。</p>
+      <p>💡 コウで置けないマスはヒントのドットが消えます。CPコールの片方の色だけ制限される場合は<span style="color:#d07020;font-weight:bold;">オレンジ色</span>のドットが表示されます。</p>
       <button class="ko-help-close-btn" onclick="hideKoHelp()">閉じる</button>
     </div>
   </div>
@@ -5257,8 +5259,15 @@
       if (isCpuTurn()) {
         await cpuPlay();
       } else {
-        // コウ手も含めた全有効手を渡す（黄色い点を表示するため）
-        render(allValidNow);
+        // コウで完全にブロックされたセルはドットなし、CPコール制限セルはオレンジ
+        const koRestrictedSet = new Set();
+        for (const [vq, vr, vs] of validNow) {
+          if (needsGPCall(vq, vr, vs, current)) {
+            const nonKo = getNonKoGPColors(vq, vr, vs, current);
+            if (nonKo.length < 2) koRestrictedSet.add(K(vq, vr, vs));
+          }
+        }
+        render(validNow, koRestrictedSet);
       }
     }
 
@@ -5570,10 +5579,11 @@
       svg.appendChild(ring);
     }
 
-    function render(validMoves) {
+    function render(validMoves, koRestrictedSet) {
       const showAnim = showPlacedAnim;  // このrender1回だけアニメーション発火
       showPlacedAnim = false;
       const validSet = new Set((validMoves || []).map(([q,r,s]) => K(q,r,s)));
+      if (!koRestrictedSet) koRestrictedSet = new Set();
       const svg = document.getElementById('board');
       svg.innerHTML = '';
       drawStarOutline(svg);
@@ -5642,7 +5652,9 @@
         const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
         poly.setAttribute('points', hexPoints(cx,cy));
         let fill = currentTheme.cellFill;
-        if (isValid && hintEnabled) fill = currentTheme.cellValid;
+        if (isValid && hintEnabled) {
+          fill = koRestrictedSet.has(k) ? '#d07020' : currentTheme.cellValid;
+        }
         if (isGP && cellColor === null) fill = '#7b1fa2';
         poly.setAttribute('fill', fill);
         poly.setAttribute('stroke', isGP ? '#4a0a72' : currentTheme.cellStroke);
