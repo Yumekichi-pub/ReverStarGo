@@ -2884,7 +2884,7 @@
             <li>必ず連続で全試合を戦い抜く必要があります</li>
             <li>途中で他の画面に移動すると不合格になります</li>
             <li>白黒は1試合ごとに自動で交代します</li>
-            <li>ブロンズからダイヤモンドまでは、通算20勝の累計勝利要件もあります</li>
+            <li>プラチナからレジェンドまでの7番勝負は、通算20勝でも昇格できます</li>
           </ul>
           <p><strong>③ 不合格でも大丈夫</strong><br>不合格になっても何度でも再挑戦できます。納得できるまで挑戦してください。</p>
         </div>
@@ -3079,7 +3079,7 @@
         <p>・必ず連続で全試合を戦い抜く必要があります</p>
         <p>・途中で他の画面に移動すると不合格になります</p>
         <p>・白黒は1試合ごとに自動で交代します</p>
-        <p>・ブロンズからダイヤモンドまでは、通算20勝の累計勝利要件もあります</p>
+        <p>・プラチナからレジェンドまでの7番勝負は、通算20勝でも昇格できます</p>
         <p>不合格でも何度でも再挑戦できますので、納得できるまで挑戦してください！</p>
       </div>
       <div style="display:flex; flex-direction:column; gap:20px; width:100%; max-width:240px; margin:0 auto;">
@@ -3365,12 +3365,12 @@
     // 昇格試験が必要なランク: rankIndex → { level, winsNeeded }
     // careerWins: 通算勝利数での昇格条件（0=勝ち越しのみ）
     const PROMOTION_EXAMS = {
-      3:  { level: 1, winsNeeded: 2, maxLosses: 2, label: 'Lv.2 解放', careerWins: 20 },   // ストーン（3番勝負）
-      6:  { level: 2, winsNeeded: 3, maxLosses: 3, label: 'Lv.3 解放', careerWins: 20 },   // ブロンズ（5番勝負）
+      3:  { level: 1, winsNeeded: 2, maxLosses: 2, label: 'Lv.2 解放', careerWins: 0 },   // ストーン（3番勝負）
+      6:  { level: 2, winsNeeded: 3, maxLosses: 3, label: 'Lv.3 解放', careerWins: 0 },   // ブロンズ（5番勝負）
       9:  { level: 3, winsNeeded: 4, maxLosses: 4, label: 'Lv.4 解放', careerWins: 20 },   // プラチナ（7番勝負）
       13: { level: 4, winsNeeded: 4, maxLosses: 4, label: 'Lv.5 解放', careerWins: 20 },   // トパーズ（7番勝負）
       18: { level: 5, winsNeeded: 4, maxLosses: 4, label: 'MAX 解放', careerWins: 20 },    // ダイヤモンド（7番勝負）
-      23: { level: 6, winsNeeded: 4, maxLosses: 4, label: 'レジェンド', careerWins: 0 },    // レジェンド（7番勝負）
+      23: { level: 6, winsNeeded: 4, maxLosses: 4, label: 'レジェンド', careerWins: 20 },   // レジェンド（7番勝負）
       24: { level: 6, winsNeeded: 8, maxLosses: 8, label: 'グランドマスター', careerWins: 0 }, // グランドマスター（15番勝負）
       28: { level: 7, winsNeeded: 6, maxLosses: 6, label: 'ゴッド', careerWins: 0 },        // ゴッド（11番勝負）
       29: { level: 7, winsNeeded: 11, maxLosses: 11, label: 'ゼウス', careerWins: 0 },      // ゼウス（21番勝負）
