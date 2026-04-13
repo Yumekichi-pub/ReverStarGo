@@ -6173,6 +6173,7 @@
         localStorage.removeItem(DAILY_KEY);
         // devOverrideRank と進行中の試験もリセット
         promotionExam = null;
+        sessionWins = { black: 0, white: 0, draw: 0 };
         if (devMode) devOverrideRank = 0;
         closeDevMenu();
         updateRankDisplay();
@@ -6187,6 +6188,7 @@
       if (confirm('戦績をリセットしますか？')) {
         localStorage.removeItem(BATTLE_RECORD_KEY);
         localStorage.removeItem(DAILY_RECORD_KEY);
+        sessionWins = { black: 0, white: 0, draw: 0 };
         if (devMode) devOverrideRank = 0;
         closeDevMenu();
         updateRankDisplay();
