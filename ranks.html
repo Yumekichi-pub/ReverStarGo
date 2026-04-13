@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ランクシステム | ReverStarGo</title>
+  <meta name="description" content="ReverStarGoの30段階ランクシステム、昇格試験、レベル解放の仕組みを解説。">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+    body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',Meiryo,sans-serif;background:#0a1f14;color:#e0d8c0;line-height:1.7;overflow-x:hidden;padding-top:56px}
+    a{color:#d4b860;text-decoration:none}a:hover{color:#f0d878}
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,31,20,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(192,168,88,0.2);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between}
+    .site-header-logo{display:flex;align-items:center;gap:8px}.site-header-logo img{height:32px}
+    .site-nav{display:flex;gap:4px}.site-nav a{padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:bold;color:rgba(224,216,192,0.75);transition:all 0.2s}.site-nav a:hover,.site-nav a.active{color:#d4b860;background:rgba(192,168,88,0.12)}
+    .hamburger{display:none;background:none;border:none;color:#d4b860;font-size:1.5rem;cursor:pointer;padding:4px}
+    .mobile-nav{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(10,31,20,0.97);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .mobile-nav.open{display:flex}.mobile-nav a{font-size:1.15rem;padding:12px 32px;border-radius:12px;color:#e0d8c0;font-weight:bold;transition:background 0.2s}.mobile-nav a:hover{background:rgba(192,168,88,0.15);color:#d4b860}
+    @media(max-width:768px){.site-nav{display:none}.hamburger{display:block}}
+    .site-footer{background:#070f0a;text-align:center;padding:36px 20px;border-top:1px solid rgba(192,168,88,0.15)}
+    .site-footer-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;margin-bottom:16px}.site-footer-nav a{font-size:0.85rem;color:rgba(224,216,192,0.6)}.site-footer-nav a:hover{color:#d4b860}
+    .site-footer-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+    .btn{display:inline-block;padding:14px 36px;border-radius:12px;font-size:1.05rem;font-weight:bold;cursor:pointer;transition:all 0.25s;border:none;text-align:center}
+    .btn-primary{background:linear-gradient(135deg,#c09020,#a07818);color:#fff;box-shadow:0 4px 20px rgba(192,144,32,0.35)}.btn-primary:hover{background:linear-gradient(135deg,#d4a830,#b08820);transform:translateY(-2px);color:#fff}
+    .btn-outline{background:transparent;color:#d4b860;border:2px solid rgba(192,168,88,0.6)}.btn-outline:hover{background:rgba(192,168,88,0.15);border-color:#d4b860;color:#f0d878}
+    .site-footer-buttons .btn{padding:10px 24px;font-size:0.9rem}
+    .site-footer-copy{font-size:0.75rem;color:rgba(224,216,192,0.3)}
+    .page-hero{background:linear-gradient(180deg,#0d2818,#1a3a2a);text-align:center;padding:48px 20px 36px}
+    .page-hero h1{font-size:1.8rem;color:#d4b860;letter-spacing:0.08em;margin-bottom:8px}
+    .page-hero p{font-size:0.95rem;color:rgba(224,216,192,0.6)}
+    .content{max-width:760px;margin:0 auto;padding:40px 20px 60px}
+    .rank-table{width:100%;border-collapse:collapse;margin-bottom:36px}
+    .rank-table th{text-align:left;padding:8px 10px;font-size:0.78rem;color:#9a8060;border-bottom:2px solid rgba(192,168,88,0.3);background:rgba(192,168,88,0.08)}
+    .rank-table td{padding:8px 10px;font-size:0.88rem;border-bottom:1px solid rgba(192,168,88,0.1)}
+    .rank-table tr:hover{background:rgba(192,168,88,0.05)}
+    .rank-table .unlock-badge{font-size:0.75rem;background:rgba(192,168,88,0.2);color:#d4b860;padding:2px 8px;border-radius:6px;white-space:nowrap}
+    .info-card{background:rgba(255,255,255,0.04);border:1.5px solid rgba(192,168,88,0.2);border-radius:16px;padding:24px;margin-bottom:28px}
+    .info-card h2{font-size:1.15rem;color:#d4b860;margin-bottom:12px}
+    .info-card p{font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.8;margin-bottom:8px}
+    .info-card strong{color:#d4b860}
+    @media(max-width:600px){.page-hero h1{font-size:1.4rem}.rank-table{font-size:0.8rem}.rank-table td,.rank-table th{padding:6px 6px}}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a href="home.html" class="site-header-logo"><img src="logo.png" alt="ReverStarGo"></a>
+  <nav class="site-nav">
+    <a href="home.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html" class="active">ランク</a><a href="faq.html">FAQ</a>
+  </nav>
+  <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='☰'?'✕':'☰';" aria-label="メニュー">☰</button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="home.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  <a href="https://reverstargo.surge.sh" target="_blank">アプリ版で遊ぶ</a>
+</nav>
+
+<div class="page-hero">
+  <h1>&#127941; ランクシステム</h1>
+  <p>30段階のランクを駆け上がろう</p>
+</div>
+
+<div class="content">
+
+  <div class="info-card">
+    <h2>ランクの仕組み</h2>
+    <p>CPUに勝利して経験を積むと、ランクが上がっていきます。ランクが上がると<strong>新しいCPUレベルが解放</strong>されます。</p>
+    <p>一部のランクでは<strong>昇格試験</strong>（連続対戦で勝ち越し）に合格する必要があります。</p>
+  </div>
+
+  <table class="rank-table">
+    <thead>
+      <tr><th></th><th>ランク</th><th>条件</th><th>解放</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>&#128196;</td><td>1. ペーパー</td><td>初期ランク</td><td><span class="unlock-badge">Lv.1</span></td></tr>
+      <tr><td>&#128093;</td><td>2. レザー</td><td>Lv.1に初勝利</td><td></td></tr>
+      <tr><td>&#129717;</td><td>3. ウッド</td><td>Lv.1に累計3勝</td><td></td></tr>
+      <tr><td>&#129704;</td><td>4. ストーン</td><td>Lv.1に累計5勝</td><td><span class="unlock-badge">Lv.2</span></td></tr>
+      <tr><td>&#9881;&#65039;</td><td>5. アイアン</td><td>Lv.2に累計5勝</td><td></td></tr>
+      <tr><td>&#9876;&#65039;</td><td>6. スチール</td><td>Lv.2に累計10勝</td><td></td></tr>
+      <tr><td>&#128996;</td><td>7. ブロンズ</td><td>5番勝負で勝ち越し</td><td><span class="unlock-badge">Lv.3</span></td></tr>
+      <tr><td>&#9898;</td><td>8. シルバー</td><td>Lv.3に累計5勝</td><td></td></tr>
+      <tr><td>&#128993;</td><td>9. ゴールド</td><td>Lv.3に累計10勝</td><td></td></tr>
+      <tr><td>&#128160;</td><td>10. プラチナ</td><td>7番勝負で勝ち越し</td><td><span class="unlock-badge">Lv.4</span></td></tr>
+      <tr><td>&#129525;</td><td>11. ターコイズ</td><td>Lv.4に累計2勝</td><td></td></tr>
+      <tr><td>&#128308;</td><td>12. ガーネット</td><td>Lv.4に累計5勝</td><td></td></tr>
+      <tr><td>&#128155;</td><td>13. トパーズ</td><td>Lv.4に累計10勝</td><td></td></tr>
+      <tr><td>&#128156;</td><td>14. アメジスト</td><td>7番勝負で勝ち越し</td><td><span class="unlock-badge">Lv.5</span></td></tr>
+      <tr><td>&#10084;&#65039;</td><td>15. ルビー</td><td>Lv.5に累計2勝</td><td></td></tr>
+      <tr><td>&#128153;</td><td>16. サファイア</td><td>Lv.5に累計5勝</td><td></td></tr>
+      <tr><td>&#128154;</td><td>17. エメラルド</td><td>Lv.5に累計10勝</td><td></td></tr>
+      <tr><td>&#128142;</td><td>18. ダイヤモンド</td><td>7番勝負で勝ち越し</td><td><span class="unlock-badge">MAX（Lv.6）</span></td></tr>
+      <tr><td>&#11088;</td><td>19. スター</td><td>MAXに累計2勝</td><td></td></tr>
+      <tr><td>&#127894;&#65039;</td><td>20. スペシャリスト</td><td>MAXに累計5勝</td><td></td></tr>
+      <tr><td>&#128737;&#65039;</td><td>21. エキスパート</td><td>MAXに累計10勝</td><td></td></tr>
+      <tr><td>&#9884;&#65039;</td><td>22. チャンピオン</td><td>MAXに累計20勝</td><td></td></tr>
+      <tr><td>&#128081;</td><td>23. マスター</td><td>7番勝負で勝ち越し</td><td></td></tr>
+      <tr><td>&#127775;</td><td>24. レジェンド</td><td>15番勝負で勝ち越し</td><td><span class="unlock-badge">FINAL（Lv.7）</span></td></tr>
+      <tr><td>&#128305;</td><td>25. グランドマスター</td><td>15番勝負で勝ち越し</td><td></td></tr>
+      <tr><td>&#9978;&#65039;</td><td>26. アークマスター</td><td>FINALに累計10勝</td><td></td></tr>
+      <tr><td>&#128420;</td><td>27. オーバーロード</td><td>FINALに累計30勝</td><td></td></tr>
+      <tr><td>&#128126;</td><td>28. デミゴッド</td><td>FINALに累計50勝</td><td></td></tr>
+      <tr><td>&#9889;</td><td>29. ゴッド</td><td>11番勝負で勝ち越し</td><td></td></tr>
+      <tr><td>&#9889;</td><td>30. ゼウス</td><td>21番勝負で勝ち越し</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-card">
+    <h2>&#9876;&#65039; 昇格試験</h2>
+    <p>特定のランクに到達すると、次のCPUレベルを解放するための<strong>昇格試験</strong>に挑戦できます。</p>
+    <p><strong>ストーン昇格：</strong>3番勝負（先に2勝で合格）</p>
+    <p><strong>ブロンズ昇格：</strong>5番勝負（先に3勝で合格）</p>
+    <p><strong>プラチナ〜ダイヤモンド昇格：</strong>7番勝負（先に4勝で合格）</p>
+    <p><strong>マスター〜レジェンド昇格：</strong>7番勝負（先に4勝で合格）</p>
+    <p><strong>グランドマスター昇格：</strong>15番勝負（先に8勝で合格）</p>
+    <p><strong>ゴッド昇格：</strong>11番勝負（先に6勝で合格）</p>
+    <p><strong>ゼウス昇格：</strong>21番勝負（先に11勝で合格）</p>
+    <p>不合格でも何度でも再挑戦できます。また、通算勝利数が一定数に達しても昇格できます。</p>
+  </div>
+
+  <div class="info-card">
+    <h2>&#128275; レベル解放</h2>
+    <p>CPUのレベルはランクに応じて解放されます。</p>
+    <p><strong>Lv.1 初級</strong> ─ 最初から使用可能<br>
+    <strong>Lv.2 中級</strong> ─ ランク4（ストーン）で解放<br>
+    <strong>Lv.3 上級</strong> ─ ランク7（ブロンズ）で解放 ※昇格試験<br>
+    <strong>Lv.4 強敵</strong> ─ ランク10（プラチナ）で解放 ※昇格試験<br>
+    <strong>Lv.5 達人</strong> ─ ランク14（アメジスト）で解放 ※昇格試験<br>
+    <strong>MAX</strong> ─ ランク18（ダイヤモンド）で解放 ※昇格試験</p>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="https://reverstargo.surge.sh" target="_blank" class="btn btn-primary">ランクに挑戦する</a>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <nav class="site-footer-nav">
+    <a href="home.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  </nav>
+  <div class="site-footer-buttons">
+    <a href="https://reverstargo.surge.sh" target="_blank" class="btn btn-primary">アプリ版で遊ぶ</a>
+    <a href="https://forms.gle/tNdF9em345JM5Ahw5" target="_blank" class="btn btn-outline">フィードバック</a>
+  </div>
+  <p class="site-footer-copy">&copy; 2026 ReverStarGo. All rights reserved.</p>
+</footer>
+</body>
+</html>
