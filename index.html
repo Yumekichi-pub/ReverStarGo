@@ -2483,7 +2483,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v23</p>
+    <p class="app-version">RSG-v24</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2858,7 +2858,10 @@
           <p><strong>② 例外</strong><br>その手以外に置ける場所が全くない場合のみ、同じ盤面に戻る手でも打つことができます。</p>
           <p><strong>③ 例外後のルール</strong><br>例外が適用された場合、今度は相手が同じ盤面に戻す手をすぐに打つことはできません。</p>
           <p><strong>④ ゲーム終了</strong><br>両者とも同じ盤面に戻る手しか打てない状態が続く場合、ゲーム終了とし、その時点での合計ポイントで勝敗を決します。</p>
-          <p><strong>⑤ 盤面の表示</strong><br>コウにより完全に置けないマスはドット（ヒント）が消えます。CPコールの一方の色のみ制限されるマスは<span style="color:#d07020;font-weight:bold;">オレンジ色</span>のドットで表示されます。</p>
+          <p><strong>⑤ 盤面の表示（3色ドット）</strong><br>
+            <span style="color:#48a865;font-weight:bold;">● 黄緑</span> … 通常の有効手。置くことができます。<br>
+            <span style="color:#d07020;font-weight:bold;">● オレンジ</span> … CPコールの片方の色がコウで制限されています。置けますが、選べる色が限られます。<br>
+            <span style="color:#c04020;font-weight:bold;">● 赤</span> … コウでブロックされた手。他に黄緑やオレンジのマスがある場合は置けません。赤しかない場合は例外として置くことができます。</p>
         </div>
 
         <div class="rules-section">
@@ -2897,7 +2900,10 @@
       <p>囲んで相手の石を取った直後、相手がすぐ同じ場所に置き返すと、同じ盤面が永遠に繰り返されてしまいます。</p>
       <p>これを防ぐため、<strong>1手前とまったく同じ盤面に戻してしまう手は打てません。</strong></p>
       <p>他の場所に一手置いてからなら、再び石を置くことができます。</p>
-      <p>💡 コウで置けないマスはヒントのドットが消えます。CPコールの片方の色だけ制限される場合は<span style="color:#d07020;font-weight:bold;">オレンジ色</span>のドットが表示されます。</p>
+      <p>💡 ヒントのドットは3色で状態を表します：<br>
+        <span style="color:#48a865;font-weight:bold;">● 黄緑</span> = 置ける
+        <span style="color:#d07020;font-weight:bold;">● オレンジ</span> = CPコール制限あり
+        <span style="color:#c04020;font-weight:bold;">● 赤</span> = コウで禁止（赤だけなら例外で置ける）</p>
       <button class="ko-help-close-btn" onclick="hideKoHelp()">閉じる</button>
     </div>
   </div>
@@ -5220,7 +5226,13 @@
       const allValidOpp = getValidMoves(opp(current));
       const validOpp = filterKoMoves(allValidOpp, opp(current));
 
-      if (validNow.length === 0 && validOpp.length === 0) {
+      // コウ例外判定: 非コウ手がないがコウ手がある場合はコウ手を許可
+      const koExceptionNow = validNow.length === 0 && allValidNow.length > 0;
+      const koExceptionOpp = validOpp.length === 0 && allValidOpp.length > 0;
+      const effectiveNow = koExceptionNow ? allValidNow : validNow;
+      const effectiveOpp = koExceptionOpp ? allValidOpp : validOpp;
+
+      if (effectiveNow.length === 0 && effectiveOpp.length === 0) {
         render([]);
         // 盤面が埋まっている場合はパス表示なしで即終了
         const boardFull = ALL_CELLS.every(([q,r,s]) =>
@@ -5236,7 +5248,7 @@
         endGame();
         return;
       }
-      if (validNow.length === 0) {
+      if (effectiveNow.length === 0) {
         // 片方だけ置けない → パス表示 → 次へ
         render([]);
         // 棋譜にパス記録
@@ -5259,7 +5271,7 @@
       if (isCpuTurn()) {
         await cpuPlay();
       } else {
-        // コウで完全にブロックされたセルはドットなし、CPコール制限セルはオレンジ
+        // 3色ドットシステム: 黄=通常, オレンジ=CPコール制限, 赤=コウブロック
         const koRestrictedSet = new Set();
         for (const [vq, vr, vs] of validNow) {
           if (needsGPCall(vq, vr, vs, current)) {
@@ -5267,7 +5279,11 @@
             if (nonKo.length < 2) koRestrictedSet.add(K(vq, vr, vs));
           }
         }
-        render(validNow, koRestrictedSet);
+        // コウでブロックされたセル（赤ドット）
+        const koBlockedMoves = allValidNow.filter(([vq,vr,vs]) =>
+          !validNow.some(([q,r,s]) => q===vq && r===vr && s===vs)
+        );
+        render(koExceptionNow ? allValidNow : validNow, koRestrictedSet, koBlockedMoves);
       }
     }
 
@@ -5579,11 +5595,12 @@
       svg.appendChild(ring);
     }
 
-    function render(validMoves, koRestrictedSet) {
+    function render(validMoves, koRestrictedSet, koBlockedMoves) {
       const showAnim = showPlacedAnim;  // このrender1回だけアニメーション発火
       showPlacedAnim = false;
       const validSet = new Set((validMoves || []).map(([q,r,s]) => K(q,r,s)));
       if (!koRestrictedSet) koRestrictedSet = new Set();
+      const koBlockedSet = new Set((koBlockedMoves || []).map(([q,r,s]) => K(q,r,s)));
       const svg = document.getElementById('board');
       svg.innerHTML = '';
       drawStarOutline(svg);
@@ -5651,16 +5668,19 @@
         // 六角形セル
         const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
         poly.setAttribute('points', hexPoints(cx,cy));
+        const isKoBlocked = koBlockedSet.has(k);
         let fill = currentTheme.cellFill;
         if (isValid && hintEnabled) {
           fill = koRestrictedSet.has(k) ? '#d07020' : currentTheme.cellValid;
+        } else if (isKoBlocked && hintEnabled) {
+          fill = '#c04020'; // 赤: コウでブロック
         }
         if (isGP && cellColor === null) fill = '#7b1fa2';
         poly.setAttribute('fill', fill);
         poly.setAttribute('stroke', isGP ? '#4a0a72' : currentTheme.cellStroke);
         poly.setAttribute('stroke-width', isGP ? '2.5' : '1.5');
 
-        if (cellColor === null && isValid) {
+        if (cellColor === null && (isValid || (isKoBlocked && validSet.size === 0))) {
           poly.style.cursor = 'pointer';
         }
         svg.appendChild(poly);
@@ -5856,11 +5876,14 @@
       if (board[K(q,r,s)] !== null) return;
       const allValid = getValidMoves(current);
       const valid = filterKoMoves(allValid, current);
+      // コウ例外: 非コウ手がゼロならコウ手を許可
+      const koException = valid.length === 0 && allValid.length > 0;
       // コウ手を踏んだ場合：有効手だがコウで禁止されている
       const isKoCell = allValid.some(([vq,vr,vs]) => vq===q && vr===r && vs===s)
                     && !valid.some(([vq,vr,vs]) => vq===q && vr===r && vs===s);
-      if (isKoCell) { showKoMessage(); return; }
-      if (!valid.some(([vq,vr,vs]) => vq===q && vr===r && vs===s)) return;
+      if (isKoCell && !koException) { showKoMessage(); return; }
+      const playable = koException ? allValid : valid;
+      if (!playable.some(([vq,vr,vs]) => vq===q && vr===r && vs===s)) return;
 
       saveUndoState();
       if (needsGPCall(q,r,s,current)) {
