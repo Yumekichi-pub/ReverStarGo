@@ -2483,7 +2483,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v25</p>
+    <p class="app-version">RSG-v26</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -4014,7 +4014,9 @@
         html += `<tr${cls}${clickAttr}${cursorStyle}>`;
         html += `<td>${rankIcon(i, 24)}</td>`;
         html += `<td>${i + 1}. ${RANKS[i].name}</td>`;
-        html += `<td>${RANKS[i].condition}</td>`;
+        const exam = PROMOTION_EXAMS[i];
+        const condLine2 = (exam && exam.careerWins > 0) ? `<br><span style="font-size:0.7rem;color:#e0a050;">または通算${exam.careerWins}勝</span>` : '';
+        html += `<td>${RANKS[i].condition}${condLine2}</td>`;
         html += `<td>${unlockLabel}</td>`;
         html += '</tr>';
       }
