@@ -1158,6 +1158,9 @@
       text-align: center;
       max-width: 320px;
       width: 90%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     }
 
@@ -1203,6 +1206,8 @@
       color: #2a3a5a;
       text-align: left;
       line-height: 1.6;
+      overflow-y: auto;
+      flex-shrink: 1;
     }
 
     .promo-announce-ok-btn {
@@ -1272,6 +1277,13 @@
       line-height: 1.5;
     }
 
+    .level-unlock-note {
+      font-size: 0.8rem;
+      color: #c0b0d0;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
     .level-unlock-ok-btn {
       padding: 12px 48px;
       border: 2px solid #ffd700;
@@ -1282,6 +1294,14 @@
       font-weight: bold;
       cursor: pointer;
       text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 240px;
+    }
+
+    .level-unlock-no-btn {
+      background: linear-gradient(135deg, #4a4060, #5a5070);
+      border-color: #8a7aa0;
+      font-size: 0.9rem;
     }
 
     /* ===== 開発者メニュー ===== */
@@ -2462,7 +2482,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v21</p>
+    <p class="app-version">RSG-v22</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2922,7 +2942,7 @@
   <!-- ゲーム結果（最初からボタンの下に表示） -->
   <div id="result-modal" style="display:none;">
     <p id="result-text"></p>
-    <button id="play-again-btn">もう一度</button>
+    <button id="play-again-btn">もう1局</button>
     <button id="back-to-daily-btn" style="display:none;" onclick="backToDaily()">📅 デイリーへ戻る</button>
     <div class="result-btn-row" id="kifu-btn-row">
       <button class="result-sub-btn" id="save-game-btn" onclick="saveGameRecord()">⭐ 棋譜の保存</button>
@@ -2998,7 +3018,11 @@
       <div class="level-unlock-icon" id="level-unlock-icon">🎊</div>
       <p class="level-unlock-title" id="level-unlock-title"></p>
       <p class="level-unlock-desc" id="level-unlock-desc"></p>
-      <button class="level-unlock-ok-btn" id="level-unlock-ok-btn">OK</button>
+      <p class="level-unlock-note" id="level-unlock-note"></p>
+      <div style="display:flex; flex-direction:column; gap:20px; align-items:center;">
+        <button class="level-unlock-ok-btn" id="level-unlock-yes-btn">Lv.2 に進む</button>
+        <button class="level-unlock-ok-btn level-unlock-no-btn" id="level-unlock-no-btn">今のレベルで続ける</button>
+      </div>
     </div>
   </div>
 
@@ -3033,15 +3057,15 @@
         <p><strong>ランクアップマッチとは？</strong></p>
         <p>次のランク（および新しいレベル）を解放するための特別な連戦です。デイリーチャレンジとは別に挑戦できます。</p>
         <p><strong>昇格戦の一覧</strong></p>
-        <p>🪵 ウッド → ストーン：<strong>3番勝負</strong>（先に2勝）／Lv.2 解放</p>
-        <p>⚙ スチール → ブロンズ：<strong>5番勝負</strong>（先に3勝）／Lv.3 解放</p>
-        <p>🥇 ゴールド → プラチナ：<strong>7番勝負</strong>（先に4勝）／Lv.4 解放</p>
-        <p>🔴 ガーネット → トパーズ：<strong>7番勝負</strong>（先に4勝）／Lv.5 解放</p>
-        <p>🟢 エメラルド → ダイヤモンド：<strong>7番勝負</strong>（先に4勝）／MAX（Lv.6）解放</p>
-        <p>🎓 マスター → レジェンド：<strong>7番勝負</strong>（先に4勝）</p>
-        <p>👑 レジェンド → グランドマスター：<strong>15番勝負</strong>（先に8勝）／FINAL（Lv.7）解放</p>
-        <p>✨ デミゴッド → ゴッド：<strong>11番勝負</strong>（先に6勝）</p>
-        <p>⚡ ゴッド → ゼウス：<strong>21番勝負</strong>（先に11勝）</p>
+        <p><img src="icon/3.png" style="width:18px;height:18px;vertical-align:middle;"> ウッド → <img src="icon/4.png" style="width:18px;height:18px;vertical-align:middle;"> ストーン：<strong>3番勝負</strong>（先に2勝）／Lv.2 解放</p>
+        <p><img src="icon/6.png" style="width:18px;height:18px;vertical-align:middle;"> スチール → <img src="icon/7.png" style="width:18px;height:18px;vertical-align:middle;"> ブロンズ：<strong>5番勝負</strong>（先に3勝）／Lv.3 解放</p>
+        <p><img src="icon/9.png" style="width:18px;height:18px;vertical-align:middle;"> ゴールド → <img src="icon/10.png" style="width:18px;height:18px;vertical-align:middle;"> プラチナ：<strong>7番勝負</strong>（先に4勝）／Lv.4 解放</p>
+        <p><img src="icon/13.png" style="width:18px;height:18px;vertical-align:middle;"> ガーネット → <img src="icon/14.png" style="width:18px;height:18px;vertical-align:middle;"> トパーズ：<strong>7番勝負</strong>（先に4勝）／Lv.5 解放</p>
+        <p><img src="icon/18.png" style="width:18px;height:18px;vertical-align:middle;"> エメラルド → <img src="icon/19.png" style="width:18px;height:18px;vertical-align:middle;"> ダイヤモンド：<strong>7番勝負</strong>（先に4勝）／MAX 解放</p>
+        <p><img src="icon/23.png" style="width:18px;height:18px;vertical-align:middle;"> マスター → <img src="icon/24.png" style="width:18px;height:18px;vertical-align:middle;"> レジェンド：<strong>7番勝負</strong>（先に4勝）</p>
+        <p><img src="icon/24.png" style="width:18px;height:18px;vertical-align:middle;"> レジェンド → <img src="icon/25.png" style="width:18px;height:18px;vertical-align:middle;"> グランドマスター：<strong>15番勝負</strong>（先に8勝）／FINAL 解放</p>
+        <p><img src="icon/28.png" style="width:18px;height:18px;vertical-align:middle;"> デミゴッド → <img src="icon/29.png" style="width:18px;height:18px;vertical-align:middle;"> ゴッド：<strong>11番勝負</strong>（先に6勝）</p>
+        <p><img src="icon/29.png" style="width:18px;height:18px;vertical-align:middle;"> ゴッド → <img src="icon/30.png" style="width:18px;height:18px;vertical-align:middle;"> ゼウス：<strong>21番勝負</strong>（先に11勝）</p>
         <p><strong>基本ルール</strong></p>
         <p>・必ず連続で全試合を戦い抜く必要があります</p>
         <p>・途中で他の画面に移動すると不合格になります</p>
@@ -3049,9 +3073,13 @@
         <p>・ブロンズからダイヤモンドまでは、通算20勝の累計勝利要件もあります</p>
         <p>不合格でも何度でも再挑戦できますので、納得できるまで挑戦してください！</p>
       </div>
-      <div style="display:flex; gap:12px; justify-content:center; align-items:center;">
-        <button class="promo-announce-ok-btn" id="promo-announce-ok-btn">OK</button>
-        <button class="promo-announce-help-btn" id="promo-announce-help-toggle">？</button>
+      <div style="display:flex; flex-direction:column; gap:20px; width:100%; max-width:240px; margin:0 auto;">
+        <button class="promo-announce-ok-btn" id="promo-announce-start-btn" style="background:#b8860b; border-color:#d4a520; width:100%;">⚔ すぐに挑戦する</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="promo-announce-ok-btn" id="promo-announce-ok-btn" style="background:#5878c0; border-color:#5878c0; font-size:0.85rem; flex:1;">設定画面に戻る</button>
+          <button class="promo-announce-help-btn" id="promo-announce-help-toggle">？</button>
+        </div>
+        <p style="font-size:0.75rem; color:#8090b0; margin:4px 0 0 0; text-align:center;">※ あとでゲーム設定画面からも開始できます</p>
       </div>
     </div>
   </div>
@@ -3954,7 +3982,7 @@
       const currentRank = calculateRank();
       let html = '<div class="rank-list-modal-overlay" onclick="closeRankList()">';
       html += '<div class="rank-list-modal" onclick="event.stopPropagation()">';
-      html += '<div class="rank-list-title">📊 ランク一覧</div>';
+      html += `<div class="rank-list-title">📊 ランク一覧${devMode ? '<br><span style="font-size:0.7rem;color:#ff8060;">※ タップでランク変更</span>' : ''}</div>`;
       html += '<div class="rank-list-scroll">';
       html += '<table class="rank-list-table">';
       html += '<thead><tr><th></th><th>ランク</th><th>条件</th><th>解放</th></tr></thead>';
@@ -3971,7 +3999,7 @@
           }
         }
         const clickAttr = devMode ? ` onclick="devSetRank(${i})"` : '';
-        const cursorStyle = devMode ? ' style="cursor:pointer;"' : '';
+        const cursorStyle = devMode ? ' style="cursor:pointer; -webkit-tap-highlight-color:rgba(255,128,96,0.3);"' : '';
         html += `<tr${cls}${clickAttr}${cursorStyle}>`;
         html += `<td>${rankIcon(i, 24)}</td>`;
         html += `<td>${i + 1}. ${RANKS[i].name}</td>`;
@@ -5446,7 +5474,7 @@
       if (promotionExam) {
         playAgainBtn.textContent = '次の試合へ ▶';
       } else {
-        playAgainBtn.textContent = 'もう一度';
+        playAgainBtn.textContent = 'もう1局';
       }
       if (tutorialMiniGame) {
         document.getElementById('result-text').textContent =
@@ -6020,18 +6048,39 @@
       return highestUnlock;
     }
 
+    let _unlockedLevel = 0; // 解放されたレベルを保持
     function showLevelUnlock(level) {
+      _unlockedLevel = level;
       const lvLabel = level >= 6 ? LEVEL_NAMES[level-1] : `Lv.${level}`;
       document.getElementById('level-unlock-icon').textContent = '🎊';
       document.getElementById('level-unlock-title').textContent = `${lvLabel} 解放！`;
       document.getElementById('level-unlock-desc').textContent = `おめでとうございます！\n新しいレベルで遊べるようになりました！`;
+      document.getElementById('level-unlock-note').textContent = `※ 今のレベルのままではランクアップできません`;
+      document.getElementById('level-unlock-yes-btn').textContent = `${lvLabel} に進む`;
       document.getElementById('level-unlock-modal').style.display = 'flex';
       launchFireworks(4000);
     }
 
-    document.getElementById('level-unlock-ok-btn').addEventListener('click', () => {
+    document.getElementById('level-unlock-yes-btn').addEventListener('click', () => {
       document.getElementById('level-unlock-modal').style.display = 'none';
-      // レベル解放後に昇格試験案内があれば表示
+      // 解放されたレベルに切り替えて次の試合を開始
+      cpuLevel = _unlockedLevel;
+      document.querySelectorAll('[data-level]').forEach(b => b.classList.remove('selected'));
+      const lvBtn = document.querySelector(`[data-level="${_unlockedLevel}"]`);
+      if (lvBtn) lvBtn.classList.add('selected');
+      saveSettings();
+      prevRank = calculateRank();
+      initGame();
+      // 昇格試験案内があれば表示
+      const promo = getAvailablePromotion();
+      if (promo && !promotionExam) {
+        showPromoAnnounce(promo);
+      }
+    });
+
+    document.getElementById('level-unlock-no-btn').addEventListener('click', () => {
+      document.getElementById('level-unlock-modal').style.display = 'none';
+      // 昇格試験案内があれば表示
       const promo = getAvailablePromotion();
       if (promo && !promotionExam) {
         showPromoAnnounce(promo);
@@ -6092,7 +6141,11 @@
       devOverrideRank = rankIdx;
       updateRankDisplay();
       updateLevelButtons();
+      updateAccountRankDisplay();
+      if (typeof updatePromotionSection === 'function') updatePromotionSection();
       closeRankList();
+      closeDevMenu();
+      alert(`ランク${rankIdx + 1}：${RANKS[rankIdx].name} に変更しました`);
     }
 
     function closeDevMenu() {
@@ -6170,7 +6223,7 @@
       const targetRank = RANKS[promo.targetRank];
       const matchLabel = getMatchLabel(promo.winsNeeded);
       document.getElementById('promo-announce-title').textContent = `🎉 ${promo.label}への挑戦権を獲得！`;
-      document.getElementById('promo-announce-desc').textContent = `${targetRank.name} ランクアップマッチ（${matchLabel}）に挑戦できます！\nゲーム設定画面から開始できます。`;
+      document.getElementById('promo-announce-desc').textContent = `${targetRank.name} ランクアップマッチ（${matchLabel}）に挑戦できます！`;
       // 初回のランクアップマッチのみヘルプを自動展開（以降は？ボタンで確認可能）
       const helpSeen = localStorage.getItem('rankupHelpSeen');
       if (!helpSeen) {
@@ -6184,6 +6237,13 @@
 
     document.getElementById('promo-announce-ok-btn').addEventListener('click', () => {
       document.getElementById('promo-announce-modal').style.display = 'none';
+      showPage('game-setup');
+    });
+
+    document.getElementById('promo-announce-start-btn').addEventListener('click', () => {
+      document.getElementById('promo-announce-modal').style.display = 'none';
+      showPage('game-setup');
+      startPromotionExam();
     });
 
     document.getElementById('promo-announce-help-toggle').addEventListener('click', () => {
@@ -6333,7 +6393,7 @@
         tutorialMiniGame = false;
         // notation復元
         if (savedNotationMode !== null) { notationMode = savedNotationMode; savedNotationMode = null; }
-        document.getElementById('play-again-btn').textContent = 'もう一度';
+        document.getElementById('play-again-btn').textContent = 'もう1局';
         document.getElementById('setup-main').style.display = 'flex';
         updateRankDisplay();
         updateLevelButtons();
