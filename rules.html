@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ルール説明 | ReverStarGo</title>
+  <meta name="description" content="ReverStarGo（リバースターゴ）のルール説明。石の置き方、ひっくり返す、囲んで取る、コアポイントなど。">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+      background: #0a1f14; color: #e0d8c0; line-height: 1.7; overflow-x: hidden; padding-top: 56px;
+    }
+    a { color: #d4b860; text-decoration: none; } a:hover { color: #f0d878; }
+    .site-header { position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,31,20,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(192,168,88,0.2);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between; }
+    .site-header-logo { display:flex;align-items:center;gap:8px; } .site-header-logo img { height:32px; }
+    .site-nav { display:flex;gap:4px; } .site-nav a { padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:bold;color:rgba(224,216,192,0.75);transition:all 0.2s; } .site-nav a:hover,.site-nav a.active { color:#d4b860;background:rgba(192,168,88,0.12); }
+    .hamburger { display:none;background:none;border:none;color:#d4b860;font-size:1.5rem;cursor:pointer;padding:4px; }
+    .mobile-nav { display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(10,31,20,0.97);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:16px; }
+    .mobile-nav.open { display:flex; } .mobile-nav a { font-size:1.15rem;padding:12px 32px;border-radius:12px;color:#e0d8c0;font-weight:bold;transition:background 0.2s; } .mobile-nav a:hover { background:rgba(192,168,88,0.15);color:#d4b860; }
+    @media (max-width:768px) { .site-nav{display:none;} .hamburger{display:block;} }
+    .site-footer { background:#070f0a;text-align:center;padding:36px 20px;border-top:1px solid rgba(192,168,88,0.15); }
+    .site-footer-nav { display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;margin-bottom:16px; } .site-footer-nav a { font-size:0.85rem;color:rgba(224,216,192,0.6); } .site-footer-nav a:hover { color:#d4b860; }
+    .site-footer-buttons { display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:16px; }
+    .btn { display:inline-block;padding:14px 36px;border-radius:12px;font-size:1.05rem;font-weight:bold;cursor:pointer;transition:all 0.25s;border:none;text-align:center; }
+    .btn-primary { background:linear-gradient(135deg,#c09020,#a07818);color:#fff;box-shadow:0 4px 20px rgba(192,144,32,0.35); } .btn-primary:hover { background:linear-gradient(135deg,#d4a830,#b08820);transform:translateY(-2px);color:#fff; }
+    .btn-outline { background:transparent;color:#d4b860;border:2px solid rgba(192,168,88,0.6); } .btn-outline:hover { background:rgba(192,168,88,0.15);border-color:#d4b860;color:#f0d878; }
+    .site-footer-buttons .btn { padding:10px 24px;font-size:0.9rem; }
+    .site-footer-copy { font-size:0.75rem;color:rgba(224,216,192,0.3); }
+
+    /* Page */
+    .page-hero { background:linear-gradient(180deg,#0d2818,#1a3a2a);text-align:center;padding:48px 20px 36px; }
+    .page-hero h1 { font-size:1.8rem;color:#d4b860;letter-spacing:0.08em;margin-bottom:8px; }
+    .page-hero p { font-size:0.95rem;color:rgba(224,216,192,0.6); }
+    .content { max-width:720px;margin:0 auto;padding:40px 20px 60px; }
+    .rule-section { margin-bottom:36px;padding:28px 24px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(192,168,88,0.2);border-radius:16px; }
+    .rule-section h2 { font-size:1.15rem;color:#d4b860;margin-bottom:12px; }
+    .rule-section p { font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.8;margin-bottom:8px; }
+    .rule-section strong { color:#d4b860; }
+    .rule-section ul { padding-left:1.2em;font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.8; }
+    @media (max-width:600px) { .page-hero h1{font-size:1.4rem;} .rule-section{padding:20px 16px;} }
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a href="home.html" class="site-header-logo"><img src="logo.png" alt="ReverStarGo"></a>
+  <nav class="site-nav">
+    <a href="home.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html" class="active">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  </nav>
+  <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='☰'?'✕':'☰';" aria-label="メニュー">☰</button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="home.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  <a href="https://reverstargo.surge.sh" target="_blank">アプリ版で遊ぶ</a>
+</nav>
+
+<div class="page-hero">
+  <h1>&#128214; ルール説明</h1>
+  <p>ReverStarGoの全ルールを詳しく解説します</p>
+</div>
+
+<div class="content">
+
+  <div class="rule-section">
+    <h2>&#127919; ゲームの概要</h2>
+    <p>ReverStarGoは、六芒星型の盤面で2人が対戦するボードゲームです。リバーシの「挟んでひっくり返す」と囲碁の「囲んで取る」を組み合わせた、全く新しい戦略ゲームです。</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#11043; 盤面について</h2>
+    <p>盤面は六芒星（星型）の形をしており、六角形のマス目が<strong>37マス</strong>あります。</p>
+    <p>盤面の中央には特別なマス「<strong>コアポイント（CP）</strong>」があります。</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#127922; 準備</h2>
+    <ul>
+      <li>黒石を持つ人と白石を持つ人に分かれます</li>
+      <li>CPの周囲6マスに、黒石と白石を交互に3個ずつ置きます</li>
+      <li>黒石が先手でゲームを開始します</li>
+    </ul>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#128204; 石の置き方</h2>
+    <p>必ず<strong>相手の石を挟める場所</strong>にしか置くことができません。置く場所がない場合はパスとなります。</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#128260; ひっくり返す</h2>
+    <p>挟んだ相手の石はすべてひっくり返し、自分の石にします。挟める方向は<strong>6方向</strong>です。</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#11093; 囲んで取る</h2>
+    <p>自分の石で相手の石を<strong>完全に囲む</strong>と、その石を取り、取った数が自分のポイントになります。取られたマスには再び石を置くことができます。</p>
+    <p>ただし、囲碁とは異なり、盤面の端（壁）を使って囲んでも石を取ることはできません。必ず<strong>自分の石だけで完全に囲む</strong>必要があります。</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#128142; コアポイント（CP）のルール</h2>
+    <p>CPは盤面中央にある特別なマスです。</p>
+    <p><strong>1. コールが必要</strong><br>CPを使って石を挟む手を打つときは、石を置いた直後、石をひっくり返す前に「黒」または「白」とコールしなければなりません。</p>
+    <p><strong>2. コールした色として扱う</strong><br>コールした色の石がCPにあると仮定してゲームを進めます。</p>
+    <p><strong>3. CPを囲んだ場合</strong><br>CPも通常の石と同様に、完全に囲むとポイントになります。</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#127942; 勝敗</h2>
+    <p>以下のいずれかの条件でゲーム終了となります。</p>
+    <ul>
+      <li>CPを除く全36マスが石で埋まった時</li>
+      <li>両者とも置く場所がなくなった時</li>
+      <li>コウの状態が続きゲームが進行できなくなった時</li>
+    </ul>
+    <p><strong>盤上に残っている自分の石の数</strong>と<strong>囲んで取った石の数</strong>を合計し、多い方が勝利です。</p>
+    <p>合計ポイントが同じ場合は、囲んで取った石の数が多い方を勝ちとします。それも同じ場合は引き分けです。</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#128260; コウのルール</h2>
+    <p>同じ局面を繰り返すことを防ぐためのルールです。</p>
+    <p><strong>基本ルール：</strong>直前の手で相手に取られた石を、すぐに取り返すことはできません。</p>
+    <p><strong>例外：</strong>取り返したいマス以外に置ける場所が全くない場合のみ、そのマスに置くことができます。</p>
+    <p><strong>ゲーム終了：</strong>両者ともそのマス以外に置ける場所が全くなく、コウの状態が続く場合はゲーム終了とし、その時点での合計ポイントで勝敗を決します。</p>
+    <p><strong>盤面の表示（3色ドット）：</strong></p>
+    <ul>
+      <li><span style="color:#48a865;font-weight:bold;">● 黄緑</span> … 通常の有効手。置くことができます。</li>
+      <li><span style="color:#d07020;font-weight:bold;">● オレンジ</span> … CPコールの片方の色がコウで制限されています。置けますが、選べる色が限られます。</li>
+      <li><span style="color:#c04020;font-weight:bold;">● 赤</span> … コウでブロックされた手。他に黄緑やオレンジのマスがある場合は置けません。赤しかない場合は例外として置くことができます。</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="https://reverstargo.surge.sh" target="_blank" class="btn btn-primary">今すぐ遊んでみる</a>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <nav class="site-footer-nav">
+    <a href="home.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  </nav>
+  <div class="site-footer-buttons">
+    <a href="https://reverstargo.surge.sh" target="_blank" class="btn btn-primary">アプリ版で遊ぶ</a>
+    <a href="https://forms.gle/tNdF9em345JM5Ahw5" target="_blank" class="btn btn-outline">フィードバック</a>
+  </div>
+  <p class="site-footer-copy">&copy; 2026 ReverStarGo. All rights reserved.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>機能紹介 | ReverStarGo</title>
+  <meta name="description" content="ReverStarGoの機能紹介。CPU対戦6段階、デイリーチャレンジ、テーマカラー、ランクシステムなど。">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+    body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',Meiryo,sans-serif;background:#0a1f14;color:#e0d8c0;line-height:1.7;overflow-x:hidden;padding-top:56px}
+    a{color:#d4b860;text-decoration:none}a:hover{color:#f0d878}
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,31,20,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(192,168,88,0.2);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between}
+    .site-header-logo{display:flex;align-items:center;gap:8px}.site-header-logo img{height:32px}
+    .site-nav{display:flex;gap:4px}.site-nav a{padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:bold;color:rgba(224,216,192,0.75);transition:all 0.2s}.site-nav a:hover,.site-nav a.active{color:#d4b860;background:rgba(192,168,88,0.12)}
+    .hamburger{display:none;background:none;border:none;color:#d4b860;font-size:1.5rem;cursor:pointer;padding:4px}
+    .mobile-nav{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(10,31,20,0.97);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .mobile-nav.open{display:flex}.mobile-nav a{font-size:1.15rem;padding:12px 32px;border-radius:12px;color:#e0d8c0;font-weight:bold;transition:background 0.2s}.mobile-nav a:hover{background:rgba(192,168,88,0.15);color:#d4b860}
+    @media(max-width:768px){.site-nav{display:none}.hamburger{display:block}}
+    .site-footer{background:#070f0a;text-align:center;padding:36px 20px;border-top:1px solid rgba(192,168,88,0.15)}
+    .site-footer-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;margin-bottom:16px}.site-footer-nav a{font-size:0.85rem;color:rgba(224,216,192,0.6)}.site-footer-nav a:hover{color:#d4b860}
+    .site-footer-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+    .btn{display:inline-block;padding:14px 36px;border-radius:12px;font-size:1.05rem;font-weight:bold;cursor:pointer;transition:all 0.25s;border:none;text-align:center}
+    .btn-primary{background:linear-gradient(135deg,#c09020,#a07818);color:#fff;box-shadow:0 4px 20px rgba(192,144,32,0.35)}.btn-primary:hover{background:linear-gradient(135deg,#d4a830,#b08820);transform:translateY(-2px);color:#fff}
+    .btn-outline{background:transparent;color:#d4b860;border:2px solid rgba(192,168,88,0.6)}.btn-outline:hover{background:rgba(192,168,88,0.15);border-color:#d4b860;color:#f0d878}
+    .site-footer-buttons .btn{padding:10px 24px;font-size:0.9rem}
+    .site-footer-copy{font-size:0.75rem;color:rgba(224,216,192,0.3)}
+    .page-hero{background:linear-gradient(180deg,#0d2818,#1a3a2a);text-align:center;padding:48px 20px 36px}
+    .page-hero h1{font-size:1.8rem;color:#d4b860;letter-spacing:0.08em;margin-bottom:8px}
+    .page-hero p{font-size:0.95rem;color:rgba(224,216,192,0.6)}
+    .content{max-width:800px;margin:0 auto;padding:40px 20px 60px}
+    .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-bottom:36px}
+    .feat-card{background:rgba(255,255,255,0.05);border:1.5px solid rgba(192,168,88,0.25);border-radius:16px;padding:24px 20px;text-align:center;transition:all 0.3s}
+    .feat-card:hover{border-color:rgba(212,184,96,0.5);background:rgba(255,255,255,0.08);transform:translateY(-3px);box-shadow:0 6px 24px rgba(0,0,0,0.3)}
+    .feat-card-icon{font-size:2.4rem;margin-bottom:8px}
+    .feat-card h3{font-size:1.05rem;color:#d4b860;margin-bottom:8px}
+    .feat-card p{font-size:0.88rem;color:rgba(224,216,192,0.75);line-height:1.6}
+    .section-title{text-align:center;font-size:1.3rem;color:#d4b860;margin-bottom:24px}
+    .gold-line{width:60px;height:2px;background:linear-gradient(90deg,transparent,#c0a858,transparent);margin:0 auto 28px}
+    .theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin:16px 0}
+    .theme-swatch{height:48px;border-radius:10px;border:2px solid rgba(192,168,88,0.3);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+    .info-card{background:rgba(255,255,255,0.04);border:1.5px solid rgba(192,168,88,0.2);border-radius:16px;padding:24px;margin-bottom:28px}
+    .info-card h2{font-size:1.15rem;color:#d4b860;margin-bottom:12px}
+    .info-card p{font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.8;margin-bottom:8px}
+    .info-card strong{color:#d4b860}
+    @media(max-width:600px){.page-hero h1{font-size:1.4rem}.feat-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a href="home.html" class="site-header-logo"><img src="logo.png" alt="ReverStarGo"></a>
+  <nav class="site-nav">
+    <a href="home.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html" class="active">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  </nav>
+  <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='☰'?'✕':'☰';" aria-label="メニュー">☰</button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="home.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  <a href="https://reverstargo.surge.sh" target="_blank">アプリ版で遊ぶ</a>
+</nav>
+
+<div class="page-hero">
+  <h1>&#9881; 機能紹介</h1>
+  <p>ReverStarGoに搭載されている機能をご紹介</p>
+</div>
+
+<div class="content">
+
+  <h2 class="section-title">ゲームモード</h2>
+  <div class="gold-line"></div>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-card-icon">&#129302;</div>
+      <h3>CPU対戦（6段階）</h3>
+      <p>Lv.1 初級からMAXまで6段階。ランクアップで新レベルが解放される成長システム。</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128101;</div>
+      <h3>2人対戦</h3>
+      <p>1台の端末で2人対戦。交互にターンが切り替わるオーバーレイ表示で快適にプレイ。</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128218;</div>
+      <h3>チュートリアル</h3>
+      <p>「体験しながら学ぶ」と「見て学ぶ」の2モード。初心者でもすぐにルールを理解できます。</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">チャレンジ＆コレクション</h2>
+  <div class="gold-line"></div>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128197;</div>
+      <h3>デイリーチャレンジ</h3>
+      <p>毎日のチャレンジでCPUに勝利するとカレンダーにマーク。過去の日付にもさかのぼって挑戦可能。</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#127942;</div>
+      <h3>トロフィー</h3>
+      <p>月間コンプリートで美しいトロフィーを獲得。12ヶ月すべて集めると年間トロフィーも。</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#127941;</div>
+      <h3>25段階ランク</h3>
+      <p>ペーパーからグランドマスターまで25段階。昇格試験に合格して新レベルを解放しよう。</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">カスタマイズ</h2>
+  <div class="gold-line"></div>
+
+  <div class="info-card">
+    <h2>&#127912; テーマカラー（盤面）</h2>
+    <p>9種類のテーマカラーから好みの盤面デザインを選べます。</p>
+    <div class="theme-grid">
+      <div class="theme-swatch" style="background:#2d7a45;">グリーン</div>
+      <div class="theme-swatch" style="background:#1a5a8a;">ブルー</div>
+      <div class="theme-swatch" style="background:#7a5028;">ブラウン</div>
+      <div class="theme-swatch" style="background:#1e2850;">ナイト</div>
+      <div class="theme-swatch" style="background:#b84878;">ピンク</div>
+      <div class="theme-swatch" style="background:#c06020;">オレンジ</div>
+      <div class="theme-swatch" style="background:#9a1818;">レッド</div>
+      <div class="theme-swatch" style="background:#808080;">グレー</div>
+      <div class="theme-swatch" style="background:#484848;">ダーク</div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h2>&#127912; 背景色</h2>
+    <p>9種類の背景色で、盤面の周りの雰囲気も変えられます。</p>
+    <div class="theme-grid">
+      <div class="theme-swatch" style="background:#e8d8a8;color:#333;">クリーム</div>
+      <div class="theme-swatch" style="background:#f0ead8;color:#333;">アイボリー</div>
+      <div class="theme-swatch" style="background:#c8e8b8;color:#333;">ライム</div>
+      <div class="theme-swatch" style="background:#b8d8f0;color:#333;">スカイ</div>
+      <div class="theme-swatch" style="background:#d8c8f0;color:#333;">ラベンダー</div>
+      <div class="theme-swatch" style="background:#f0c8d8;color:#333;">ピーチ</div>
+      <div class="theme-swatch" style="background:#f0e898;color:#333;">イエロー</div>
+      <div class="theme-swatch" style="background:#f0d090;color:#333;">オレンジ</div>
+      <div class="theme-swatch" style="background:#252540;">ダーク</div>
+    </div>
+  </div>
+
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128264;</div>
+      <h3>効果音</h3>
+      <p>石を置く音、フリップ音、取り除き音、勝敗音。ON/OFF切り替え可能。</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128161;</div>
+      <h3>ヒント表示</h3>
+      <p>置ける場所をドットで表示。黄緑=通常、オレンジ=CPコール制限、赤=コウ制限。初心者はON、上級者はOFFで。</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#9889;</div>
+      <h3>CPU速度調整</h3>
+      <p>CPUの反応速度を「遅め」「普通」「速め」の3段階で設定可能。</p>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h2>&#128241; PWA対応</h2>
+    <p>ブラウザで遊ぶWebアプリですが、<strong>ホーム画面に追加</strong>するとアプリのように使えます。インストール不要、完全無料。スマートフォンでもPCでも快適にプレイできます。</p>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="https://reverstargo.surge.sh" target="_blank" class="btn btn-primary">今すぐ遊んでみる</a>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <nav class="site-footer-nav">
+    <a href="home.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  </nav>
+  <div class="site-footer-buttons">
+    <a href="https://reverstargo.surge.sh" target="_blank" class="btn btn-primary">アプリ版で遊ぶ</a>
+    <a href="https://forms.gle/tNdF9em345JM5Ahw5" target="_blank" class="btn btn-outline">フィードバック</a>
+  </div>
+  <p class="site-footer-copy">&copy; 2026 ReverStarGo. All rights reserved.</p>
+</footer>
+</body>
+</html>
