@@ -2483,7 +2483,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v26</p>
+    <p class="app-version">RSG-v27</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -4341,7 +4341,7 @@
         const btn = document.querySelector(`[data-level="${lv}"]`);
         if (btn) {
           const orig = btn.textContent;
-          btn.textContent = getLevelUnlockHint(lv);
+          btn.innerHTML = getLevelUnlockHint(lv);
           btn.style.fontSize = '0.7rem';
           if (lockHintTimer) clearTimeout(lockHintTimer);
           lockHintTimer = setTimeout(() => {
