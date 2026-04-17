@@ -2469,7 +2469,8 @@
         <span class="menu-tile-icon">📖</span>
         <span class="menu-tile-label">ルール</span>
       </div>
-      <div class="menu-tile small" onclick="showPage('kifu')">
+      <!-- 棋譜タイル（プレミアム機能として将来復活予定） -->
+      <div class="menu-tile small" onclick="showPage('kifu')" style="display:none;">
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <span class="menu-tile-icon">📋</span>
@@ -2483,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v30</p>
+    <p class="app-version">RSG-v31</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2954,7 +2955,8 @@
     <p id="result-text"></p>
     <button id="play-again-btn">もう1局</button>
     <button id="back-to-daily-btn" style="display:none;" onclick="backToDaily()">📅 デイリーへ戻る</button>
-    <div class="result-btn-row" id="kifu-btn-row">
+    <!-- 棋譜ボタン（プレミアム機能として将来復活予定） -->
+    <div class="result-btn-row" id="kifu-btn-row" style="display:none;">
       <button class="result-sub-btn" id="save-game-btn" onclick="saveGameRecord()">⭐ 棋譜の保存</button>
       <button class="result-sub-btn" id="goto-kifu-btn" style="display:none;" onclick="document.getElementById('result-modal').style.display='none';showPage('kifu')">📋 棋譜一覧へ</button>
     </div>
