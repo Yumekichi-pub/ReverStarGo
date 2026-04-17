@@ -2483,7 +2483,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v29</p>
+    <p class="app-version">RSG-v30</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2641,7 +2641,7 @@
 
     <div class="setup-section rules-section">
       <h2>⬡ 盤面について</h2>
-      <p>六芒星（星型）の形をした盤面で、マス目は全部で<strong>37個</strong>あります。中央の紫色のマスが<strong>コアポイント（CP）</strong>と呼ばれる特別なマスです。</p>
+      <p>星型の形をした盤面で、マス目は全部で<strong>37個</strong>あります。中央の紫色のマスが<strong>コアポイント（CP）</strong>と呼ばれる特別なマスです。</p>
     </div>
 
     <div class="setup-section rules-section">
@@ -2804,13 +2804,13 @@
 
         <div class="rules-section">
           <h3>1. ゲームの概要</h3>
-          <p>ReverStarGoは、六芒星型の盤面で2人が対戦するボードゲームです。リバーシの「挟んでひっくり返す」と囲碁の「囲んで取る」を組み合わせた、全く新しい戦略ゲームです。</p>
+          <p>ReverStarGoは、星型の盤面で2人が対戦するボードゲームです。リバーシの「挟んでひっくり返す」と囲碁の「囲んで取る」を組み合わせた、全く新しい戦略ゲームです。</p>
         </div>
 
         <div class="rules-section">
           <h3>2. 盤面について</h3>
           <ul>
-            <li>盤面は六芒星（星型）の形をしており、六角形のマス目が37マスあります</li>
+            <li>盤面は星型の形をしており、六角形のマス目が37マスあります</li>
             <li>盤面の中央には特別なマス「コアポイント（CP）」があります</li>
           </ul>
         </div>
@@ -5544,28 +5544,40 @@
       document.getElementById('turn-info').textContent = msg;
     }
 
-    // 星型アウトラインを描画
+    // 星型アウトラインを描画（角丸ベジェ曲線版）
     function drawStarOutline(svg) {
       const R_out = HEX_SIZE * 7.8;
       const R_in  = R_out / Math.sqrt(3);
-      const pts = [];
+      const tipRound = 0.15, valleyRound = 0.05;
+      const verts = [];
       for (let i = 0; i < 6; i++) {
         const a_tip = -Math.PI / 2 + i * Math.PI / 3;
         const a_in  = a_tip + Math.PI / 6;
-        pts.push(`${R_out * Math.cos(a_tip)},${R_out * Math.sin(a_tip)}`);
-        pts.push(`${R_in  * Math.cos(a_in )},${R_in  * Math.sin(a_in )}`);
+        verts.push({ x: R_out * Math.cos(a_tip), y: R_out * Math.sin(a_tip), isTip: true });
+        verts.push({ x: R_in  * Math.cos(a_in ), y: R_in  * Math.sin(a_in ), isTip: false });
       }
+      let d = '';
+      const n = verts.length;
+      for (let i = 0; i < n; i++) {
+        const prev = verts[(i - 1 + n) % n], curr = verts[i], next = verts[(i + 1) % n];
+        const rf = curr.isTip ? tipRound : valleyRound;
+        const ax = curr.x + (prev.x - curr.x) * rf, ay = curr.y + (prev.y - curr.y) * rf;
+        const bx = curr.x + (next.x - curr.x) * rf, by = curr.y + (next.y - curr.y) * rf;
+        d += (i === 0 ? 'M ' : 'L ') + `${ax.toFixed(2)} ${ay.toFixed(2)} `;
+        d += `Q ${curr.x.toFixed(2)} ${curr.y.toFixed(2)} ${bx.toFixed(2)} ${by.toFixed(2)} `;
+      }
+      d += 'Z';
       // 外枠（グロー効果用の太い線）
-      const glow = document.createElementNS('http://www.w3.org/2000/svg','polygon');
-      glow.setAttribute('points', pts.join(' '));
+      const glow = document.createElementNS('http://www.w3.org/2000/svg','path');
+      glow.setAttribute('d', d);
       glow.setAttribute('fill', 'none');
       glow.setAttribute('stroke', currentTheme.starGlow);
       glow.setAttribute('stroke-width', '16');
       glow.setAttribute('stroke-linejoin', 'round');
       svg.appendChild(glow);
       // メインの枠線
-      const outline = document.createElementNS('http://www.w3.org/2000/svg','polygon');
-      outline.setAttribute('points', pts.join(' '));
+      const outline = document.createElementNS('http://www.w3.org/2000/svg','path');
+      outline.setAttribute('d', d);
       outline.setAttribute('fill', 'none');
       outline.setAttribute('stroke', currentTheme.starStroke);
       outline.setAttribute('stroke-width', '5');
@@ -6507,7 +6519,7 @@
 
     // ===== チュートリアル制御 =====
     const TUTORIAL_STEPS = [
-      { title: 'Step 1 / 7', message: 'ReverStarGoの盤面は\n六芒星（星型）の形をしています。\nマス目は全部で37個あります。\n中央の紫色のマスが\nコアポイント（CP）です。' },
+      { title: 'Step 1 / 7', message: 'ReverStarGoの盤面は\n星型の形をしています。\nマス目は全部で37個あります。\n中央の紫色のマスが\nコアポイント（CP）です。' },
       { title: 'Step 2 / 7', message: '石は必ず相手の石を\n挟める場所にしか\n置くことができません。\n黄色い点が置ける場所です。\n光っている場所に置いてみましょう！' },
       { title: 'Step 3 / 7', message: '相手の石を挟むと\nひっくり返して\n自分の石にできます。\n挟める方向は6方向あります。\nでは実際に挟んでみましょう！' },
       { title: 'Step 4 / 7', message: 'ReverStarGoには\nリバーシにはない特別なルールがあります！\n自分の石で相手の石を完全に囲むと\nその石を取ることができます。\n取った石の数が自分のポイントになります。\n取られたマスにはまた石を置けます。\nでは実際に囲んで取ってみましょう！' },
@@ -7163,19 +7175,31 @@
         return pts.join(' ');
       }
 
-      // 六芒星アウトライン（外枠のみ12頂点ポリゴン）
+      // 星型アウトライン（角丸ベジェ曲線版）
       const starR = HEX_SIZE * 8.0;
       const innerR = starR / Math.sqrt(3);
-      const starPts = [];
+      const tipR = 0.15, valR = 0.05;
+      const starVerts = [];
       for (let i = 0; i < 6; i++) {
         const aTip = -Math.PI / 2 + i * Math.PI / 3;
         const aIn  = aTip + Math.PI / 6;
-        starPts.push(`${starR * Math.cos(aTip)},${starR * Math.sin(aTip)}`);
-        starPts.push(`${innerR * Math.cos(aIn)},${innerR * Math.sin(aIn)}`);
+        starVerts.push({ x: starR * Math.cos(aTip), y: starR * Math.sin(aTip), isTip: true });
+        starVerts.push({ x: innerR * Math.cos(aIn), y: innerR * Math.sin(aIn), isTip: false });
       }
+      let starD = '';
+      const sn = starVerts.length;
+      for (let i = 0; i < sn; i++) {
+        const prev = starVerts[(i - 1 + sn) % sn], curr = starVerts[i], next = starVerts[(i + 1) % sn];
+        const rf = curr.isTip ? tipR : valR;
+        const ax = curr.x + (prev.x - curr.x) * rf, ay = curr.y + (prev.y - curr.y) * rf;
+        const bx = curr.x + (next.x - curr.x) * rf, by = curr.y + (next.y - curr.y) * rf;
+        starD += (i === 0 ? 'M ' : 'L ') + `${ax.toFixed(2)} ${ay.toFixed(2)} `;
+        starD += `Q ${curr.x.toFixed(2)} ${curr.y.toFixed(2)} ${bx.toFixed(2)} ${by.toFixed(2)} `;
+      }
+      starD += 'Z';
       const isDark = document.body.classList.contains('dark-theme');
-      const star = document.createElementNS(NS, 'polygon');
-      star.setAttribute('points', starPts.join(' '));
+      const star = document.createElementNS(NS, 'path');
+      star.setAttribute('d', starD);
       star.setAttribute('fill', isDark ? '#2a2520' : '#fff8ee');
       star.setAttribute('stroke', isDark ? '#444' : '#082810');
       star.setAttribute('stroke-width', '3');

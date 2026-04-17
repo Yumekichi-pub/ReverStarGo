@@ -1,0 +1,84 @@
+=====================================
+Google Play Store Listing
+ReverStarGo
+=====================================
+
+
+========== JAPANESE ==========
+
+[App Name]
+ReverStarGo (リバースターゴ)
+
+[Short Description] (80 chars max)
+リバーシと囲碁が融合!星型盤で戦う新感覚ボードゲーム。完全無料・広告なし
+
+[Full Description]
+リバースターゴは、リバーシと囲碁のルールを融合させた、まったく新しいボードゲームです。星型の形をしたヘキサゴナルボード上で、CPUと対戦しましょう。
+
+--- ゲームの特徴 ---
+
+- 独自のCP(キャプチャーポイント)ルール
+  石を挟んで裏返すリバーシの要素と、陣地を囲む囲碁の要素を組み合わせた独自ルール。CPを活用した戦略がカギを握ります。
+
+- 7段階のAIレベル
+  初心者から上級者まで楽しめる7段階のCPU対戦。自分の実力に合ったレベルで腕を磨こう。
+
+- ランクアップシステム
+  対戦結果に応じてランクが上昇。目指せ最高ランク!
+
+- デイリーチャレンジ
+  毎日新しい課題に挑戦できます。日々の腕試しに最適。
+
+- マンスリートロフィー
+  月間の成績に応じてトロフィーを獲得。コレクションを充実させましょう。
+
+- チュートリアル搭載
+  初めての方でも安心。丁寧なチュートリアルでルールをしっかり学べます。
+
+- PWA対応(オフラインプレイ可能)
+  インストール後はインターネット接続なしでもプレイできます。通勤・通学中や外出先でも快適に遊べます。
+
+- 完全無料・広告なし・課金なし
+  すべての機能を無料でお楽しみいただけます。広告表示もアプリ内課金も一切ありません。
+
+リバーシや囲碁が好きな方、新しいボードゲームを探している方、ぜひリバースターゴをお試しください!
+
+
+========== ENGLISH ==========
+
+[App Name]
+ReverStarGo
+
+[Short Description] (80 chars max)
+Reversi meets Go on a six-pointed star board! Free strategy game with 7 AI levels.
+
+[Full Description]
+ReverStarGo is a brand-new board game that fuses the rules of Reversi and Go. Battle against the CPU on a unique six-pointed star hexagonal board and master an entirely new kind of strategy.
+
+--- Features ---
+
+- Unique CP (Capture Point) Rule
+  A one-of-a-kind system that combines the flipping mechanic of Reversi with the territory control of Go. Mastering Capture Points is the key to victory.
+
+- 7 AI Difficulty Levels
+  From beginner to expert, choose the level that matches your skill. Sharpen your strategy step by step.
+
+- Rank-Up System
+  Climb the ranks based on your match results. How high can you go?
+
+- Daily Challenges
+  A new challenge every day to test your skills and keep the game fresh.
+
+- Monthly Trophies
+  Earn trophies based on your monthly performance. Build your collection over time.
+
+- Built-In Tutorial
+  New to the game? The guided tutorial will teach you everything you need to know.
+
+- PWA Support (Offline Play)
+  Once installed, play anytime without an internet connection. Perfect for commutes and travel.
+
+- Completely Free - No Ads, No In-App Purchases
+  Every feature is available at no cost. There are no advertisements and no in-app purchases whatsoever.
+
+Whether you love Reversi, Go, or simply enjoy discovering new board games, give ReverStarGo a try!

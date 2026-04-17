@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReverStarGo - Strategy Board Game</title>
-  <meta name="description" content="A new strategy board game combining Reversi and Go on a Star of David board - ReverStarGo">
+  <meta name="description" content="A new strategy board game combining Reversi and Go on a six-pointed star board - ReverStarGo">
   <meta property="og:title" content="ReverStarGo - Strategy Board Game">
-  <meta property="og:description" content="A new strategy board game combining Reversi and Go on a Star of David board. Play against the computer!">
+  <meta property="og:description" content="A new strategy board game combining Reversi and Go on a six-pointed star board. Play against the computer!">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://play.reverstargo.com/en/">
   <meta property="og:image" content="https://play.reverstargo.com/en/ogp.jpg">
@@ -15,7 +15,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://play.reverstargo.com/en/ogp.jpg">
   <meta name="twitter:title" content="ReverStarGo - Strategy Board Game">
-  <meta name="twitter:description" content="A new strategy board game combining Reversi and Go on a Star of David board. Play against the computer!">
+  <meta name="twitter:description" content="A new strategy board game combining Reversi and Go on a six-pointed star board. Play against the computer!">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
@@ -2483,7 +2483,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v29</p>
+    <p class="app-version">RSG-v30</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -5544,28 +5544,40 @@
       document.getElementById('turn-info').textContent = msg;
     }
 
-    // Draw star outline
+    // Draw star outline (rounded bezier version)
     function drawStarOutline(svg) {
       const R_out = HEX_SIZE * 7.8;
       const R_in  = R_out / Math.sqrt(3);
-      const pts = [];
+      const tipRound = 0.15, valleyRound = 0.05;
+      const verts = [];
       for (let i = 0; i < 6; i++) {
         const a_tip = -Math.PI / 2 + i * Math.PI / 3;
         const a_in  = a_tip + Math.PI / 6;
-        pts.push(`${R_out * Math.cos(a_tip)},${R_out * Math.sin(a_tip)}`);
-        pts.push(`${R_in  * Math.cos(a_in )},${R_in  * Math.sin(a_in )}`);
+        verts.push({ x: R_out * Math.cos(a_tip), y: R_out * Math.sin(a_tip), isTip: true });
+        verts.push({ x: R_in  * Math.cos(a_in ), y: R_in  * Math.sin(a_in ), isTip: false });
       }
+      let d = '';
+      const n = verts.length;
+      for (let i = 0; i < n; i++) {
+        const prev = verts[(i - 1 + n) % n], curr = verts[i], next = verts[(i + 1) % n];
+        const rf = curr.isTip ? tipRound : valleyRound;
+        const ax = curr.x + (prev.x - curr.x) * rf, ay = curr.y + (prev.y - curr.y) * rf;
+        const bx = curr.x + (next.x - curr.x) * rf, by = curr.y + (next.y - curr.y) * rf;
+        d += (i === 0 ? 'M ' : 'L ') + `${ax.toFixed(2)} ${ay.toFixed(2)} `;
+        d += `Q ${curr.x.toFixed(2)} ${curr.y.toFixed(2)} ${bx.toFixed(2)} ${by.toFixed(2)} `;
+      }
+      d += 'Z';
       // Outer frame (thick line for glow)
-      const glow = document.createElementNS('http://www.w3.org/2000/svg','polygon');
-      glow.setAttribute('points', pts.join(' '));
+      const glow = document.createElementNS('http://www.w3.org/2000/svg','path');
+      glow.setAttribute('d', d);
       glow.setAttribute('fill', 'none');
       glow.setAttribute('stroke', currentTheme.starGlow);
       glow.setAttribute('stroke-width', '16');
       glow.setAttribute('stroke-linejoin', 'round');
       svg.appendChild(glow);
       // Main border line
-      const outline = document.createElementNS('http://www.w3.org/2000/svg','polygon');
-      outline.setAttribute('points', pts.join(' '));
+      const outline = document.createElementNS('http://www.w3.org/2000/svg','path');
+      outline.setAttribute('d', d);
       outline.setAttribute('fill', 'none');
       outline.setAttribute('stroke', currentTheme.starStroke);
       outline.setAttribute('stroke-width', '5');
@@ -7163,19 +7175,31 @@
         return pts.join(' ');
       }
 
-      // Hexagram outline (12-vertex polygon)
+      // Star outline (rounded bezier version)
       const starR = HEX_SIZE * 8.0;
       const innerR = starR / Math.sqrt(3);
-      const starPts = [];
+      const tipR = 0.15, valR = 0.05;
+      const starVerts = [];
       for (let i = 0; i < 6; i++) {
         const aTip = -Math.PI / 2 + i * Math.PI / 3;
         const aIn  = aTip + Math.PI / 6;
-        starPts.push(`${starR * Math.cos(aTip)},${starR * Math.sin(aTip)}`);
-        starPts.push(`${innerR * Math.cos(aIn)},${innerR * Math.sin(aIn)}`);
+        starVerts.push({ x: starR * Math.cos(aTip), y: starR * Math.sin(aTip), isTip: true });
+        starVerts.push({ x: innerR * Math.cos(aIn), y: innerR * Math.sin(aIn), isTip: false });
       }
+      let starD = '';
+      const sn = starVerts.length;
+      for (let i = 0; i < sn; i++) {
+        const prev = starVerts[(i - 1 + sn) % sn], curr = starVerts[i], next = starVerts[(i + 1) % sn];
+        const rf = curr.isTip ? tipR : valR;
+        const ax = curr.x + (prev.x - curr.x) * rf, ay = curr.y + (prev.y - curr.y) * rf;
+        const bx = curr.x + (next.x - curr.x) * rf, by = curr.y + (next.y - curr.y) * rf;
+        starD += (i === 0 ? 'M ' : 'L ') + `${ax.toFixed(2)} ${ay.toFixed(2)} `;
+        starD += `Q ${curr.x.toFixed(2)} ${curr.y.toFixed(2)} ${bx.toFixed(2)} ${by.toFixed(2)} `;
+      }
+      starD += 'Z';
       const isDark = document.body.classList.contains('dark-theme');
-      const star = document.createElementNS(NS, 'polygon');
-      star.setAttribute('points', starPts.join(' '));
+      const star = document.createElementNS(NS, 'path');
+      star.setAttribute('d', starD);
       star.setAttribute('fill', isDark ? '#2a2520' : '#fff8ee');
       star.setAttribute('stroke', isDark ? '#444' : '#082810');
       star.setAttribute('stroke-width', '3');

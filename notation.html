@@ -156,13 +156,13 @@ const ZONE_COLORS = {
   d:  { fill: '#1a5030', stroke: '#0e3820', text: '#c0ffd0' }
 };
 
-// 六芒星アウトライン（正三角形2つ重ね）
+// 星型アウトライン（正三角形2つ重ね）
 function drawStarOutline(svg) {
   const R = HEX_SIZE * 8.0;
   const innerR = R / Math.sqrt(3);
   const NS = 'http://www.w3.org/2000/svg';
 
-  // 六芒星（外枠のみ12頂点ポリゴン）
+  // 星型（外枠のみ12頂点ポリゴン）
   const pts = [];
   for (let i = 0; i < 6; i++) {
     const aTip = -Math.PI / 2 + i * Math.PI / 3;

@@ -1,7 +1,7 @@
 {
   "name": "ReverStarGo",
   "short_name": "RSG",
-  "description": "六芒星の盤面で戦う全く新しい戦略ゲーム",
+  "description": "星型の盤面で戦う全く新しい戦略ゲーム",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5edd8",

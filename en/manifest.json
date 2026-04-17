@@ -1,7 +1,7 @@
 {
   "name": "ReverStarGo",
   "short_name": "RSG",
-  "description": "A new strategy board game on a Star of David board",
+  "description": "A new strategy board game on a six-pointed star board",
   "start_url": "/en/",
   "display": "standalone",
   "background_color": "#f5edd8",
