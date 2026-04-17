@@ -5548,7 +5548,7 @@
     function drawStarOutline(svg) {
       const R_out = HEX_SIZE * 7.8;
       const R_in  = R_out / Math.sqrt(3);
-      const tipRound = 0.15, valleyRound = 0.05;
+      const tipRound = 0.18, valleyRound = 0.06;
       const verts = [];
       for (let i = 0; i < 6; i++) {
         const a_tip = -Math.PI / 2 + i * Math.PI / 3;
@@ -7178,7 +7178,7 @@
       // Star outline (rounded bezier version)
       const starR = HEX_SIZE * 8.0;
       const innerR = starR / Math.sqrt(3);
-      const tipR = 0.15, valR = 0.05;
+      const tipR = 0.18, valR = 0.06;
       const starVerts = [];
       for (let i = 0; i < 6; i++) {
         const aTip = -Math.PI / 2 + i * Math.PI / 3;
