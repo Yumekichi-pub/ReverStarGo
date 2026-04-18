@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v32</p>
+    <p class="app-version">RSG-v33</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5516,8 +5516,8 @@
       }
       // デイリーチャレンジの場合は「デイリーへ戻る」ボタンを表示
       document.getElementById('back-to-daily-btn').style.display = isDailySetup ? '' : 'none';
-      // 棋譜ボタン表示（チュートリアル以外）
-      document.getElementById('kifu-btn-row').style.display = tutorialMiniGame ? 'none' : 'flex';
+      // 棋譜ボタン（プレミアム機能として将来復活予定のため、現在は常に非表示）
+      document.getElementById('kifu-btn-row').style.display = 'none';
       document.getElementById('save-game-btn').textContent = '⭐ 棋譜の保存';
       document.getElementById('save-game-btn').disabled = false;
       document.getElementById('goto-kifu-btn').style.display = 'none';

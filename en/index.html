@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v32</p>
+    <p class="app-version">RSG-v33</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -5516,8 +5516,8 @@
       }
       // Show "Return to Daily" button for Daily Challenge
       document.getElementById('back-to-daily-btn').style.display = isDailySetup ? '' : 'none';
-      // Show record button (not tutorial)
-      document.getElementById('kifu-btn-row').style.display = tutorialMiniGame ? 'none' : 'flex';
+      // Record button (hidden for future premium feature)
+      document.getElementById('kifu-btn-row').style.display = 'none';
       document.getElementById('save-game-btn').textContent = '⭐ Save Record';
       document.getElementById('save-game-btn').disabled = false;
       document.getElementById('goto-kifu-btn').style.display = 'none';
