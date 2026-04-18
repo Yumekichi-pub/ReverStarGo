@@ -316,7 +316,7 @@
 
     .ko-help-content {
       background: linear-gradient(135deg, #fff5f0, #f5e0d8);
-      border: 3px solid #c04020;
+      border: 3px solid #e30909;
       border-radius: 20px;
       padding: 28px 24px;
       text-align: center;
@@ -326,7 +326,7 @@
     }
 
     .ko-help-content h2 {
-      color: #c04020;
+      color: #e30909;
       font-size: 1.2rem;
       margin-bottom: 12px;
     }
@@ -342,9 +342,9 @@
     .ko-help-close-btn {
       margin-top: 8px;
       padding: 10px 40px;
-      border: 2px solid #c04020;
+      border: 2px solid #e30909;
       border-radius: 10px;
-      background: #c04020;
+      background: #e30909;
       color: white;
       font-size: 1rem;
       font-weight: bold;
@@ -638,7 +638,7 @@
       color: #1a0a0a;
     }
     .quit-confirm-inner strong {
-      color: #c04020;
+      color: #e30909;
     }
     .quit-confirm-buttons {
       display: flex;
@@ -654,7 +654,7 @@
       cursor: pointer;
     }
     .quit-confirm-yes {
-      background: #c04020;
+      background: #e30909;
       color: #fff;
     }
     .quit-confirm-no {
@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v35</p>
+    <p class="app-version">RSG-v36</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2862,9 +2862,9 @@
           <p><strong>④ ゲーム終了</strong><br>両者とも同じ盤面に戻る手しか打てない状態が続く場合、ゲーム終了とし、その時点での合計ポイントで勝敗を決します。</p>
           <p><strong>⑤ 盤面の表示</strong><br>
             <span style="color:#c8b832;font-weight:bold;">● 黄色ドット</span> … 置ける場所の目印（どんな背景色の上でも表示）<br>
-            <span style="color:#d07020;font-weight:bold;">● オレンジ背景＋白枠</span> … CPコールの片方の色がコウで制限。置けますが選べる色は1つです。<br>
-            <span style="color:#c04020;font-weight:bold;">● 赤背景＋白枠</span> … コウでブロックされた手。通常は置けません。<br>
-            <span style="color:#c04020;font-weight:bold;">● 赤背景＋白枠＋黄色ドット</span> … 赤しか選択肢がない例外時。置くことができます。</p>
+            <span style="color:#ee5511;font-weight:bold;">● オレンジ背景＋白枠</span> … CPコールの片方の色がコウで制限。置けますが選べる色は1つです。<br>
+            <span style="color:#e30909;font-weight:bold;">● 赤背景＋白枠</span> … コウでブロックされた手。通常は置けません。<br>
+            <span style="color:#e30909;font-weight:bold;">● 赤背景＋白枠＋黄色ドット</span> … 赤しか選択肢がない例外時。置くことができます。</p>
         </div>
 
         <div class="rules-section">
@@ -2905,8 +2905,8 @@
       <p>他の場所に一手置いてからなら、再び石を置くことができます。</p>
       <p>💡 ヒント表示のしくみ：<br>
         <span style="color:#c8b832;font-weight:bold;">● 黄色ドット</span> = 置ける場所（背景色問わず）
-        <span style="color:#d07020;font-weight:bold;">● オレンジ背景＋白枠</span> = CPコール制限あり（置ける）<br>
-        <span style="color:#c04020;font-weight:bold;">● 赤背景＋白枠</span> = コウで禁止（黄色ドットがあれば例外で置ける）</p>
+        <span style="color:#ee5511;font-weight:bold;">● オレンジ背景＋白枠</span> = CPコール制限あり（置ける）<br>
+        <span style="color:#e30909;font-weight:bold;">● 赤背景＋白枠</span> = コウで禁止（黄色ドットがあれば例外で置ける）</p>
       <button class="ko-help-close-btn" onclick="hideKoHelp()">閉じる</button>
     </div>
   </div>
@@ -5351,8 +5351,8 @@
     function showKoMessage() {
       if (koMessageTimer) clearTimeout(koMessageTimer);
       const el = document.getElementById('turn-info');
-      el.innerHTML = 'コウ：その手は打てません <button onclick="showKoHelp()" style="background:none;border:2px solid #c04020;border-radius:50%;width:24px;height:24px;font-size:0.8rem;font-weight:bold;color:#c04020;cursor:pointer;vertical-align:middle;margin-left:4px;">？</button>';
-      el.style.color = '#c04020';
+      el.innerHTML = 'コウ：その手は打てません <button onclick="showKoHelp()" style="background:none;border:2px solid #e30909;border-radius:50%;width:24px;height:24px;font-size:0.8rem;font-weight:bold;color:#e30909;cursor:pointer;vertical-align:middle;margin-left:4px;">？</button>';
+      el.style.color = '#e30909';
       koMessageTimer = setTimeout(() => {
         const icon = current === 'black' ? '●' : '○';
         showTurn(`${icon} ${colorLabel(current)}のターンです`);
@@ -5691,9 +5691,9 @@
         let fill = currentTheme.cellFill;
         // コウ関連の塗りは優先（例外時も赤のまま、ドットで置けることを示す）
         if (isKoBlocked && hintEnabled) {
-          fill = '#c04020'; // 赤: コウでブロック（例外時でも赤のまま）
+          fill = '#e30909'; // 赤: コウでブロック（例外時でも赤のまま）
         } else if (isValid && hintEnabled) {
-          fill = koRestrictedSet.has(k) ? '#d07020' : currentTheme.cellValid;
+          fill = koRestrictedSet.has(k) ? '#ee5511' : currentTheme.cellValid;
         }
         if (isGP && cellColor === null) fill = '#7b1fa2';
         poly.setAttribute('fill', fill);
