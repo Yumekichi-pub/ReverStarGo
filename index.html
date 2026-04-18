@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v34</p>
+    <p class="app-version">RSG-v35</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2860,10 +2860,11 @@
           <p><strong>② 例外</strong><br>その手以外に置ける場所が全くない場合のみ、同じ盤面に戻る手でも打つことができます。</p>
           <p><strong>③ 例外後のルール</strong><br>例外が適用された場合、今度は相手が同じ盤面に戻す手をすぐに打つことはできません。</p>
           <p><strong>④ ゲーム終了</strong><br>両者とも同じ盤面に戻る手しか打てない状態が続く場合、ゲーム終了とし、その時点での合計ポイントで勝敗を決します。</p>
-          <p><strong>⑤ 盤面の表示（3色ドット）</strong><br>
-            <span style="color:#c8b832;font-weight:bold;">● 黄色</span> … 通常の有効手。置くことができます。<br>
-            <span style="color:#d07020;font-weight:bold;">● オレンジ</span> … CPコールの片方の色がコウで制限されています。置けますが、選べる色が限られます。<br>
-            <span style="color:#c04020;font-weight:bold;">● 赤</span> … コウでブロックされた手。他に黄色やオレンジのマスがある場合は置けません。赤しかない場合は例外として置くことができます。</p>
+          <p><strong>⑤ 盤面の表示</strong><br>
+            <span style="color:#c8b832;font-weight:bold;">● 黄色ドット</span> … 置ける場所の目印（どんな背景色の上でも表示）<br>
+            <span style="color:#d07020;font-weight:bold;">● オレンジ背景＋白枠</span> … CPコールの片方の色がコウで制限。置けますが選べる色は1つです。<br>
+            <span style="color:#c04020;font-weight:bold;">● 赤背景＋白枠</span> … コウでブロックされた手。通常は置けません。<br>
+            <span style="color:#c04020;font-weight:bold;">● 赤背景＋白枠＋黄色ドット</span> … 赤しか選択肢がない例外時。置くことができます。</p>
         </div>
 
         <div class="rules-section">
@@ -2902,10 +2903,10 @@
       <p>囲んで相手の石を取った直後、相手がすぐ同じ場所に置き返すと、同じ盤面が永遠に繰り返されてしまいます。</p>
       <p>これを防ぐため、<strong>1手前とまったく同じ盤面に戻してしまう手は打てません。</strong></p>
       <p>他の場所に一手置いてからなら、再び石を置くことができます。</p>
-      <p>💡 ヒントのドットは3色で状態を表します：<br>
-        <span style="color:#c8b832;font-weight:bold;">● 黄色</span> = 置ける
-        <span style="color:#d07020;font-weight:bold;">● オレンジ</span> = CPコール制限あり
-        <span style="color:#c04020;font-weight:bold;">● 赤</span> = コウで禁止（赤だけなら例外で置ける）</p>
+      <p>💡 ヒント表示のしくみ：<br>
+        <span style="color:#c8b832;font-weight:bold;">● 黄色ドット</span> = 置ける場所（背景色問わず）
+        <span style="color:#d07020;font-weight:bold;">● オレンジ背景＋白枠</span> = CPコール制限あり（置ける）<br>
+        <span style="color:#c04020;font-weight:bold;">● 赤背景＋白枠</span> = コウで禁止（黄色ドットがあれば例外で置ける）</p>
       <button class="ko-help-close-btn" onclick="hideKoHelp()">閉じる</button>
     </div>
   </div>
@@ -5686,16 +5687,25 @@
         const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
         poly.setAttribute('points', hexPoints(cx,cy));
         const isKoBlocked = koBlockedSet.has(k);
+        const isKoRestricted = isValid && koRestrictedSet.has(k);
         let fill = currentTheme.cellFill;
-        if (isValid && hintEnabled) {
+        // コウ関連の塗りは優先（例外時も赤のまま、ドットで置けることを示す）
+        if (isKoBlocked && hintEnabled) {
+          fill = '#c04020'; // 赤: コウでブロック（例外時でも赤のまま）
+        } else if (isValid && hintEnabled) {
           fill = koRestrictedSet.has(k) ? '#d07020' : currentTheme.cellValid;
-        } else if (isKoBlocked && hintEnabled) {
-          fill = '#c04020'; // 赤: コウでブロック
         }
         if (isGP && cellColor === null) fill = '#7b1fa2';
         poly.setAttribute('fill', fill);
-        poly.setAttribute('stroke', isGP ? '#4a0a72' : currentTheme.cellStroke);
-        poly.setAttribute('stroke-width', isGP ? '2.5' : '1.5');
+        // コウ警告セルは白い太枠で強調（どのテーマでも視認性確保）
+        const showKoBorder = hintEnabled && !isGP && (isKoBlocked || isKoRestricted);
+        if (showKoBorder) {
+          poly.setAttribute('stroke', '#ffffff');
+          poly.setAttribute('stroke-width', '3');
+        } else {
+          poly.setAttribute('stroke', isGP ? '#4a0a72' : currentTheme.cellStroke);
+          poly.setAttribute('stroke-width', isGP ? '2.5' : '1.5');
+        }
 
         if (cellColor === null && (isValid || (isKoBlocked && validSet.size === 0))) {
           poly.style.cursor = 'pointer';

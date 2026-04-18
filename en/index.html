@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v34</p>
+    <p class="app-version">RSG-v35</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -2860,10 +2860,11 @@
           <p><strong>② Exception</strong><br>If you have no other valid moves, you may play a ko move.</p>
           <p><strong>③ After Exception</strong><br>If the exception is used, the opponent cannot immediately play a move that would return to the previous position.</p>
           <p><strong>④ Game End</strong><br>If both players can only make ko moves and the situation persists, the game ends and the winner is determined by the current scores.</p>
-          <p><strong>⑤ Visual Indicators (3-Color Dots)</strong><br>
-            <span style="color:#c8b832;font-weight:bold;">● Yellow</span> — Normal valid move. Can be played.<br>
-            <span style="color:#d07020;font-weight:bold;">● Orange</span> — Valid move, but one CP call color is restricted by ko.<br>
-            <span style="color:#c04020;font-weight:bold;">● Red</span> — Blocked by ko. Cannot be played if yellow/orange moves exist. Playable as exception if only red remains.</p>
+          <p><strong>⑤ Visual Indicators</strong><br>
+            <span style="color:#c8b832;font-weight:bold;">● Yellow Dot</span> — Marks a placeable cell (regardless of background color).<br>
+            <span style="color:#d07020;font-weight:bold;">● Orange background + white border</span> — Placeable, but only one CP call color is allowed (other is ko-restricted).<br>
+            <span style="color:#c04020;font-weight:bold;">● Red background + white border</span> — Blocked by ko. Normally cannot be played.<br>
+            <span style="color:#c04020;font-weight:bold;">● Red + white border + yellow dot</span> — Exception: only red remains, so placing is allowed.</p>
         </div>
 
         <div class="rules-section">
@@ -2902,10 +2903,10 @@
       <p>Right after capturing by surrounding, if the opponent immediately places back at the same spot, the same board state would repeat forever.</p>
       <p>To prevent this, <strong>you cannot make a move that returns the board to the exact same position as one move ago.</strong></p>
       <p>After placing a stone elsewhere first, you can place there again.</p>
-      <p>💡 Hint dots show status in 3 colors:<br>
-        <span style="color:#c8b832;font-weight:bold;">● Yellow</span> = Can place
-        <span style="color:#d07020;font-weight:bold;">● Orange</span> = CP call restricted
-        <span style="color:#c04020;font-weight:bold;">● Red</span> = Blocked by ko (exception if only red)</p>
+      <p>💡 How hints work:<br>
+        <span style="color:#c8b832;font-weight:bold;">● Yellow dot</span> = Placeable cell (shown on any background)<br>
+        <span style="color:#d07020;font-weight:bold;">● Orange background + white border</span> = CP call restricted (placeable)<br>
+        <span style="color:#c04020;font-weight:bold;">● Red background + white border</span> = Blocked by ko (exception placement if yellow dot also shown)</p>
       <button class="ko-help-close-btn" onclick="hideKoHelp()">Close</button>
     </div>
   </div>
@@ -5686,16 +5687,25 @@
         const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
         poly.setAttribute('points', hexPoints(cx,cy));
         const isKoBlocked = koBlockedSet.has(k);
+        const isKoRestricted = isValid && koRestrictedSet.has(k);
         let fill = currentTheme.cellFill;
-        if (isValid && hintEnabled) {
+        // Ko fills take priority (stay red even in exception; yellow dot shows placeable)
+        if (isKoBlocked && hintEnabled) {
+          fill = '#c04020'; // Red: blocked by ko (stays red even in exception)
+        } else if (isValid && hintEnabled) {
           fill = koRestrictedSet.has(k) ? '#d07020' : currentTheme.cellValid;
-        } else if (isKoBlocked && hintEnabled) {
-          fill = '#c04020'; // Red: blocked by ko
         }
         if (isGP && cellColor === null) fill = '#7b1fa2';
         poly.setAttribute('fill', fill);
-        poly.setAttribute('stroke', isGP ? '#4a0a72' : currentTheme.cellStroke);
-        poly.setAttribute('stroke-width', isGP ? '2.5' : '1.5');
+        // Ko warning cells get a thick white border for visibility across themes
+        const showKoBorder = hintEnabled && !isGP && (isKoBlocked || isKoRestricted);
+        if (showKoBorder) {
+          poly.setAttribute('stroke', '#ffffff');
+          poly.setAttribute('stroke-width', '3');
+        } else {
+          poly.setAttribute('stroke', isGP ? '#4a0a72' : currentTheme.cellStroke);
+          poly.setAttribute('stroke-width', isGP ? '2.5' : '1.5');
+        }
 
         if (cellColor === null && (isValid || (isKoBlocked && validSet.size === 0))) {
           poly.style.cursor = 'pointer';
