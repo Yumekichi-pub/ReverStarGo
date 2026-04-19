@@ -102,7 +102,7 @@
       position: fixed;
       inset: 0;
       background: rgba(20, 10, 0, 0.72);
-      z-index: 300;
+      z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v38</p>
+    <p class="app-version">RSG-v39</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2523,6 +2523,7 @@
       <button class="promotion-start-btn" onclick="startPromotionExam()">⚔ 挑戦する</button>
     </div>
     <button id="start-game-btn" onclick="startGame()">ゲーム開始</button>
+    <button class="nav-link-btn" onclick="showPage('custom')">⚙ カスタム設定へ</button>
     <button class="nav-back-btn" id="game-setup-back" onclick="showPage('main')">メインへ戻る</button>
   </div>
 
@@ -2605,8 +2606,7 @@
         </div>
       </div>
     </div>
-    <button class="nav-link-btn" onclick="window.open('https://forms.gle/tNdF9em345JM5Ahw5','_blank')">💬 フィードバック</button>
-    <button class="nav-link-btn" onclick="window.open('https://reverstargo.com/privacy.html','_blank')">🔒 プライバシーポリシー</button>
+    <button class="nav-link-btn" onclick="saveSettingsAndGoToGame()">🎮 ゲーム設定に進む</button>
     <button class="nav-back-btn" onclick="saveSettingsAndBack()">保存してメインへ戻る</button>
   </div>
 
@@ -2627,6 +2627,8 @@
         <tbody id="battle-record-body"></tbody>
       </table>
     </div>
+    <button class="nav-link-btn" onclick="window.open('https://forms.gle/tNdF9em345JM5Ahw5','_blank')">💬 フィードバック</button>
+    <button class="nav-link-btn" onclick="window.open('https://reverstargo.com/privacy.html','_blank')">🔒 プライバシーポリシー</button>
     <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
   </div>
 
@@ -4110,6 +4112,11 @@
     function saveSettingsAndBack() {
       saveSettings();
       showPage('main');
+    }
+
+    function saveSettingsAndGoToGame() {
+      saveSettings();
+      showPage('game-setup');
     }
 
     let koMessageTimer = null;     // コウメッセージ表示タイマー

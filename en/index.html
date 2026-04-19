@@ -102,7 +102,7 @@
       position: fixed;
       inset: 0;
       background: rgba(20, 10, 0, 0.72);
-      z-index: 300;
+      z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v38</p>
+    <p class="app-version">RSG-v39</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -2523,6 +2523,7 @@
       <button class="promotion-start-btn" onclick="startPromotionExam()">⚔ Challenge</button>
     </div>
     <button id="start-game-btn" onclick="startGame()">Start Game</button>
+    <button class="nav-link-btn" onclick="showPage('custom')">⚙ Go to Custom Settings</button>
     <button class="nav-back-btn" id="game-setup-back" onclick="showPage('main')">Return to Main</button>
   </div>
 
@@ -2605,8 +2606,7 @@
         </div>
       </div>
     </div>
-    <button class="nav-link-btn" onclick="window.location.href='mailto:hello@reverstargo.com'">📧 Feedback</button>
-    <button class="nav-link-btn" onclick="window.open('https://reverstargo.com/en/privacy.html','_blank')">🔒 Privacy Policy</button>
+    <button class="nav-link-btn" onclick="saveSettingsAndGoToGame()">🎮 Go to Game Setup</button>
     <button class="nav-back-btn" onclick="saveSettingsAndBack()">Save & Return to Main</button>
   </div>
 
@@ -2627,6 +2627,8 @@
         <tbody id="battle-record-body"></tbody>
       </table>
     </div>
+    <button class="nav-link-btn" onclick="window.location.href='mailto:hello@reverstargo.com'">📧 Feedback</button>
+    <button class="nav-link-btn" onclick="window.open('https://reverstargo.com/en/privacy.html','_blank')">🔒 Privacy Policy</button>
     <button class="nav-back-btn" onclick="showPage('main')">Return to Main</button>
   </div>
 
@@ -4110,6 +4112,11 @@
     function saveSettingsAndBack() {
       saveSettings();
       showPage('main');
+    }
+
+    function saveSettingsAndGoToGame() {
+      saveSettings();
+      showPage('game-setup');
     }
 
     let koMessageTimer = null;     // Ko message display timer
