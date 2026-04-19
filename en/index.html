@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v36</p>
+    <p class="app-version">RSG-v37</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -2670,6 +2670,11 @@
     <div class="setup-section rules-section">
       <h2>🏆 How to Determine the Winner</h2>
       <p><strong>Stones on the board</strong> + <strong>Captured stones</strong> = Total points<br>The player with more total points wins.</p>
+    </div>
+
+    <div class="setup-section rules-section" style="text-align:center;">
+      <p style="margin-bottom:10px;">For detailed rules (CP participation, Ko details, promotion exams, etc.)</p>
+      <button class="tutorial-choice-btn" onclick="document.getElementById('rules-modal').style.display='flex';">📖 View Detailed Rule Book</button>
     </div>
 
     <button class="nav-back-btn" onclick="showPage('main')">Return to Main</button>

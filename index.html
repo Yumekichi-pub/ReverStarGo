@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v36</p>
+    <p class="app-version">RSG-v37</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2670,6 +2670,11 @@
     <div class="setup-section rules-section">
       <h2>🏆 勝敗の決め方</h2>
       <p><strong>盤上の自分の石の数</strong> ＋ <strong>囲んで取った石の数</strong> ＝ 合計ポイント<br>合計ポイントが多い方が勝利です。</p>
+    </div>
+
+    <div class="setup-section rules-section" style="text-align:center;">
+      <p style="margin-bottom:10px;">もっと詳しいルール（CP参加条件、コウの詳細、昇格試験など）</p>
+      <button class="tutorial-choice-btn" onclick="document.getElementById('rules-modal').style.display='flex';">📖 詳細ルール説明書はこちら</button>
     </div>
 
     <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
