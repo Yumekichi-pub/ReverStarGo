@@ -254,7 +254,7 @@
       color: #9a8060;
     }
 
-    /* Symmetry Match 1局目得点表示（v42〜） */
+    /* Reverse Match 1局目得点表示（v42〜） */
     .sp-round1 {
       font-size: 0.62rem;
       color: #c59a3f;
@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v42</p>
+    <p class="app-version">RSG-v43</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2793,7 +2793,7 @@
         <span id="black-score" class="sp-score">0</span>
         <span id="black-detail" class="sp-detail">盤3+取0</span>
       </div>
-      <!-- Symmetry Match 2局目に1局目得点を表示（v42〜） -->
+      <!-- Reverse Match 2局目に1局目得点を表示（v42〜） -->
       <div class="sp-round1" id="black-round1" style="display:none;"></div>
     </div>
     <!-- スコアパネル 右上（白） -->
@@ -2806,7 +2806,7 @@
         <span id="white-score" class="sp-score">0</span>
         <span id="white-detail" class="sp-detail">盤3+取0</span>
       </div>
-      <!-- Symmetry Match 2局目に1局目得点を表示（v42〜） -->
+      <!-- Reverse Match 2局目に1局目得点を表示（v42〜） -->
       <div class="sp-round1" id="white-round1" style="display:none;"></div>
     </div>
     <svg id="board" viewBox="-195 -220 390 440" style="width:100%;display:block;">
@@ -3195,11 +3195,11 @@
     let boardHistory = [];         // スーパーコウ判定用：全局面の履歴
     let sessionWins = { black: 0, white: 0, draw: 0 }; // セッション勝敗カウント
 
-    // ===== Symmetry Match（v41〜） =====
+    // ===== Reverse Match（v41〜） =====
     // トパーズ以上 × Lv.5以上の対戦を 2局1セット（色入れ替え合計得点制）で行う
     // null = 通常対戦 / {...} = SM 進行中
-    let symmetryMatch = null;
-    // symmetryMatch の構造:
+    let reverseMatch = null;
+    // reverseMatch の構造:
     //   round: 1 or 2 （現在の局）
     //   round1Result: { bTotal, wTotal, humanColor, humanPoints, cpuPoints } （1局目の結果）
     //   initialHumanColor: 'black' or 'white' （試合開始時のプレイヤーの色）
@@ -3446,10 +3446,10 @@
     // 進行中の昇格試験
     let promotionExam = null; // { targetRank, level, wins, losses, winsNeeded, maxLosses }
 
-    // Symmetry Match を適用すべきか判定（v41〜）
+    // Reverse Match を適用すべきか判定（v41〜）
     // 適用条件: トパーズ以上（rank>=13）×Lv.5以上、または Lv.5以上の昇格試験
     // ただし 2人対戦・チュートリアルは除外
-    function shouldUseSymmetryMatch() {
+    function shouldUseReverseMatch() {
       if (battleMode === 'two') return false;
       if (tutorialMiniGame) return false;
       if (promotionExam) {
@@ -4437,15 +4437,15 @@
     function startGame() {
       saveSettings();
       prevRank = calculateRank(); // ランクアップ判定用
-      // Symmetry Match 初期化（v41〜）
-      if (shouldUseSymmetryMatch()) {
-        symmetryMatch = {
+      // Reverse Match 初期化（v41〜）
+      if (shouldUseReverseMatch()) {
+        reverseMatch = {
           round: 1,
           round1Result: null,
           initialHumanColor: humanColor
         };
       } else {
-        symmetryMatch = null;
+        reverseMatch = null;
       }
       document.getElementById('setup-game').style.display = 'none';
       initGame();
@@ -5493,13 +5493,13 @@
         else { sessionWins.draw++; msg = `引き分け (黒${bTotal} vs 白${wTotal})`; }
       } else {
         // ============================================
-        // Symmetry Match 1局目終了時の中間処理（v41〜）
+        // Reverse Match 1局目終了時の中間処理（v41〜）
         // ============================================
-        if (symmetryMatch && symmetryMatch.round === 1) {
+        if (reverseMatch && reverseMatch.round === 1) {
           // 1局目の結果を保存
           const humanPointsR1 = humanColor === 'black' ? bTotal : wTotal;
           const cpuPointsR1 = humanColor === 'black' ? wTotal : bTotal;
-          symmetryMatch.round1Result = {
+          reverseMatch.round1Result = {
             bTotal, wTotal,
             humanColor,
             humanPoints: humanPointsR1,
@@ -5510,10 +5510,10 @@
           // 色を入れ替えて 2局目へ
           humanColor = opp(humanColor);
           cpuColor = opp(cpuColor);
-          symmetryMatch.round = 2;
+          reverseMatch.round = 2;
           // 中間結果メッセージ
-          const r1 = symmetryMatch.round1Result;
-          msg = `🏆 Symmetry Match — 1局目終了\n` +
+          const r1 = reverseMatch.round1Result;
+          msg = `🏆 リバースマッチ — 1局目終了\n` +
                 `あなた（${r1.humanColor === 'black' ? '⚫黒' : '⚪白'}）: ${r1.humanPoints}点\n` +
                 `CPU（${r1.humanColor === 'black' ? '⚪白' : '⚫黒'}）: ${r1.cpuPoints}点\n\n` +
                 `次は色を入れ替えて 2局目へ\n` +
@@ -5533,11 +5533,11 @@
         }
 
         // ============================================
-        // Symmetry Match 2局目終了時の合計判定（v41〜）
+        // Reverse Match 2局目終了時の合計判定（v41〜）
         // ============================================
         let smFinalMsg = null;
-        if (symmetryMatch && symmetryMatch.round === 2) {
-          const r1 = symmetryMatch.round1Result;
+        if (reverseMatch && reverseMatch.round === 2) {
+          const r1 = reverseMatch.round1Result;
           const humanPointsR2 = humanColor === 'black' ? bTotal : wTotal;
           const cpuPointsR2 = humanColor === 'black' ? wTotal : bTotal;
           const humanTotal = r1.humanPoints + humanPointsR2;
@@ -5554,7 +5554,7 @@
               else         { smWinner = 'cpu';   soundType = 'lose'; sessionWins.white++; }
             } else { smWinner = 'draw'; soundType = 'draw'; sessionWins.draw++; }
           }
-          smFinalMsg = `🏆 Symmetry Match 結果\n` +
+          smFinalMsg = `🏆 リバースマッチ 結果\n` +
                        `1局目（あなた${r1.humanColor === 'black' ? '⚫' : '⚪'}）: ${r1.humanPoints} — ${r1.cpuPoints}\n` +
                        `2局目（あなた${humanColor === 'black' ? '⚫' : '⚪'}）: ${humanPointsR2} — ${cpuPointsR2}\n` +
                        `───────────────\n` +
@@ -5564,10 +5564,10 @@
           else smFinalMsg += `引き分け`;
           msg = smFinalMsg;
           // SM状態クリア（戦績処理より先にクリアしても影響なし）
-          symmetryMatch = null;
+          reverseMatch = null;
         } else {
           // ============================================
-          // 通常対戦（非 Symmetry Match）の既存処理
+          // 通常対戦（非 Reverse Match）の既存処理
           // ============================================
           const blackLabel = humanColor === 'black' ? getPlayerName() : 'CPU';
           const whiteLabel = humanColor === 'white' ? getPlayerName() : 'CPU';
@@ -5670,8 +5670,8 @@
       const playAgainBtn = document.getElementById('play-again-btn');
       if (promotionExam) {
         playAgainBtn.textContent = '次の試合へ ▶';
-      } else if (shouldUseSymmetryMatch()) {
-        // 次も Symmetry Match になる場合（v41〜）
+      } else if (shouldUseReverseMatch()) {
+        // 次も Reverse Match になる場合（v41〜）
         playAgainBtn.textContent = 'もう1試合 ▶';
       } else {
         playAgainBtn.textContent = 'もう1局';
@@ -5707,12 +5707,12 @@
       document.getElementById('white-score').textContent = captured.white;
       document.getElementById('black-detail').textContent = `合計${bTotal}`;
       document.getElementById('white-detail').textContent = `合計${wTotal}`;
-      // Symmetry Match 2局目中は、1局目の得点を表示（v42〜）
+      // Reverse Match 2局目中は、1局目の得点を表示（v42〜）
       const blackR1El = document.getElementById('black-round1');
       const whiteR1El = document.getElementById('white-round1');
       if (blackR1El && whiteR1El) {
-        if (symmetryMatch && symmetryMatch.round === 2 && symmetryMatch.round1Result) {
-          const r1 = symmetryMatch.round1Result;
+        if (reverseMatch && reverseMatch.round === 2 && reverseMatch.round1Result) {
+          const r1 = reverseMatch.round1Result;
           // r1.humanColor は1局目での「あなた」の色
           const blackPtsR1 = r1.humanColor === 'black' ? r1.humanPoints : r1.cpuPoints;
           const whitePtsR1 = r1.humanColor === 'black' ? r1.cpuPoints : r1.humanPoints;
@@ -6182,9 +6182,9 @@
         document.getElementById('white-role').innerHTML = humanColor === 'white' ? `${rankIcon(rIdx, 18)} ${getPlayerName()}` : 'CPU';
         document.getElementById('level-badge').style.display = '';
         let badgeText = cpuLevel >= 6 ? LEVEL_NAMES[cpuLevel-1] : `Lv.${cpuLevel}`;
-        // Symmetry Match 中は 1/2 or 2/2 の表示を追加（v41〜）
-        if (symmetryMatch) {
-          badgeText += ` 🏆 ${symmetryMatch.round}/2`;
+        // Reverse Match 中は 1/2 or 2/2 の表示を追加（v41〜）
+        if (reverseMatch) {
+          badgeText += ` 🏆 ${reverseMatch.round}/2`;
         }
         document.getElementById('level-badge').textContent = badgeText;
       }
@@ -6662,13 +6662,13 @@
         updateRankDisplay();
         updateLevelButtons();
       } else {
-        // Symmetry Match 1局目終了後：そのまま 2局目へ進む（色反転は endGame で済）
-        if (symmetryMatch && symmetryMatch.round === 2) {
+        // Reverse Match 1局目終了後：そのまま 2局目へ進む（色反転は endGame で済）
+        if (reverseMatch && reverseMatch.round === 2) {
           initGame();
           return;
         }
         // ランクアップマッチ中は白黒を交互にする（v41〜：SM の場合は除外）
-        if (promotionExam && !symmetryMatch) {
+        if (promotionExam && !reverseMatch) {
           humanColor = opp(humanColor);
           cpuColor = opp(humanColor);
           // 設定画面の選択状態も更新
@@ -6676,9 +6676,9 @@
           const colorBtn = document.querySelector(`[data-color="${humanColor}"]`);
           if (colorBtn) colorBtn.classList.add('selected');
         }
-        // 新規 Symmetry Match 判定（v41〜）
-        if (!symmetryMatch && shouldUseSymmetryMatch()) {
-          symmetryMatch = {
+        // 新規 Reverse Match 判定（v41〜）
+        if (!reverseMatch && shouldUseReverseMatch()) {
+          reverseMatch = {
             round: 1,
             round1Result: null,
             initialHumanColor: humanColor

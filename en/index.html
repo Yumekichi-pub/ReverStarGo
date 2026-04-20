@@ -254,7 +254,7 @@
       color: #9a8060;
     }
 
-    /* Symmetry Match round 1 score (v42+) */
+    /* Reverse Match round 1 score (v42+) */
     .sp-round1 {
       font-size: 0.62rem;
       color: #c59a3f;
@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v42</p>
+    <p class="app-version">RSG-v43</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -2793,7 +2793,7 @@
         <span id="black-score" class="sp-score">0</span>
         <span id="black-detail" class="sp-detail">Board 3 + Cap 0</span>
       </div>
-      <!-- Symmetry Match round 1 score (shown during round 2) (v42+) -->
+      <!-- Reverse Match round 1 score (shown during round 2) (v42+) -->
       <div class="sp-round1" id="black-round1" style="display:none;"></div>
     </div>
     <!-- Score Panel Top-Right (White) -->
@@ -2806,7 +2806,7 @@
         <span id="white-score" class="sp-score">0</span>
         <span id="white-detail" class="sp-detail">Board 3 + Cap 0</span>
       </div>
-      <!-- Symmetry Match round 1 score (shown during round 2) (v42+) -->
+      <!-- Reverse Match round 1 score (shown during round 2) (v42+) -->
       <div class="sp-round1" id="white-round1" style="display:none;"></div>
     </div>
     <svg id="board" viewBox="-195 -220 390 440" style="width:100%;display:block;">
@@ -3195,11 +3195,11 @@
     let boardHistory = [];         // For super-ko: all position history
     let sessionWins = { black: 0, white: 0, draw: 0 }; // Session win/loss count
 
-    // ===== Symmetry Match (v41+) =====
+    // ===== Reverse Match (v41+) =====
     // Two-round match with color swap and combined points.
     // Applied for Topaz+ rank × Lv.5+ opponents (and Lv.5+ promotion exams).
     // null = normal match / {...} = SM in progress
-    let symmetryMatch = null;
+    let reverseMatch = null;
 
     // ===== Game Record =====
     let moveHistory = [];       // [{num, player, q, r, s, gpColor, type:'move'|'pass', boardAfter, capturedAfter}]
@@ -3443,10 +3443,10 @@
     // Ongoing promotion exam
     let promotionExam = null; // { targetRank, level, wins, losses, winsNeeded, maxLosses }
 
-    // Determine if Symmetry Match should apply (v41+)
+    // Determine if Reverse Match should apply (v41+)
     // Conditions: Topaz+ rank × Lv.5+ opponent, or Lv.5+ promotion exam
     // Excludes 2-player mode and tutorial
-    function shouldUseSymmetryMatch() {
+    function shouldUseReverseMatch() {
       if (battleMode === 'two') return false;
       if (tutorialMiniGame) return false;
       if (promotionExam) {
@@ -4432,15 +4432,15 @@
     function startGame() {
       saveSettings();
       prevRank = calculateRank(); // For rank-up check
-      // Initialize Symmetry Match (v41+)
-      if (shouldUseSymmetryMatch()) {
-        symmetryMatch = {
+      // Initialize Reverse Match (v41+)
+      if (shouldUseReverseMatch()) {
+        reverseMatch = {
           round: 1,
           round1Result: null,
           initialHumanColor: humanColor
         };
       } else {
-        symmetryMatch = null;
+        reverseMatch = null;
       }
       document.getElementById('setup-game').style.display = 'none';
       initGame();
@@ -5488,12 +5488,12 @@
         else { sessionWins.draw++; msg = `Draw (Black ${bTotal} vs White ${wTotal})`; }
       } else {
         // ============================================
-        // Symmetry Match: end of round 1 (interim) (v41+)
+        // Reverse Match: end of round 1 (interim) (v41+)
         // ============================================
-        if (symmetryMatch && symmetryMatch.round === 1) {
+        if (reverseMatch && reverseMatch.round === 1) {
           const humanPointsR1 = humanColor === 'black' ? bTotal : wTotal;
           const cpuPointsR1 = humanColor === 'black' ? wTotal : bTotal;
-          symmetryMatch.round1Result = {
+          reverseMatch.round1Result = {
             bTotal, wTotal,
             humanColor,
             humanPoints: humanPointsR1,
@@ -5504,9 +5504,9 @@
           // Swap colors for round 2
           humanColor = opp(humanColor);
           cpuColor = opp(cpuColor);
-          symmetryMatch.round = 2;
-          const r1 = symmetryMatch.round1Result;
-          msg = `🏆 Symmetry Match — Round 1 finished\n` +
+          reverseMatch.round = 2;
+          const r1 = reverseMatch.round1Result;
+          msg = `🏆 Reverse Match — Round 1 finished\n` +
                 `You (${r1.humanColor === 'black' ? '⚫Black' : '⚪White'}): ${r1.humanPoints} pts\n` +
                 `CPU (${r1.humanColor === 'black' ? '⚪White' : '⚫Black'}): ${r1.cpuPoints} pts\n\n` +
                 `Swap colors for Round 2\n` +
@@ -5525,11 +5525,11 @@
         }
 
         // ============================================
-        // Symmetry Match: end of round 2 (final) (v41+)
+        // Reverse Match: end of round 2 (final) (v41+)
         // ============================================
         let smFinalMsg = null;
-        if (symmetryMatch && symmetryMatch.round === 2) {
-          const r1 = symmetryMatch.round1Result;
+        if (reverseMatch && reverseMatch.round === 2) {
+          const r1 = reverseMatch.round1Result;
           const humanPointsR2 = humanColor === 'black' ? bTotal : wTotal;
           const cpuPointsR2 = humanColor === 'black' ? wTotal : bTotal;
           const humanTotal = r1.humanPoints + humanPointsR2;
@@ -5545,7 +5545,7 @@
               else         { smWinner = 'cpu';   soundType = 'lose'; sessionWins.white++; }
             } else { smWinner = 'draw'; soundType = 'draw'; sessionWins.draw++; }
           }
-          smFinalMsg = `🏆 Symmetry Match Result\n` +
+          smFinalMsg = `🏆 Reverse Match Result\n` +
                        `Round 1 (You ${r1.humanColor === 'black' ? '⚫' : '⚪'}): ${r1.humanPoints} — ${r1.cpuPoints}\n` +
                        `Round 2 (You ${humanColor === 'black' ? '⚫' : '⚪'}): ${humanPointsR2} — ${cpuPointsR2}\n` +
                        `───────────────\n` +
@@ -5554,10 +5554,10 @@
           else if (smWinner === 'cpu') smFinalMsg += `😢 CPU wins`;
           else smFinalMsg += `Draw`;
           msg = smFinalMsg;
-          symmetryMatch = null;
+          reverseMatch = null;
         } else {
           // ============================================
-          // Normal match (non-Symmetry Match) — existing
+          // Normal match (non-Reverse Match) — existing
           // ============================================
           const blackLabel = humanColor === 'black' ? getPlayerName() : 'CPU';
           const whiteLabel = humanColor === 'white' ? getPlayerName() : 'CPU';
@@ -5660,8 +5660,8 @@
       const playAgainBtn = document.getElementById('play-again-btn');
       if (promotionExam) {
         playAgainBtn.textContent = 'Next Game ▶';
-      } else if (shouldUseSymmetryMatch()) {
-        // Next match will also be Symmetry Match (v41+)
+      } else if (shouldUseReverseMatch()) {
+        // Next match will also be Reverse Match (v41+)
         playAgainBtn.textContent = 'Next Match ▶';
       } else {
         playAgainBtn.textContent = 'Play Again';
@@ -5697,12 +5697,12 @@
       document.getElementById('white-score').textContent = captured.white;
       document.getElementById('black-detail').textContent = `Total ${bTotal}`;
       document.getElementById('white-detail').textContent = `Total ${wTotal}`;
-      // Show round 1 score during Symmetry Match round 2 (v42+)
+      // Show round 1 score during Reverse Match round 2 (v42+)
       const blackR1El = document.getElementById('black-round1');
       const whiteR1El = document.getElementById('white-round1');
       if (blackR1El && whiteR1El) {
-        if (symmetryMatch && symmetryMatch.round === 2 && symmetryMatch.round1Result) {
-          const r1 = symmetryMatch.round1Result;
+        if (reverseMatch && reverseMatch.round === 2 && reverseMatch.round1Result) {
+          const r1 = reverseMatch.round1Result;
           const blackPtsR1 = r1.humanColor === 'black' ? r1.humanPoints : r1.cpuPoints;
           const whitePtsR1 = r1.humanColor === 'black' ? r1.cpuPoints : r1.humanPoints;
           blackR1El.textContent = `🏆 R1: ${blackPtsR1}`;
@@ -6171,9 +6171,9 @@
         document.getElementById('white-role').innerHTML = humanColor === 'white' ? `${rankIcon(rIdx, 18)} ${getPlayerName()}` : 'CPU';
         document.getElementById('level-badge').style.display = '';
         let badgeText = cpuLevel >= 6 ? LEVEL_NAMES[cpuLevel-1] : `Lv.${cpuLevel}`;
-        // Show round indicator during Symmetry Match (v41+)
-        if (symmetryMatch) {
-          badgeText += ` 🏆 ${symmetryMatch.round}/2`;
+        // Show round indicator during Reverse Match (v41+)
+        if (reverseMatch) {
+          badgeText += ` 🏆 ${reverseMatch.round}/2`;
         }
         document.getElementById('level-badge').textContent = badgeText;
       }
@@ -6651,13 +6651,13 @@
         updateRankDisplay();
         updateLevelButtons();
       } else {
-        // Symmetry Match: proceed to round 2 (colors already swapped in endGame)
-        if (symmetryMatch && symmetryMatch.round === 2) {
+        // Reverse Match: proceed to round 2 (colors already swapped in endGame)
+        if (reverseMatch && reverseMatch.round === 2) {
           initGame();
           return;
         }
         // Alternate B/W during rank-up match (skip for SM)
-        if (promotionExam && !symmetryMatch) {
+        if (promotionExam && !reverseMatch) {
           humanColor = opp(humanColor);
           cpuColor = opp(humanColor);
           // Also update selection state in settings screen
@@ -6665,9 +6665,9 @@
           const colorBtn = document.querySelector(`[data-color="${humanColor}"]`);
           if (colorBtn) colorBtn.classList.add('selected');
         }
-        // New Symmetry Match check (v41+)
-        if (!symmetryMatch && shouldUseSymmetryMatch()) {
-          symmetryMatch = {
+        // New Reverse Match check (v41+)
+        if (!reverseMatch && shouldUseReverseMatch()) {
+          reverseMatch = {
             round: 1,
             round1Result: null,
             initialHumanColor: humanColor
