@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v39</p>
+    <p class="app-version">RSG-v40</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -4087,7 +4087,11 @@
         sound: soundEnabled,
         theme: currentThemeKey,
         bg: currentBgKey,
-        name: playerName
+        name: playerName,
+        // Game settings (v40+: preserve last played settings)
+        cpuLevel: cpuLevel,
+        humanColor: humanColor,
+        battleMode: battleMode
       };
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {}
     }
@@ -4105,6 +4109,30 @@
         if (data.name) {
           playerName = data.name;
           document.getElementById('player-name-input').value = playerName;
+        }
+      } catch(e) {}
+    }
+
+    // Restore last-played game settings (v40+)
+    // Must be called after updateLevelButtons() so unlock states are settled
+    function loadGameSettings() {
+      try {
+        const data = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+        if (!data) return;
+        // CPU level: only restore if unlocked
+        if (data.cpuLevel && isLevelUnlocked(data.cpuLevel)) {
+          cpuLevel = data.cpuLevel;
+          document.querySelectorAll('[data-level]').forEach(b => b.classList.remove('selected'));
+          const btn = document.querySelector(`[data-level="${data.cpuLevel}"]`);
+          if (btn) btn.classList.add('selected');
+        }
+        // Player color
+        if (data.humanColor === 'black' || data.humanColor === 'white') {
+          selectColor(data.humanColor);
+        }
+        // Battle mode
+        if (data.battleMode === 'cpu' || data.battleMode === 'two') {
+          selectBattleMode(data.battleMode);
         }
       } catch(e) {}
     }
@@ -7589,6 +7617,8 @@
     updatePlayerNameDisplay();
     updateRankDisplay();
     updateLevelButtons();
+    // Restore game settings after lock states are settled (v40+)
+    loadGameSettings();
     // Auto-return to setup if in rank-up match
     if (promotionExam) {
       showPage('game-setup');

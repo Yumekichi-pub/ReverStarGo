@@ -2484,7 +2484,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v39</p>
+    <p class="app-version">RSG-v40</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -4087,7 +4087,11 @@
         sound: soundEnabled,
         theme: currentThemeKey,
         bg: currentBgKey,
-        name: playerName
+        name: playerName,
+        // ゲーム設定（v40〜：前回プレイした設定を保持）
+        cpuLevel: cpuLevel,
+        humanColor: humanColor,
+        battleMode: battleMode
       };
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {}
     }
@@ -4105,6 +4109,30 @@
         if (data.name) {
           playerName = data.name;
           document.getElementById('player-name-input').value = playerName;
+        }
+      } catch(e) {}
+    }
+
+    // 前回プレイしたゲーム設定の復元（v40〜）
+    // updateLevelButtons() でロック状態が確定した後に呼ぶ必要がある
+    function loadGameSettings() {
+      try {
+        const data = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+        if (!data) return;
+        // CPUレベル：ロックされていない場合のみ復元
+        if (data.cpuLevel && isLevelUnlocked(data.cpuLevel)) {
+          cpuLevel = data.cpuLevel;
+          document.querySelectorAll('[data-level]').forEach(b => b.classList.remove('selected'));
+          const btn = document.querySelector(`[data-level="${data.cpuLevel}"]`);
+          if (btn) btn.classList.add('selected');
+        }
+        // プレイヤーの色
+        if (data.humanColor === 'black' || data.humanColor === 'white') {
+          selectColor(data.humanColor);
+        }
+        // 対戦モード
+        if (data.battleMode === 'cpu' || data.battleMode === 'two') {
+          selectBattleMode(data.battleMode);
         }
       } catch(e) {}
     }
@@ -7589,6 +7617,8 @@
     updatePlayerNameDisplay();
     updateRankDisplay();
     updateLevelButtons();
+    // ロック状態の確定後にゲーム設定を復元（v40〜）
+    loadGameSettings();
     // ランクアップマッチ中ならゲーム設定画面に自動復帰
     if (promotionExam) {
       showPage('game-setup');
