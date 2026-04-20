@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v43</p>
+    <p class="app-version">RSG-v44</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -3445,6 +3445,65 @@
 
     // 進行中の昇格試験
     let promotionExam = null; // { targetRank, level, wins, losses, winsNeeded, maxLosses }
+
+    // ===== Reverse Match 進行中フラグ（v44〜：中断検知） =====
+    // スマホ戻るボタン・タブ閉じる等の予期せぬ離脱を検知して1敗記録するため
+    const REVERSE_MATCH_PENDING_KEY = 'rsg_reverse_match_pending';
+
+    function markReverseMatchPending() {
+      try {
+        localStorage.setItem(REVERSE_MATCH_PENDING_KEY, JSON.stringify({
+          cpuLevel: cpuLevel,
+          promotionExamTargetRank: promotionExam ? promotionExam.targetRank : null,
+          timestamp: Date.now()
+        }));
+      } catch(e) {}
+    }
+
+    function clearReverseMatchPending() {
+      try { localStorage.removeItem(REVERSE_MATCH_PENDING_KEY); } catch(e) {}
+    }
+
+    function loadReverseMatchPending() {
+      try {
+        return JSON.parse(localStorage.getItem(REVERSE_MATCH_PENDING_KEY));
+      } catch(e) { return null; }
+    }
+
+    // startGame 冒頭で前回の離脱を検知 → 1敗として記録
+    function handlePendingReverseMatchOnStart() {
+      const pending = loadReverseMatchPending();
+      if (!pending) return;
+      const lvKey = String(pending.cpuLevel);
+      // 戦績に1敗
+      const record = loadBattleRecord();
+      if (record[lvKey]) {
+        record[lvKey].lose++;
+        saveBattleRecord(record);
+      }
+      // 当日成績にも1敗
+      const dailyRec = loadDailyRecord();
+      if (dailyRec[lvKey]) {
+        dailyRec[lvKey].lose++;
+        saveDailyRecord(dailyRec);
+      }
+      // 昇格試験中なら1敗
+      if (pending.promotionExamTargetRank !== null) {
+        const pex = loadPromotionExam();
+        if (pex && pex.targetRank === pending.promotionExamTargetRank) {
+          pex.losses++;
+          savePromotionExam(pex);
+          const career = getPromotionCareer(pex.targetRank);
+          career.losses++;
+          savePromotionCareer(pex.targetRank, career.wins, career.losses);
+          // 敗退判定
+          if (pex.losses >= pex.maxLosses) {
+            clearPromotionExam();
+          }
+        }
+      }
+      clearReverseMatchPending();
+    }
 
     // Reverse Match を適用すべきか判定（v41〜）
     // 適用条件: トパーズ以上（rank>=13）×Lv.5以上、または Lv.5以上の昇格試験
@@ -4436,6 +4495,8 @@
     }
     function startGame() {
       saveSettings();
+      // 前回の Reverse Match 途中離脱を検知 → 1敗として記録（v44〜）
+      handlePendingReverseMatchOnStart();
       prevRank = calculateRank(); // ランクアップ判定用
       // Reverse Match 初期化（v41〜）
       if (shouldUseReverseMatch()) {
@@ -4444,6 +4505,9 @@
           round1Result: null,
           initialHumanColor: humanColor
         };
+        // 離脱検知用フラグと履歴スタック（v44〜）
+        markReverseMatchPending();
+        try { history.pushState({reverseMatchActive: true}, '', location.href); } catch(e) {}
       } else {
         reverseMatch = null;
       }
@@ -5565,6 +5629,8 @@
           msg = smFinalMsg;
           // SM状態クリア（戦績処理より先にクリアしても影響なし）
           reverseMatch = null;
+          // Reverse Match 正常終了なので離脱検知フラグを削除（v44〜）
+          clearReverseMatchPending();
         } else {
           // ============================================
           // 通常対戦（非 Reverse Match）の既存処理
@@ -6543,6 +6609,9 @@
 
     function confirmQuit() {
       document.getElementById('quit-confirm').style.display = 'none';
+      // Reverse Match 中ならフラグをクリア（v44〜）
+      clearReverseMatchPending();
+      reverseMatch = null;
       // 負けとして記録（CPU対戦・チュートリアル以外、開発者モード以外）
       if (battleMode === 'cpu' && !isTutorial && !tutorialMiniGame && !devMode) {
         const record = loadBattleRecord();
@@ -6683,6 +6752,9 @@
             round1Result: null,
             initialHumanColor: humanColor
           };
+          // 離脱検知用フラグと履歴スタック（v44〜）
+          markReverseMatchPending();
+          try { history.pushState({reverseMatchActive: true}, '', location.href); } catch(e) {}
         }
         initGame();
       }
@@ -7786,6 +7858,24 @@
     if (promotionExam) {
       showPage('game-setup');
     }
+
+    // スマホ戻るボタン・スワイプバック検知（v44〜）
+    // Reverse Match 中は確認ダイアログを表示
+    window.addEventListener('popstate', function(event) {
+      // リバースマッチ中 かつ 結果モーダル非表示 なら警告
+      // （結果モーダル表示中 = 試合終了済みなので警告不要）
+      const resultModalShown = document.getElementById('result-modal').style.display === 'flex';
+      if (reverseMatch && !resultModalShown) {
+        // 戻るをキャンセルするため履歴を積み直す
+        try { history.pushState({reverseMatchActive: true}, '', location.href); } catch(e) {}
+        // 確認ダイアログを表示（リバースマッチ用メッセージ）
+        const quitMsg = document.querySelector('.quit-confirm-inner p');
+        if (quitMsg) {
+          quitMsg.innerHTML = '⚠ リバースマッチを中断しますか？<br><strong>1敗</strong>として記録されます。';
+        }
+        document.getElementById('quit-confirm').style.display = 'flex';
+      }
+    });
 
     // アカウントページでプレイヤー名変更時に即時保存
     document.getElementById('player-name-input').addEventListener('input', function() {

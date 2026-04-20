@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v43</p>
+    <p class="app-version">RSG-v44</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -3442,6 +3442,61 @@
 
     // Ongoing promotion exam
     let promotionExam = null; // { targetRank, level, wins, losses, winsNeeded, maxLosses }
+
+    // ===== Reverse Match quit-detection (v44+) =====
+    // Detects back button / tab close / etc. during RM and records a loss
+    const REVERSE_MATCH_PENDING_KEY = 'rsg_reverse_match_pending';
+
+    function markReverseMatchPending() {
+      try {
+        localStorage.setItem(REVERSE_MATCH_PENDING_KEY, JSON.stringify({
+          cpuLevel: cpuLevel,
+          promotionExamTargetRank: promotionExam ? promotionExam.targetRank : null,
+          timestamp: Date.now()
+        }));
+      } catch(e) {}
+    }
+
+    function clearReverseMatchPending() {
+      try { localStorage.removeItem(REVERSE_MATCH_PENDING_KEY); } catch(e) {}
+    }
+
+    function loadReverseMatchPending() {
+      try {
+        return JSON.parse(localStorage.getItem(REVERSE_MATCH_PENDING_KEY));
+      } catch(e) { return null; }
+    }
+
+    // Detect a pending abandoned RM on startGame, record 1 loss
+    function handlePendingReverseMatchOnStart() {
+      const pending = loadReverseMatchPending();
+      if (!pending) return;
+      const lvKey = String(pending.cpuLevel);
+      const record = loadBattleRecord();
+      if (record[lvKey]) {
+        record[lvKey].lose++;
+        saveBattleRecord(record);
+      }
+      const dailyRec = loadDailyRecord();
+      if (dailyRec[lvKey]) {
+        dailyRec[lvKey].lose++;
+        saveDailyRecord(dailyRec);
+      }
+      if (pending.promotionExamTargetRank !== null) {
+        const pex = loadPromotionExam();
+        if (pex && pex.targetRank === pending.promotionExamTargetRank) {
+          pex.losses++;
+          savePromotionExam(pex);
+          const career = getPromotionCareer(pex.targetRank);
+          career.losses++;
+          savePromotionCareer(pex.targetRank, career.wins, career.losses);
+          if (pex.losses >= pex.maxLosses) {
+            clearPromotionExam();
+          }
+        }
+      }
+      clearReverseMatchPending();
+    }
 
     // Determine if Reverse Match should apply (v41+)
     // Conditions: Topaz+ rank × Lv.5+ opponent, or Lv.5+ promotion exam
@@ -4431,6 +4486,8 @@
     }
     function startGame() {
       saveSettings();
+      // Handle any abandoned RM from previous session (v44+)
+      handlePendingReverseMatchOnStart();
       prevRank = calculateRank(); // For rank-up check
       // Initialize Reverse Match (v41+)
       if (shouldUseReverseMatch()) {
@@ -4439,6 +4496,9 @@
           round1Result: null,
           initialHumanColor: humanColor
         };
+        // Abandonment-detection flag and history entry (v44+)
+        markReverseMatchPending();
+        try { history.pushState({reverseMatchActive: true}, '', location.href); } catch(e) {}
       } else {
         reverseMatch = null;
       }
@@ -5555,6 +5615,8 @@
           else smFinalMsg += `Draw`;
           msg = smFinalMsg;
           reverseMatch = null;
+          // Normal RM completion — clear abandonment flag (v44+)
+          clearReverseMatchPending();
         } else {
           // ============================================
           // Normal match (non-Reverse Match) — existing
@@ -6532,6 +6594,9 @@
 
     function confirmQuit() {
       document.getElementById('quit-confirm').style.display = 'none';
+      // Clear Reverse Match state (v44+)
+      clearReverseMatchPending();
+      reverseMatch = null;
       // Record as loss (not tutorial/devMode)
       if (battleMode === 'cpu' && !isTutorial && !tutorialMiniGame && !devMode) {
         const record = loadBattleRecord();
@@ -6672,6 +6737,9 @@
             round1Result: null,
             initialHumanColor: humanColor
           };
+          // Abandonment-detection flag and history entry (v44+)
+          markReverseMatchPending();
+          try { history.pushState({reverseMatchActive: true}, '', location.href); } catch(e) {}
         }
         initGame();
       }
@@ -7775,6 +7843,21 @@
     if (promotionExam) {
       showPage('game-setup');
     }
+
+    // Back button / swipe-back detection during Reverse Match (v44+)
+    window.addEventListener('popstate', function(event) {
+      const resultModalShown = document.getElementById('result-modal').style.display === 'flex';
+      if (reverseMatch && !resultModalShown) {
+        // Cancel the back navigation by pushing state again
+        try { history.pushState({reverseMatchActive: true}, '', location.href); } catch(e) {}
+        // Show confirmation dialog with RM-specific message
+        const quitMsg = document.querySelector('.quit-confirm-inner p');
+        if (quitMsg) {
+          quitMsg.innerHTML = '⚠ Quit Reverse Match?<br>This will be recorded as <strong>1 loss</strong>.';
+        }
+        document.getElementById('quit-confirm').style.display = 'flex';
+      }
+    });
 
     // Save immediately on name change
     document.getElementById('player-name-input').addEventListener('input', function() {
