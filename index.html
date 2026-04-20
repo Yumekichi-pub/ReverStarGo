@@ -254,6 +254,15 @@
       color: #9a8060;
     }
 
+    /* Symmetry Match 1局目得点表示（v42〜） */
+    .sp-round1 {
+      font-size: 0.62rem;
+      color: #c59a3f;
+      font-weight: bold;
+      margin-top: 2px;
+      line-height: 1.1;
+    }
+
     /* ===== ターン＆レベル表示 ===== */
     #game-status-row {
       display: flex;
@@ -2484,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v41</p>
+    <p class="app-version">RSG-v42</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2784,6 +2793,8 @@
         <span id="black-score" class="sp-score">0</span>
         <span id="black-detail" class="sp-detail">盤3+取0</span>
       </div>
+      <!-- Symmetry Match 2局目に1局目得点を表示（v42〜） -->
+      <div class="sp-round1" id="black-round1" style="display:none;"></div>
     </div>
     <!-- スコアパネル 右上（白） -->
     <div id="score-white" class="score-panel">
@@ -2795,6 +2806,8 @@
         <span id="white-score" class="sp-score">0</span>
         <span id="white-detail" class="sp-detail">盤3+取0</span>
       </div>
+      <!-- Symmetry Match 2局目に1局目得点を表示（v42〜） -->
+      <div class="sp-round1" id="white-round1" style="display:none;"></div>
     </div>
     <svg id="board" viewBox="-195 -220 390 440" style="width:100%;display:block;">
     </svg>
@@ -5694,6 +5707,24 @@
       document.getElementById('white-score').textContent = captured.white;
       document.getElementById('black-detail').textContent = `合計${bTotal}`;
       document.getElementById('white-detail').textContent = `合計${wTotal}`;
+      // Symmetry Match 2局目中は、1局目の得点を表示（v42〜）
+      const blackR1El = document.getElementById('black-round1');
+      const whiteR1El = document.getElementById('white-round1');
+      if (blackR1El && whiteR1El) {
+        if (symmetryMatch && symmetryMatch.round === 2 && symmetryMatch.round1Result) {
+          const r1 = symmetryMatch.round1Result;
+          // r1.humanColor は1局目での「あなた」の色
+          const blackPtsR1 = r1.humanColor === 'black' ? r1.humanPoints : r1.cpuPoints;
+          const whitePtsR1 = r1.humanColor === 'black' ? r1.cpuPoints : r1.humanPoints;
+          blackR1El.textContent = `🏆 1局目 ${blackPtsR1}点`;
+          whiteR1El.textContent = `🏆 1局目 ${whitePtsR1}点`;
+          blackR1El.style.display = '';
+          whiteR1El.style.display = '';
+        } else {
+          blackR1El.style.display = 'none';
+          whiteR1El.style.display = 'none';
+        }
+      }
     }
 
     function showTurn(msg) {

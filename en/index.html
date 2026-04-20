@@ -254,6 +254,15 @@
       color: #9a8060;
     }
 
+    /* Symmetry Match round 1 score (v42+) */
+    .sp-round1 {
+      font-size: 0.62rem;
+      color: #c59a3f;
+      font-weight: bold;
+      margin-top: 2px;
+      line-height: 1.1;
+    }
+
     /* ===== Turn & Level Display ===== */
     #game-status-row {
       display: flex;
@@ -2484,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v41</p>
+    <p class="app-version">RSG-v42</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -2784,6 +2793,8 @@
         <span id="black-score" class="sp-score">0</span>
         <span id="black-detail" class="sp-detail">Board 3 + Cap 0</span>
       </div>
+      <!-- Symmetry Match round 1 score (shown during round 2) (v42+) -->
+      <div class="sp-round1" id="black-round1" style="display:none;"></div>
     </div>
     <!-- Score Panel Top-Right (White) -->
     <div id="score-white" class="score-panel">
@@ -2795,6 +2806,8 @@
         <span id="white-score" class="sp-score">0</span>
         <span id="white-detail" class="sp-detail">Board 3 + Cap 0</span>
       </div>
+      <!-- Symmetry Match round 1 score (shown during round 2) (v42+) -->
+      <div class="sp-round1" id="white-round1" style="display:none;"></div>
     </div>
     <svg id="board" viewBox="-195 -220 390 440" style="width:100%;display:block;">
     </svg>
@@ -5684,6 +5697,23 @@
       document.getElementById('white-score').textContent = captured.white;
       document.getElementById('black-detail').textContent = `Total ${bTotal}`;
       document.getElementById('white-detail').textContent = `Total ${wTotal}`;
+      // Show round 1 score during Symmetry Match round 2 (v42+)
+      const blackR1El = document.getElementById('black-round1');
+      const whiteR1El = document.getElementById('white-round1');
+      if (blackR1El && whiteR1El) {
+        if (symmetryMatch && symmetryMatch.round === 2 && symmetryMatch.round1Result) {
+          const r1 = symmetryMatch.round1Result;
+          const blackPtsR1 = r1.humanColor === 'black' ? r1.humanPoints : r1.cpuPoints;
+          const whitePtsR1 = r1.humanColor === 'black' ? r1.cpuPoints : r1.humanPoints;
+          blackR1El.textContent = `🏆 R1: ${blackPtsR1}`;
+          whiteR1El.textContent = `🏆 R1: ${whitePtsR1}`;
+          blackR1El.style.display = '';
+          whiteR1El.style.display = '';
+        } else {
+          blackR1El.style.display = 'none';
+          whiteR1El.style.display = 'none';
+        }
+      }
     }
 
     function showTurn(msg) {
