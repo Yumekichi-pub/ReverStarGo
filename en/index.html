@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v44</p>
+    <p class="app-version">RSG-v45</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -5610,7 +5610,7 @@
                        `Round 2 (You ${humanColor === 'black' ? '⚫' : '⚪'}): ${humanPointsR2} — ${cpuPointsR2}\n` +
                        `───────────────\n` +
                        `Total: You ${humanTotal} — CPU ${cpuTotal}\n\n`;
-          if (smWinner === 'human') smFinalMsg += `🎉 ${humanName} wins!`;
+          if (smWinner === 'human') smFinalMsg += humanName === 'You' ? `🎉 You win!` : `🎉 ${humanName} wins!`;
           else if (smWinner === 'cpu') smFinalMsg += `😢 CPU wins`;
           else smFinalMsg += `Draw`;
           msg = smFinalMsg;
@@ -5623,18 +5623,20 @@
           // ============================================
           const blackLabel = humanColor === 'black' ? getPlayerName() : 'CPU';
           const whiteLabel = humanColor === 'white' ? getPlayerName() : 'CPU';
+          // "You win!" vs "CPU wins!" / "Takeshi wins!" etc. (v45+: grammar fix)
+          const winVerb = (label) => (label === 'You' ? 'win' : 'wins');
           if (bTotal > wTotal) {
             sessionWins.black++;
-            msg = `${blackLabel} wins! (Black ${bTotal} vs White ${wTotal})`;
+            msg = `${blackLabel} ${winVerb(blackLabel)}! (Black ${bTotal} vs White ${wTotal})`;
             soundType = humanColor === 'black' ? 'win' : 'lose';
           } else if (wTotal > bTotal) {
             sessionWins.white++;
-            msg = `${whiteLabel} wins! (Black ${bTotal} vs White ${wTotal})`;
+            msg = `${whiteLabel} ${winVerb(whiteLabel)}! (Black ${bTotal} vs White ${wTotal})`;
             soundType = humanColor === 'white' ? 'win' : 'lose';
           } else if (tiebreakWinner) {
             const winnerLabel = tiebreakWinner === 'black' ? blackLabel : whiteLabel;
             if (tiebreakWinner === 'black') sessionWins.black++; else sessionWins.white++;
-            msg = `${winnerLabel} wins! (Black ${bTotal} vs White ${wTotal})\n*Tied; decided by captured stones (Black ${captured.black} vs White ${captured.white})`;
+            msg = `${winnerLabel} ${winVerb(winnerLabel)}! (Black ${bTotal} vs White ${wTotal})\n*Tied; decided by captured stones (Black ${captured.black} vs White ${captured.white})`;
             soundType = humanColor === tiebreakWinner ? 'win' : 'lose';
           } else { sessionWins.draw++; msg = `Draw (Black ${bTotal} vs White ${wTotal})`; }
         }
