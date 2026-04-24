@@ -212,7 +212,7 @@
     <div class="auto-progress" id="auto-progress"></div>
 
     <div class="summary">
-      <div class="row"><span class="lbl">EVENT 発火</span><span class="val" id="sum-event">0 / 127</span></div>
+      <div class="row"><span class="lbl">EVENT 発火</span><span class="val" id="sum-event">0 / 131</span></div>
       <div class="row"><span class="lbl">ANTI 監視</span><span class="val" id="sum-anti">0 / 20</span></div>
       <div class="row"><span class="lbl">フック状態</span><span class="val" id="sum-hook">未注入</span></div>
       <div class="row"><span class="lbl">最終イベント</span><span class="val" id="sum-last">-</span></div>
@@ -233,7 +233,7 @@
 
   <!-- 右パネル -->
   <div id="right">
-    <h2>📒 EVENT 台帳（127）</h2>
+    <h2>📒 EVENT 台帳（131）</h2>
     <div class="filter">
       <button data-f="all" class="active">全部</button>
       <button data-f="fired">✅ のみ</button>
@@ -273,6 +273,11 @@ const EVENTS = [
   { id: "GAM_003", cat: "GAM ゲーム進行系", name: "ゲーム終了", hook: { fn: "endGame", type: "wrap" } },
   { id: "GAM_004", cat: "GAM ゲーム進行系", name: "盤面満杯判定", hook: { type: "boardFull" } },
   { id: "GAM_005", cat: "GAM ゲーム進行系", name: "コウ検出", hook: { fn: "showKoMessage", type: "wrap" } },
+  { id: "GAM_006", cat: "GAM ゲーム進行系", name: "オレンジセル表示（CP制限）", hook: { type: "koRender", kind: "restricted" } },
+  { id: "GAM_007", cat: "GAM ゲーム進行系", name: "赤セル表示（コウブロック）", hook: { type: "koRender", kind: "blocked" } },
+  { id: "GAM_008", cat: "GAM ゲーム進行系", name: "コウ例外発動（赤＋黄ドット）", hook: { type: "koRender", kind: "exception" } },
+  { id: "GAM_009", cat: "GAM ゲーム進行系", name: "黄色ドット表示（有効手）", hook: { type: "koRender", kind: "validDot" } },
+  { id: "GAM_010", cat: "GAM ゲーム進行系", name: "スーパーコウ検出（過去盤面再現）", hook: { fn: "isRepeatedPosition", type: "wrap" } },
 
   // ----- 4. WIN 勝敗系 -----
   { id: "WIN_001", cat: "WIN 勝敗系", name: "勝利判定", hook: { type: "result", value: "win" } },
@@ -362,6 +367,10 @@ const EVENTS = [
   { id: "PRO_006", cat: "PRO 昇格試験系", name: "昇格セクション更新", hook: { fn: "updatePromotionSection", type: "wrap" } },
   { id: "PRO_007", cat: "PRO 昇格試験系", name: "昇格ステータス更新", hook: { fn: "updatePromotionGameStatus", type: "wrap" } },
   { id: "PRO_008", cat: "PRO 昇格試験系", name: "昇格試験中断", hook: { fn: "clearPromotionExam", type: "wrap" } },
+  { id: "PRO_009", cat: "PRO 昇格試験系", name: "リバースマッチ発動（Lv.5+）", hook: { fn: "shouldUseReverseMatch", type: "wrap" } },
+  { id: "PRO_010", cat: "PRO 昇格試験系", name: "RM 1 局目→2 局目 色交換", hook: { type: "manual" } },
+  { id: "PRO_011", cat: "PRO 昇格試験系", name: "RM セット間色継続", hook: { type: "manual" } },
+  { id: "PRO_012", cat: "PRO 昇格試験系", name: "通算 10 勝超表示切替", hook: { type: "manual" } },
 
   // ----- 13. TUT チュートリアル系 -----
   { id: "TUT_001", cat: "TUT チュートリアル系", name: "選択モーダル表示", hook: { fn: "showTutorialChoice", type: "wrap" } },
@@ -435,6 +444,10 @@ const ANTIS = [
   { id: "ANTI_018", name: "JS エラー", sev: "🔴" },
   { id: "ANTI_019", name: "画面外要素のクリック反応", sev: "🟡" },
   { id: "ANTI_020", name: "リプレイ中に着手できる", sev: "🟡" },
+  { id: "ANTI_021", name: "RM で色が交換されない（1 局目と 2 局目が同じ色）", sev: "🔴" },
+  { id: "ANTI_022", name: "RM セット間で色が二重交換（v48 で修正済み旧バグ）", sev: "🟡" },
+  { id: "ANTI_023", name: "昇格試験進捗が画面遷移で消失", sev: "🔴" },
+  { id: "ANTI_024", name: "#promotion-section が挑戦可能なのに非表示", sev: "🟡" },
 ];
 
 // =========================================================================
@@ -648,6 +661,35 @@ function installHooks() {
     wrappedCount++;
   } else {
     missing.push("showPage");
+  }
+
+  // (2b) render 経由の コウ表示系（GAM_006〜GAM_009）
+  if (typeof w.render === "function") {
+    const origRender = w.render;
+    w.render = function(validMoves, koRestrictedSet, koBlockedMoves, ...rest) {
+      try {
+        // クロスフレーム対応：instanceof ではなく duck-typing で判定
+        const vLen = Array.isArray(validMoves) ? validMoves.length : 0;
+        const bLen = Array.isArray(koBlockedMoves) ? koBlockedMoves.length : 0;
+        const rSize = (koRestrictedSet && typeof koRestrictedSet.size === 'number') ? koRestrictedSet.size : 0;
+        // GAM_006: オレンジセル（CP制限）
+        if (rSize > 0) fire("GAM_006");
+        // GAM_007: 赤セル（Koブロック）
+        if (bLen > 0) fire("GAM_007");
+        // GAM_008: コウ例外発動 — validMoves に Ko-blockedセルが含まれる
+        if (bLen > 0 && vLen > 0) {
+          const blockedKeys = new Set(koBlockedMoves.map(c => c.join(",")));
+          const exception = validMoves.some(c => blockedKeys.has(c.join(",")));
+          if (exception) fire("GAM_008");
+        }
+        // GAM_009: 黄色ドット（有効手）
+        if (vLen > 0) fire("GAM_009");
+      } catch (e) {}
+      return origRender.apply(this, [validMoves, koRestrictedSet, koBlockedMoves, ...rest]);
+    };
+    wrappedCount++;
+  } else {
+    missing.push("render");
   }
 
   // (3) playSound 経由の SND 系
@@ -2569,6 +2611,23 @@ async function phaseM() {
     ae("typeof showKoMessage === 'function' && showKoMessage()");
     await sleep(300);
     dismissModals(false);
+    await sleep(200);
+
+    // GAM_006-009: コウ表示系 — render() に特定パラメータでコールしてラッパー発火
+    // （実盤面のコウ状況は滅多に出ないため、renderを直接呼んで4種の表示状態を発火確認）
+    ae(`(() => {
+      if (typeof render !== 'function' || typeof K !== 'function') return;
+      try {
+        // GAM_006 + GAM_009: オレンジ制限 ＋ 有効手
+        render([[0,-1,1], [1,0,-1]], new Set([K(1,0,-1)]), []);
+        // GAM_007: 赤ブロック
+        render([[0,-1,1]], new Set(), [[2,-1,-1]]);
+        // GAM_008: コウ例外（validMovesに赤セル含む）
+        render([[2,-1,-1]], new Set(), [[2,-1,-1]]);
+      } catch(e) {}
+      // 直後にupdateGame等で通常描画に戻す（盤面が乱れないように）
+      if (typeof updateGame === 'function') updateGame();
+    })()`);
     await sleep(200);
 
     // SND_006: draw sound — call playSound directly

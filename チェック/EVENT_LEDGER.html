@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ReverStarGo イベント台帳（EVENT_LEDGER）</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 14mm 18mm 14mm;
+  }
+  html, body {
+    font-family: "Yu Gothic", "Meiryo", "Hiragino Sans", sans-serif;
+    font-size: 10.5pt;
+    color: #222;
+    line-height: 1.6;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  .doc-title {
+    text-align: center;
+    font-size: 18pt;
+    font-weight: bold;
+    color: #5a3a1a;
+    border-bottom: 3px double #8a6a3a;
+    padding-bottom: 8px;
+    margin: 0 0 14px 0;
+  }
+  table.frontmatter {
+    border-collapse: collapse;
+    margin: 0 auto 18px auto;
+    font-size: 9pt;
+    width: 95%;
+    background: #fafafa;
+    border: 1px solid #d8c898;
+  }
+  table.frontmatter th, table.frontmatter td {
+    border: 1px solid #e0d0a0;
+    padding: 4px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.frontmatter th {
+    width: 22%;
+    background: #f0e8d0;
+    font-weight: bold;
+    color: #5a3a1a;
+  }
+  h1 {
+    font-size: 16pt;
+    color: #5a3a1a;
+    border-bottom: 2px solid #8a6a3a;
+    padding-bottom: 4px;
+    margin-top: 18px;
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-size: 13pt;
+    color: #6a4520;
+    border-left: 5px solid #8a6a3a;
+    padding-left: 8px;
+    background: #fbf6e8;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11pt;
+    color: #6a4520;
+    margin-top: 12px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+  }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 6px 22px; padding: 0; }
+  li { margin: 2px 0; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0 14px 0;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #c8b890;
+    padding: 4px 6px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f0e0a8;
+    font-weight: bold;
+    color: #5a3a1a;
+  }
+  tr:nth-child(even) td { background: #fcf8ed; }
+  code {
+    font-family: "Consolas", "Courier New", monospace;
+    background: #f0ecd8;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 9pt;
+    color: #663300;
+  }
+  pre {
+    background: #f8f4e0;
+    border: 1px solid #d8c890;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 8.5pt;
+    overflow-x: auto;
+    page-break-inside: avoid;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+  }
+  blockquote {
+    border-left: 4px solid #c8a868;
+    background: #fbf6e8;
+    padding: 6px 12px;
+    margin: 8px 0;
+    color: #5a4a2a;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid #c8b890;
+    margin: 14px 0;
+  }
+  strong { color: #6a3010; }
+  .footer {
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+    font-size: 8pt;
+    color: #888;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="doc-title">ReverStarGo イベント台帳（EVENT_LEDGER）</div>
+<table class="frontmatter"><tr><th>title</th><td>ReverStarGo イベント台帳</td></tr><tr><th>version</th><td>0.3（v48 対応）</td></tr><tr><th>last_updated</th><td>2026-04-24</td></tr><tr><th>total_events</th><td>136</td></tr><tr><th>total_categories</th><td>16</td></tr><tr><th>maintained_by</th><td>西口 + Claude先生</td></tr></table>
+<h1>📒 ReverStarGo イベント台帳</h1>
+<p>このファイルは、ReverStarGo の本体プログラムが発火する <strong>全てのイベント</strong>（観察可能な動作・状態変化）を 1 箇所にまとめた一次資料です。</p>
+<h2>使い方</h2>
+<ul>
+<li><strong>編集の自由度</strong>: このファイルは Markdown なので、いつでも任意のエディタで開いて編集できます</li>
+<li><strong>追加方法</strong>: 新しいイベントが見つかったら、該当カテゴリの表に 1 行追加するだけ</li>
+<li><strong>削除方法</strong>: 行を削除するか、行頭に <code>~~</code> を付けて打ち消し線にする</li>
+<li><strong>チェッカからの参照</strong>: 同フォルダの <code>event_check.html</code> を起動すると、このファイルを <code>fetch</code> で読み込み、各 ID を自動でチェック対象にします</li>
+<li><strong>ID 命名規則</strong>: <code>カテゴリ略号_連番</code> の形式（例: <code>MOV_001</code>, <code>SND_003</code>）</li>
+</ul>
+<h2>カテゴリ略号一覧</h2>
+<table>
+<thead>
+<tr>
+<th>略号</th>
+<th>カテゴリ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MOV</td>
+<td>着手系</td>
+</tr>
+<tr>
+<td>TRN</td>
+<td>手番系</td>
+</tr>
+<tr>
+<td>GAM</td>
+<td>ゲーム進行系</td>
+</tr>
+<tr>
+<td>WIN</td>
+<td>勝敗系</td>
+</tr>
+<tr>
+<td>NAV</td>
+<td>画面遷移系</td>
+</tr>
+<tr>
+<td>MDL</td>
+<td>モーダル・ポップアップ系</td>
+</tr>
+<tr>
+<td>SND</td>
+<td>サウンド系</td>
+</tr>
+<tr>
+<td>ANM</td>
+<td>アニメーション系</td>
+</tr>
+<tr>
+<td>DAT</td>
+<td>データ永続化系</td>
+</tr>
+<tr>
+<td>RNK</td>
+<td>ランク・トロフィー系</td>
+</tr>
+<tr>
+<td>DLY</td>
+<td>デイリーチャレンジ系</td>
+</tr>
+<tr>
+<td>PRO</td>
+<td>ランクアップマッチ系（昇格試験）</td>
+</tr>
+<tr>
+<td>TUT</td>
+<td>チュートリアル系</td>
+</tr>
+<tr>
+<td>KIF</td>
+<td>棋譜系</td>
+</tr>
+<tr>
+<td>SET</td>
+<td>設定系</td>
+</tr>
+<tr>
+<td>MSC</td>
+<td>その他</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠ 行番号は <strong>概算</strong> です。本体ファイルの編集で前後にずれることがありますが、関数名は基本的に変わりません。</p>
+</blockquote>
+<hr>
+<h2>1. 着手系（MOV）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MOV_001</td>
+<td>石を置く</td>
+<td><code>executeMove()</code> ≒L5203</td>
+<td>盤面の有効マスがタップされて石が配置された時</td>
+</tr>
+<tr>
+<td>MOV_002</td>
+<td>挟みフリップ</td>
+<td><code>animateFlipSequence()</code> ≒L5150</td>
+<td>挟まれた相手の石が裏返るアニメが始まった時</td>
+</tr>
+<tr>
+<td>MOV_003</td>
+<td>囲み捕獲</td>
+<td><code>executeMove()</code> capture ≒L5260</td>
+<td>相手の石が完全に囲まれて取り除かれた時</td>
+</tr>
+<tr>
+<td>MOV_004</td>
+<td>CP 参加判定</td>
+<td><code>onCellClick()</code> ≒L6040</td>
+<td>CP を含む手が選ばれて CP コール待ちになった時</td>
+</tr>
+<tr>
+<td>MOV_005</td>
+<td>CP 黒コール</td>
+<td><code>gp-black</code> click ≒L6570</td>
+<td>プレイヤーが CP を「黒」とコールした時</td>
+</tr>
+<tr>
+<td>MOV_006</td>
+<td>CP 白コール</td>
+<td><code>gp-white</code> click ≒L6570</td>
+<td>プレイヤーが CP を「白」とコールした時</td>
+</tr>
+<tr>
+<td>MOV_007</td>
+<td>パス</td>
+<td><code>updateGame()</code> ≒L5430</td>
+<td>有効な手が無くパスが実行された時</td>
+</tr>
+</tbody></table>
+<h2>2. 手番系（TRN）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TRN_001</td>
+<td>手番表示更新</td>
+<td><code>showTurn()</code> ≒L5464</td>
+<td>現在のプレイヤーの手番情報が画面に出た時</td>
+</tr>
+<tr>
+<td>TRN_002</td>
+<td>手番交代</td>
+<td><code>updateGame()</code> ≒L5162</td>
+<td>一方の手番が終わり次のプレイヤーに交代した時</td>
+</tr>
+<tr>
+<td>TRN_003</td>
+<td>2人対戦の手番モーダル表示</td>
+<td><code>showTurnModal()</code> ≒L5083</td>
+<td>2人対戦で交代時の確認モーダルが出た時</td>
+</tr>
+<tr>
+<td>TRN_004</td>
+<td>パス通知モーダル表示</td>
+<td><code>showPassModal()</code> ≒L5144</td>
+<td>プレイヤーがパスを強いられたメッセージが出た時</td>
+</tr>
+<tr>
+<td>TRN_005</td>
+<td>CPU 思考中表示</td>
+<td><code>cpuPlay()</code> ≒L5100</td>
+<td>「CPU思考中」表示が画面に出た時</td>
+</tr>
+</tbody></table>
+<h2>3. ゲーム進行系（GAM）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GAM_001</td>
+<td>ゲーム開始ボタン押下</td>
+<td><code>startGame()</code> ≒L4517</td>
+<td>「ゲーム開始」ボタンが押された時</td>
+</tr>
+<tr>
+<td>GAM_002</td>
+<td>ゲーム初期化</td>
+<td><code>initGame()</code> ≒L6229</td>
+<td>初期盤面と状態がセットアップされた時</td>
+</tr>
+<tr>
+<td>GAM_003</td>
+<td>ゲーム終了</td>
+<td><code>endGame()</code> ≒L5540</td>
+<td>盤面満杯または両者パスで対局が終わった時</td>
+</tr>
+<tr>
+<td>GAM_004</td>
+<td>盤面満杯判定</td>
+<td><code>endGame()</code> boardFull ≒L5555</td>
+<td>全マスが石で埋まったと判定された時</td>
+</tr>
+<tr>
+<td>GAM_005</td>
+<td>単純コウ検出（1 手前と同じ盤面）</td>
+<td><code>showKoMessage()</code> ≒L5513</td>
+<td>1 手前とまったく同じ盤面に戻る手が検出された時</td>
+</tr>
+<tr>
+<td>GAM_006</td>
+<td>オレンジセル表示（CP 制限）</td>
+<td><code>render()</code> koRestrictedSet</td>
+<td>CP コールの片方の色がコウで制限されたセルがオレンジ背景で描画された時</td>
+</tr>
+<tr>
+<td>GAM_007</td>
+<td>赤セル表示（コウブロック）</td>
+<td><code>render()</code> koBlockedSet</td>
+<td>コウでブロックされたセルが赤背景で描画された時</td>
+</tr>
+<tr>
+<td>GAM_008</td>
+<td>コウ例外発動（赤＋黄ドット）</td>
+<td><code>filterKoMoves()</code> ≒L5033</td>
+<td>全手がコウでブロックされ、例外として打てる状態（赤背景＋黄色ドット）になった時</td>
+</tr>
+<tr>
+<td>GAM_009</td>
+<td>黄色ドット表示（有効手）</td>
+<td><code>render()</code> validMoves</td>
+<td>通常の有効手が黄色ドットで描画された時</td>
+</tr>
+<tr>
+<td>GAM_010</td>
+<td>スーパーコウ検出（過去盤面再現）</td>
+<td><code>isRepeatedPosition()</code> ≒L5010</td>
+<td>過去のどの盤面とも一致する手が検出された時（v47〜：ポジショナルスーパーコウ）</td>
+</tr>
+</tbody></table>
+<h2>4. 勝敗系（WIN）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>WIN_001</td>
+<td>勝利判定</td>
+<td><code>endGame()</code> ≒L5570</td>
+<td>プレイヤーの合計ポイントが多いと判定された時（RM 時は 2 局合計で判定）</td>
+</tr>
+<tr>
+<td>WIN_002</td>
+<td>敗北判定</td>
+<td><code>endGame()</code> ≒L5574</td>
+<td>プレイヤーの合計ポイントが少ないと判定された時</td>
+</tr>
+<tr>
+<td>WIN_003</td>
+<td>引き分け判定</td>
+<td><code>endGame()</code> ≒L5566,5583</td>
+<td>両者の合計ポイントが同じと判定された時</td>
+</tr>
+<tr>
+<td>WIN_004</td>
+<td>スコア計算・表示</td>
+<td><code>updateScore()</code> ≒L5693</td>
+<td>盤上石数と取った石数が画面に反映された時</td>
+</tr>
+<tr>
+<td>WIN_005</td>
+<td>結果モーダル表示</td>
+<td><code>endGame()</code> ≒L5683</td>
+<td>ゲーム終了の結果モーダルが表示された時</td>
+</tr>
+</tbody></table>
+<h2>5. 画面遷移系（NAV）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NAV_001</td>
+<td>メイン画面へ遷移</td>
+<td><code>showPage(&#39;main&#39;)</code> ≒L4013</td>
+<td>メイン画面が表示された時（v48〜：ランクアップマッチ進行中でも遷移可能、進捗は localStorage に保持）</td>
+</tr>
+<tr>
+<td>NAV_002</td>
+<td>対戦設定画面へ遷移</td>
+<td><code>showPage(&#39;game-setup&#39;)</code> ≒L4036</td>
+<td>対戦設定画面が表示された時（入場時に <code>updatePromotionSection()</code> を呼んで昇格試験情報を反映）</td>
+</tr>
+<tr>
+<td>NAV_003</td>
+<td>カスタム画面へ遷移</td>
+<td><code>showPage(&#39;custom&#39;)</code></td>
+<td>カスタム設定画面が表示された時</td>
+</tr>
+<tr>
+<td>NAV_004</td>
+<td>アカウント画面へ遷移</td>
+<td><code>showPage(&#39;account&#39;)</code></td>
+<td>アカウント／ランク画面が表示された時</td>
+</tr>
+<tr>
+<td>NAV_005</td>
+<td>デイリーチャレンジ画面へ遷移</td>
+<td><code>showPage(&#39;daily&#39;)</code></td>
+<td>デイリーチャレンジ画面が表示された時</td>
+</tr>
+<tr>
+<td>NAV_006</td>
+<td>トロフィー一覧へ遷移</td>
+<td><code>showPage(&#39;trophies&#39;)</code></td>
+<td>トロフィー一覧画面が表示された時</td>
+</tr>
+<tr>
+<td>NAV_007</td>
+<td>ルール説明書へ遷移</td>
+<td><code>showPage(&#39;rules&#39;)</code></td>
+<td>ルール説明書ページが表示された時</td>
+</tr>
+<tr>
+<td>NAV_008</td>
+<td>棋譜一覧へ遷移</td>
+<td><code>showPage(&#39;kifu&#39;)</code></td>
+<td>棋譜一覧画面が表示された時</td>
+</tr>
+</tbody></table>
+<h2>6. モーダル・ポップアップ系（MDL）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MDL_001</td>
+<td>ルール説明モーダル開く</td>
+<td>help-btn click ≒L6365</td>
+<td>「？」ボタンでルール説明モーダルが開いた時</td>
+</tr>
+<tr>
+<td>MDL_002</td>
+<td>ルール説明モーダル閉じる</td>
+<td>rules-close click ≒L6368</td>
+<td>ルール説明モーダルが閉じられた時</td>
+</tr>
+<tr>
+<td>MDL_003</td>
+<td>コウ説明表示</td>
+<td><code>showKoHelp()</code> ≒L5282</td>
+<td>コウについてのヘルプが表示された時</td>
+</tr>
+<tr>
+<td>MDL_004</td>
+<td>コウ説明閉じる</td>
+<td><code>hideKoHelp()</code> ≒L5287</td>
+<td>コウ説明が閉じられた時</td>
+</tr>
+<tr>
+<td>MDL_005</td>
+<td>デイリーヘルプ表示</td>
+<td><code>showDailyHelp()</code> ≒L3846</td>
+<td>デイリーチャレンジのヘルプが表示された時</td>
+</tr>
+<tr>
+<td>MDL_006</td>
+<td>デイリーヘルプ閉じる</td>
+<td><code>hideDailyHelp()</code> ≒L3849</td>
+<td>デイリーヘルプが閉じられた時</td>
+</tr>
+<tr>
+<td>MDL_007</td>
+<td>表記法ガイド表示</td>
+<td><code>showNotationMap()</code> ≒L7005</td>
+<td>棋譜の表記法ガイドが表示された時</td>
+</tr>
+<tr>
+<td>MDL_008</td>
+<td>表記法ガイド閉じる</td>
+<td><code>closeNotationMap()</code> ≒L7100</td>
+<td>表記法ガイドが閉じられた時</td>
+</tr>
+<tr>
+<td>MDL_009</td>
+<td>棋譜モーダル閉じる</td>
+<td><code>closeNotationModal()</code> ≒L7001</td>
+<td>棋譜テキストモーダルが閉じられた時</td>
+</tr>
+<tr>
+<td>MDL_010</td>
+<td>ゲーム中断確認ダイアログ</td>
+<td>restart click ≒L6174</td>
+<td>ゲーム中断確認ダイアログが表示された時</td>
+</tr>
+<tr>
+<td>MDL_011</td>
+<td>ゲーム中断許可</td>
+<td><code>confirmQuit()</code> ≒L6200</td>
+<td>ゲーム中断が確認された時</td>
+</tr>
+<tr>
+<td>MDL_012</td>
+<td>ゲーム中断キャンセル</td>
+<td><code>cancelQuit()</code> ≒L6220</td>
+<td>ゲーム中断がキャンセルされた時</td>
+</tr>
+</tbody></table>
+<h2>7. サウンド系（SND）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SND_001</td>
+<td>石を置く音</td>
+<td><code>playSound(&#39;place&#39;)</code> ≒L4993</td>
+<td>石を置いた時の効果音</td>
+</tr>
+<tr>
+<td>SND_002</td>
+<td>フリップ音</td>
+<td><code>playSound(&#39;flip&#39;)</code> ≒L4938</td>
+<td>石が裏返る時の効果音</td>
+</tr>
+<tr>
+<td>SND_003</td>
+<td>取る音</td>
+<td><code>playSound(&#39;capture&#39;)</code> ≒L5020</td>
+<td>石が取られる時の効果音</td>
+</tr>
+<tr>
+<td>SND_004</td>
+<td>勝利音</td>
+<td><code>playSound(&#39;win&#39;)</code> ≒L4245</td>
+<td>勝利時のファンファーレ音</td>
+</tr>
+<tr>
+<td>SND_005</td>
+<td>敗北音</td>
+<td><code>playSound(&#39;lose&#39;)</code> ≒L4261</td>
+<td>敗北時の下降音</td>
+</tr>
+<tr>
+<td>SND_006</td>
+<td>引き分け音</td>
+<td><code>playSound(&#39;draw&#39;)</code> ≒L4277</td>
+<td>引き分け時の効果音</td>
+</tr>
+<tr>
+<td>SND_007</td>
+<td>サウンド ON/OFF 切替</td>
+<td><code>selectSound()</code> ≒L4184</td>
+<td>サウンド設定が切り替えられた時</td>
+</tr>
+</tbody></table>
+<h2>8. アニメーション系（ANM）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ANM_001</td>
+<td>スコア飛び込み演出</td>
+<td><code>animateScoreFly()</code> ≒L4882</td>
+<td>取った石がスコア欄へ飛び込むアニメ</td>
+</tr>
+<tr>
+<td>ANM_002</td>
+<td>スコアボックス強調</td>
+<td>score-hit class ≒L4916</td>
+<td>スコア更新時の強調アニメ</td>
+</tr>
+<tr>
+<td>ANM_003</td>
+<td>花火演出</td>
+<td><code>launchFireworks()</code> ≒L5910</td>
+<td>ランクアップ時の花火アニメ</td>
+</tr>
+<tr>
+<td>ANM_004</td>
+<td>石ポップ演出</td>
+<td>placed-pop class ≒L5642</td>
+<td>石を置いた瞬間のポップアップ演出</td>
+</tr>
+<tr>
+<td>ANM_005</td>
+<td>石グロー演出</td>
+<td>placed-glow class ≒L5628</td>
+<td>石の周りのグロー演出</td>
+</tr>
+<tr>
+<td>ANM_006</td>
+<td>捕獲アニメ</td>
+<td>capturing class ≒L5615</td>
+<td>石が取り除かれる際のアニメ</td>
+</tr>
+<tr>
+<td>ANM_007</td>
+<td>チュートリアル CP 強調</td>
+<td>tutorial-cp-glow ≒L6658</td>
+<td>チュートリアルで CP が強調表示された時</td>
+</tr>
+<tr>
+<td>ANM_008</td>
+<td>チュートリアル対象パルス</td>
+<td>tutorial-target-pulse ≒L6673</td>
+<td>チュートリアル対象マスがパルスした時</td>
+</tr>
+</tbody></table>
+<h2>9. データ永続化系（DAT）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DAT_001</td>
+<td>設定保存</td>
+<td><code>saveSettings()</code> ≒L4035</td>
+<td>ゲーム設定が localStorage に保存された時</td>
+</tr>
+<tr>
+<td>DAT_002</td>
+<td>設定読み込み</td>
+<td><code>loadSettings()</code> ≒L4048</td>
+<td>localStorage から設定が読み込まれた時</td>
+</tr>
+<tr>
+<td>DAT_003</td>
+<td>戦績保存</td>
+<td><code>saveBattleRecord()</code> ≒L3522</td>
+<td>対戦結果が記録された時</td>
+</tr>
+<tr>
+<td>DAT_004</td>
+<td>当日成績保存</td>
+<td><code>saveDailyRecord()</code> ≒L3542</td>
+<td>本日の成績が記録された時</td>
+</tr>
+<tr>
+<td>DAT_005</td>
+<td>デイリー完了マーク</td>
+<td><code>markDailyComplete()</code> ≒L3597</td>
+<td>デイリーチャレンジ実績日がマークされた時</td>
+</tr>
+<tr>
+<td>DAT_006</td>
+<td>昇格試験進捗保存</td>
+<td><code>savePromotionExam()</code> ≒L3548</td>
+<td>昇格試験の進捗が保存された時（v48〜：画面遷移でも消えず、localStorage で継続）</td>
+</tr>
+<tr>
+<td>DAT_007</td>
+<td>昇格キャリア保存</td>
+<td><code>savePromotionCareer()</code> ≒L3528</td>
+<td>昇格キャリア（通算）が保存された時</td>
+</tr>
+</tbody></table>
+<h2>10. ランク・トロフィー系（RNK）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RNK_001</td>
+<td>ランク計算</td>
+<td><code>calculateRank()</code> ≒L3189</td>
+<td>勝利数からランクが計算された時</td>
+</tr>
+<tr>
+<td>RNK_002</td>
+<td>ランクアップ判定</td>
+<td><code>endGame()</code> rank check ≒L5411</td>
+<td>ゲーム結果後にランクアップがチェックされた時</td>
+</tr>
+<tr>
+<td>RNK_003</td>
+<td>ランクアップモーダル表示</td>
+<td><code>showRankUpModal()</code> ≒L5903</td>
+<td>ランクが上がりモーダルが表示された時</td>
+</tr>
+<tr>
+<td>RNK_004</td>
+<td>ランク表示更新</td>
+<td><code>updateRankDisplay()</code> ≒L3941</td>
+<td>メイン画面のランク表示が更新された時</td>
+</tr>
+<tr>
+<td>RNK_005</td>
+<td>レベル解放判定</td>
+<td><code>checkLevelUnlock()</code> ≒L5991</td>
+<td>特定ランクで CPU レベルが解放された時</td>
+</tr>
+<tr>
+<td>RNK_006</td>
+<td>レベル解放モーダル表示</td>
+<td><code>showLevelUnlock()</code> ≒L6003</td>
+<td>新 Lv 解放モーダルが表示された時</td>
+</tr>
+<tr>
+<td>RNK_007</td>
+<td>月別トロフィー表示更新</td>
+<td><code>renderTrophies()</code> ≒L3725</td>
+<td>月別トロフィーの表示が更新された時</td>
+</tr>
+<tr>
+<td>RNK_008</td>
+<td>トロフィー一覧表示</td>
+<td><code>renderTrophyList()</code> ≒L3746</td>
+<td>トロフィー一覧ページが表示された時</td>
+</tr>
+</tbody></table>
+<h2>11. デイリーチャレンジ系（DLY）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DLY_001</td>
+<td>デイリーチャレンジ開始</td>
+<td><code>startDailyChallenge()</code> ≒L3840</td>
+<td>カレンダー日付からチャレンジを開始した時</td>
+</tr>
+<tr>
+<td>DLY_002</td>
+<td>デイリーチャレンジ成功</td>
+<td><code>markDailyComplete()</code> ≒L3597</td>
+<td>デイリーチャレンジに勝利してクリアになった時</td>
+</tr>
+<tr>
+<td>DLY_003</td>
+<td>カレンダー描画</td>
+<td><code>renderCalendar()</code> ≒L3612</td>
+<td>デイリーカレンダーが表示された時</td>
+</tr>
+<tr>
+<td>DLY_004</td>
+<td>カレンダー前月へ</td>
+<td><code>calendarPrev()</code> ≒L3824</td>
+<td>前月ボタンが押された時</td>
+</tr>
+<tr>
+<td>DLY_005</td>
+<td>カレンダー次月へ</td>
+<td><code>calendarNext()</code> ≒L3831</td>
+<td>次月ボタンが押された時</td>
+</tr>
+<tr>
+<td>DLY_006</td>
+<td>当日成績表示</td>
+<td><code>updateTodayRecordDisplay()</code> ≒L3548</td>
+<td>本日のレベル別成績が表示された時</td>
+</tr>
+<tr>
+<td>DLY_007</td>
+<td>月間統計表示</td>
+<td><code>renderTrophies()</code> ≒L3725</td>
+<td>月間のクリア日数が表示された時</td>
+</tr>
+<tr>
+<td>DLY_008</td>
+<td>デイリーへ戻る</td>
+<td><code>backToDaily()</code> ≒L6224</td>
+<td>デイリー終了後に戻るボタンが押された時</td>
+</tr>
+</tbody></table>
+<h2>12. ランクアップマッチ系・昇格試験（PRO）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PRO_001</td>
+<td>昇格試験開始</td>
+<td><code>startPromotionExam()</code> ≒L3570</td>
+<td>「挑戦する」ボタンで昇格試験が開始された時。既存の進行中試験があれば勝敗数を継承</td>
+</tr>
+<tr>
+<td>PRO_002</td>
+<td>昇格試験 1 試合結果記録</td>
+<td><code>recordPromotionResult()</code> ≒L3604</td>
+<td>試験の 1 試合分の勝敗が記録された時</td>
+</tr>
+<tr>
+<td>PRO_003</td>
+<td>昇格合格</td>
+<td><code>recordPromotionResult()</code> 合格 ≒L3617</td>
+<td>必要勝数に達して合格した時</td>
+</tr>
+<tr>
+<td>PRO_004</td>
+<td>昇格不合格</td>
+<td><code>recordPromotionResult()</code> 不合格 ≒L3634</td>
+<td>最大敗数に達して不合格になった時</td>
+</tr>
+<tr>
+<td>PRO_005</td>
+<td>昇格挑戦権獲得アナウンス</td>
+<td><code>showPromoAnnounce()</code> ≒L6565</td>
+<td>新昇格試験の挑戦権を獲得した時</td>
+</tr>
+<tr>
+<td>PRO_006</td>
+<td>昇格試験セクション更新</td>
+<td><code>updatePromotionSection()</code> ≒L6671</td>
+<td>設定画面の #promotion-section が更新された時（v48〜：画面遷移が自由なので毎回最新の進捗を表示）</td>
+</tr>
+<tr>
+<td>PRO_007</td>
+<td>昇格試験ステータス更新</td>
+<td><code>updatePromotionGameStatus()</code> ≒L6727</td>
+<td>進行中の試験の進捗表示が更新された時</td>
+</tr>
+<tr>
+<td>PRO_008</td>
+<td>昇格試験中断</td>
+<td><code>clearPromotionExam()</code> ≒L3551</td>
+<td>不合格時または手動で中断された時（v48〜：画面遷移では中断されず localStorage に進捗保持）</td>
+</tr>
+<tr>
+<td>PRO_009</td>
+<td>リバースマッチ発動</td>
+<td><code>shouldUseReverseMatch()</code> ≒L3529</td>
+<td>Lv.5 以上の対戦で RM モードが有効化された時（v47〜：白有利解消のため）</td>
+</tr>
+<tr>
+<td>PRO_010</td>
+<td>RM 1 局目→2 局目 色交換</td>
+<td><code>endGame()</code> ≒L5581</td>
+<td>リバースマッチの 1 局目終了後、humanColor/cpuColor が自動で入れ替わった時</td>
+</tr>
+<tr>
+<td>PRO_011</td>
+<td>RM セット間色継続（卓球方式）</td>
+<td>play-again-btn click ≒L6749</td>
+<td>リバースマッチ 2 セット目以降で、1 セット目 2 局目の色を継続（v48〜：Lv.5 以上で自動パターン維持）</td>
+</tr>
+<tr>
+<td>PRO_012</td>
+<td>通算成績 10 勝超表示切替</td>
+<td><code>updatePromotionSection()</code> progressText ≒L6707</td>
+<td>昇格試験ページで通算 11 勝以上になると「通算: X 勝 Y 敗（あと Z 勝で昇格）」が表示開始（v48〜：心理的配慮）</td>
+</tr>
+</tbody></table>
+<h2>13. チュートリアル系（TUT）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TUT_001</td>
+<td>チュートリアル選択モーダル表示</td>
+<td><code>showTutorialChoice()</code> ≒L6388</td>
+<td>チュートリアル選択ダイアログが表示された時</td>
+</tr>
+<tr>
+<td>TUT_002</td>
+<td>チュートリアル選択モーダル閉じる</td>
+<td><code>hideTutorialChoice()</code> ≒L6391</td>
+<td>選択ダイアログが閉じられた時</td>
+</tr>
+<tr>
+<td>TUT_003</td>
+<td>チュートリアル開始</td>
+<td><code>startTutorial()</code> ≒L6395</td>
+<td>体験／見るモードでチュートリアルが開始された時</td>
+</tr>
+<tr>
+<td>TUT_004</td>
+<td>チュートリアルステップ表示</td>
+<td><code>showTutorialStep()</code> ≒L6441</td>
+<td>各ステップが表示された時</td>
+</tr>
+<tr>
+<td>TUT_005</td>
+<td>チュートリアル前ステップ移動</td>
+<td><code>tutorialPrev()</code> ≒L6869</td>
+<td>「戻る」ボタンが押された時</td>
+</tr>
+<tr>
+<td>TUT_006</td>
+<td>チュートリアル次ステップ移動</td>
+<td><code>tutorialNext()</code> ≒L6807</td>
+<td>「次へ」ボタンが押された時</td>
+</tr>
+<tr>
+<td>TUT_007</td>
+<td>チュートリアルスキップ</td>
+<td><code>exitTutorial()</code> ≒L6877</td>
+<td>スキップして終了した時</td>
+</tr>
+<tr>
+<td>TUT_008</td>
+<td>チュートリアルフィードバック表示</td>
+<td><code>showTutorialFeedback()</code> ≒L6794</td>
+<td>手順完了メッセージが表示された時</td>
+</tr>
+<tr>
+<td>TUT_009</td>
+<td>チュートリアル対象クリック</td>
+<td><code>handleTutorialClick()</code> ≒L7126</td>
+<td>指定の盤面マスがタップされた時</td>
+</tr>
+<tr>
+<td>TUT_010</td>
+<td>チュートリアルミニゲーム開始</td>
+<td><code>startTutorialMiniGame()</code> ≒L6835</td>
+<td>最終の実践ゲームが開始された時</td>
+</tr>
+</tbody></table>
+<h2>14. 棋譜系（KIF）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>KIF_001</td>
+<td>棋譜保存</td>
+<td><code>saveGameRecord()</code> ≒L7124</td>
+<td>ゲーム終了後に保存ボタンが押された時</td>
+</tr>
+<tr>
+<td>KIF_002</td>
+<td>棋譜削除</td>
+<td><code>deleteKifu()</code> ≒L7242</td>
+<td>保存済み棋譜が削除された時</td>
+</tr>
+<tr>
+<td>KIF_003</td>
+<td>棋譜テキスト表示</td>
+<td><code>showSavedNotation()</code> ≒L7250</td>
+<td>保存棋譜のテキスト表記が表示された時</td>
+</tr>
+<tr>
+<td>KIF_004</td>
+<td>棋譜テキストコピー</td>
+<td><code>copyNotationText()</code> ≒L6986</td>
+<td>棋譜テキストのコピーボタンが押された時</td>
+</tr>
+<tr>
+<td>KIF_005</td>
+<td>棋譜リスト表示</td>
+<td><code>renderKifuList()</code> ≒L7198</td>
+<td>棋譜一覧ページが表示された時</td>
+</tr>
+<tr>
+<td>KIF_006</td>
+<td>リプレイ開始</td>
+<td><code>startReplay()</code> ≒L7272</td>
+<td>一覧からリプレイが開始された時</td>
+</tr>
+<tr>
+<td>KIF_007</td>
+<td>リプレイ 1 手進める</td>
+<td><code>replayForward()</code> ≒L7368</td>
+<td>リプレイの「▶」が押された時</td>
+</tr>
+<tr>
+<td>KIF_008</td>
+<td>リプレイ 1 手戻す</td>
+<td><code>replayBack()</code> ≒L7374</td>
+<td>リプレイの「◀」が押された時</td>
+</tr>
+<tr>
+<td>KIF_009</td>
+<td>リプレイ最初へ</td>
+<td><code>replayGoStart()</code> ≒L7380</td>
+<td>リプレイの「⏮」が押された時</td>
+</tr>
+<tr>
+<td>KIF_010</td>
+<td>リプレイ最後へ</td>
+<td><code>replayGoEnd()</code> ≒L7386</td>
+<td>リプレイの「⏭」が押された時</td>
+</tr>
+<tr>
+<td>KIF_011</td>
+<td>リプレイ終了</td>
+<td><code>exitReplay()</code> ≒L7391</td>
+<td>リプレイ終了で一覧に戻った時</td>
+</tr>
+</tbody></table>
+<h2>15. 設定系（SET）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SET_001</td>
+<td>プレイヤー名入力</td>
+<td>name input change ≒L7420</td>
+<td>プレイヤー名が入力／変更された時</td>
+</tr>
+<tr>
+<td>SET_002</td>
+<td>プレイヤー名表示更新</td>
+<td><code>updatePlayerNameDisplay()</code> ≒L3934</td>
+<td>メイン画面のプレイヤー名が更新された時</td>
+</tr>
+<tr>
+<td>SET_003</td>
+<td>色選択</td>
+<td><code>selectColor()</code> ≒L4482</td>
+<td>黒／白が選択された時（手動設定は RM セット間色継続を上書きする）</td>
+</tr>
+<tr>
+<td>SET_004</td>
+<td>レベル選択</td>
+<td><code>selectLevel()</code> ≒L4489</td>
+<td>CPU レベルが選択された時</td>
+</tr>
+<tr>
+<td>SET_005</td>
+<td>対戦モード選択</td>
+<td><code>selectBattleMode()</code> ≒L4178</td>
+<td>CPU 対戦／2人対戦が選択された時</td>
+</tr>
+<tr>
+<td>SET_006</td>
+<td>速度設定変更</td>
+<td><code>selectSpeed()</code> ≒L4145</td>
+<td>CPU 思考速度が変更された時</td>
+</tr>
+<tr>
+<td>SET_007</td>
+<td>アニメ設定変更</td>
+<td><code>selectAnim()</code> ≒L4151</td>
+<td>アニメの ON/OFF が切替えられた時</td>
+</tr>
+<tr>
+<td>SET_008</td>
+<td>ヒント設定変更</td>
+<td><code>selectHint()</code> ≒L4173</td>
+<td>ヒント表示の ON/OFF が切替えられた時</td>
+</tr>
+<tr>
+<td>SET_009</td>
+<td>表記法設定変更</td>
+<td><code>selectNotation()</code> ≒L4168</td>
+<td>棋譜表記法の表示モードが変更された時</td>
+</tr>
+<tr>
+<td>SET_010</td>
+<td>テーマ変更</td>
+<td><code>selectTheme()</code> ≒L4157</td>
+<td>ボード色テーマが変更された時</td>
+</tr>
+<tr>
+<td>SET_011</td>
+<td>背景色変更</td>
+<td><code>selectBgColor()</code> ≒L4138</td>
+<td>背景色が変更された時</td>
+</tr>
+<tr>
+<td>SET_012</td>
+<td>設定保存して戻る</td>
+<td><code>saveSettingsAndBack()</code> ≒L4065</td>
+<td>設定を保存して戻った時</td>
+</tr>
+</tbody></table>
+<h2>16. その他（MSC）</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>イベント</th>
+<th>関数・位置</th>
+<th>発火タイミング</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MSC_001</td>
+<td>1 手戻す実行</td>
+<td><code>undoMove()</code> ≒L5246</td>
+<td>「1 手戻る」ボタンが押された時</td>
+</tr>
+<tr>
+<td>MSC_002</td>
+<td>1 手戻す状態保存</td>
+<td><code>saveUndoState()</code> ≒L5232</td>
+<td>着手後 1 手戻すが可能になった時</td>
+</tr>
+<tr>
+<td>MSC_003</td>
+<td>1 手戻す無効化</td>
+<td><code>undoMove()</code> ≒L5259</td>
+<td>1 手戻すが使用済みになった時</td>
+</tr>
+<tr>
+<td>MSC_004</td>
+<td>セッション成績更新</td>
+<td><code>updateSessionScore()</code> ≒L5215</td>
+<td>複数試合間の勝敗数が更新された時</td>
+</tr>
+<tr>
+<td>MSC_005</td>
+<td>もう一度ボタン押下</td>
+<td>Play Again click ≒L6310</td>
+<td>「もう一度」ボタンが押された時</td>
+</tr>
+<tr>
+<td>MSC_006</td>
+<td>トースト通知表示</td>
+<td><code>showToast()</code> ≒L7104</td>
+<td>短時間通知が画面下部に表示された時</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>統計</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>カテゴリ数</td>
+<td>16</td>
+</tr>
+<tr>
+<td>総イベント数</td>
+<td><strong>136</strong></td>
+</tr>
+</tbody></table>
+<h2>改訂履歴</h2>
+<table>
+<thead>
+<tr>
+<th>日付</th>
+<th>版</th>
+<th>変更内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2026-04-12</td>
+<td>0.1</td>
+<td>初版（叩き台）。Explore エージェントによる自動抽出。西口さんレビュー待ち</td>
+</tr>
+<tr>
+<td>2026-04-12</td>
+<td>0.2</td>
+<td>MOV_004「Rule 4 適用」を削除（観察不能なため REGRESSION_LEDGER と ANTI_LEDGER へ移管）。MOV_005〜008 を MOV_004〜007 に繰り上げ。総数 128→127</td>
+</tr>
+<tr>
+<td>2026-04-24</td>
+<td>0.3</td>
+<td>v45〜v48 対応。主要関数の行番号を v48 基準に更新。既存の event_check.html 実装と台帳の乖離を解消：GAM_006〜009（オレンジセル・赤セル・例外・黄ドット）を台帳に追加（実装側には元々あった 4 項目）。新規追加 5 項目：GAM_010（スーパーコウ検出）、PRO_009（リバースマッチ発動）、PRO_010（RM 色交換）、PRO_011（RM セット間色継続）、PRO_012（通算 10 勝超表示切替）。既存項目の説明も v47〜v48 の仕様変更を反映（PRO_006/008、NAV_001/002、GAM_005、DAT_006、SET_003 など）。総数 127→136</td>
+</tr>
+</tbody></table>
+
+<div class="footer">Generated by Claude先生 / 2026-04-12 / ReverStarGo チェックフォルダ</div>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ReverStarGo 起きてはダメ台帳（ANTI_LEDGER）</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 14mm 18mm 14mm;
+  }
+  html, body {
+    font-family: "Yu Gothic", "Meiryo", "Hiragino Sans", sans-serif;
+    font-size: 10.5pt;
+    color: #222;
+    line-height: 1.6;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  .doc-title {
+    text-align: center;
+    font-size: 18pt;
+    font-weight: bold;
+    color: #5a3a1a;
+    border-bottom: 3px double #8a6a3a;
+    padding-bottom: 8px;
+    margin: 0 0 14px 0;
+  }
+  table.frontmatter {
+    border-collapse: collapse;
+    margin: 0 auto 18px auto;
+    font-size: 9pt;
+    width: 95%;
+    background: #fafafa;
+    border: 1px solid #d8c898;
+  }
+  table.frontmatter th, table.frontmatter td {
+    border: 1px solid #e0d0a0;
+    padding: 4px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.frontmatter th {
+    width: 22%;
+    background: #f0e8d0;
+    font-weight: bold;
+    color: #5a3a1a;
+  }
+  h1 {
+    font-size: 16pt;
+    color: #5a3a1a;
+    border-bottom: 2px solid #8a6a3a;
+    padding-bottom: 4px;
+    margin-top: 18px;
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-size: 13pt;
+    color: #6a4520;
+    border-left: 5px solid #8a6a3a;
+    padding-left: 8px;
+    background: #fbf6e8;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11pt;
+    color: #6a4520;
+    margin-top: 12px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+  }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 6px 22px; padding: 0; }
+  li { margin: 2px 0; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0 14px 0;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #c8b890;
+    padding: 4px 6px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: #f0e0a8;
+    font-weight: bold;
+    color: #5a3a1a;
+  }
+  tr:nth-child(even) td { background: #fcf8ed; }
+  code {
+    font-family: "Consolas", "Courier New", monospace;
+    background: #f0ecd8;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 9pt;
+    color: #663300;
+  }
+  pre {
+    background: #f8f4e0;
+    border: 1px solid #d8c890;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 8.5pt;
+    overflow-x: auto;
+    page-break-inside: avoid;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+  }
+  blockquote {
+    border-left: 4px solid #c8a868;
+    background: #fbf6e8;
+    padding: 6px 12px;
+    margin: 8px 0;
+    color: #5a4a2a;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid #c8b890;
+    margin: 14px 0;
+  }
+  strong { color: #6a3010; }
+  .footer {
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+    font-size: 8pt;
+    color: #888;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="doc-title">ReverStarGo 起きてはダメ台帳（ANTI_LEDGER）</div>
+<table class="frontmatter"><tr><th>title</th><td>ReverStarGo 起きてはダメ台帳（禁リスト）</td></tr><tr><th>version</th><td>0.3（v48 対応）</td></tr><tr><th>last_updated</th><td>2026-04-24</td></tr><tr><th>total_items</th><td>24</td></tr><tr><th>total_categories</th><td>5</td></tr><tr><th>maintained_by</th><td>西口 + Claude先生</td></tr></table>
+<h1>🚫 起きてはダメ台帳（ANTI_LEDGER）</h1>
+<p>このファイルは、ReverStarGo の本体プログラムが動いている間に <strong>絶対に発生してはいけない事象</strong> を 1 箇所にまとめた台帳です。「正リスト（EVENT_LEDGER）」が「<strong>起きるべきこと</strong>」を見張るのに対し、こちらは「<strong>起きてはダメなこと</strong>」を見張ります。</p>
+<h2>使い方</h2>
+<ul>
+<li><strong>常時監視</strong>: チェッカ A（イベントチェッカ）とチェッカ B（ゼウスへの道チェッカ）が動いている間、ここにある全項目がバックグラウンドで常に見張られます</li>
+<li><strong>一度でも発生したら即 ❌</strong>: 通常イベントと違い、こちらは「1 回でも起きたらアウト」の判定です</li>
+<li><strong>追加方法</strong>: 新しい禁止事象が見つかったら、該当カテゴリの表に 1 行追加するだけ</li>
+<li><strong>削除方法</strong>: 行を削除するか、行頭に <code>~~</code> を付けて打ち消し線にする</li>
+<li><strong>ID 命名規則</strong>: <code>ANTI_連番</code> 形式</li>
+</ul>
+<h2>重大度の凡例</h2>
+<table>
+<thead>
+<tr>
+<th>記号</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>🔴</td>
+<td><strong>重大</strong>：ゲームが破綻するレベル。即修正対象</td>
+</tr>
+<tr>
+<td>🟡</td>
+<td><strong>中</strong>：ルール違反だが進行は可能。優先度高</td>
+</tr>
+<tr>
+<td>🔵</td>
+<td><strong>軽</strong>：見栄えや設定無視。気付いたら直す</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>1. 🚫 ルール違反系</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>起きてはダメな事象</th>
+<th>検出方法</th>
+<th>重大度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ANTI_001</td>
+<td><strong>Rule 4 違反</strong>：前から囲まれていただけの相手の石が、無関係な手で取られてしまう</td>
+<td>着手前の盤面スナップショットを保存し、捕獲対象グループの境界（CP 除く）に変化が無いのに取られたケースを検出</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_002</td>
+<td><strong>自分の石を捕獲</strong>：自分が打った手によって、自分自身の連結グループが取られる</td>
+<td>applyMove 後の捕獲リストに、手番プレイヤーと同色の石が含まれていないかを検査</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_003</td>
+<td><strong>挟まずに着手</strong>：相手を 1 つも挟めない場所に石が置けてしまう（パスでもない）</td>
+<td>onCellClick の直前に getFlippable() の結果が空配列の手を許可していないか検査</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_004</td>
+<td><strong>コウ／スーパーコウを通過</strong>：過去のどの盤面とも同じ盤面に戻る手が、例外条項なしで通る（v47〜：単純コウ + ポジショナルスーパーコウ）</td>
+<td>各手の後に <code>boardHistory</code>（全局面履歴）と比較し、<code>isRepeatedPosition()</code> をすり抜けたケースを検出</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td>ANTI_005</td>
+<td><strong>壁囲い</strong>：盤の端だけを使って囲まれただけで石が取れてしまう</td>
+<td>捕獲判定された連結グループの境界が「自分の石のみ」かを再検証</td>
+<td>🟡</td>
+</tr>
+</tbody></table>
+<h2>2. 🚫 状態整合性系</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>起きてはダメな事象</th>
+<th>検出方法</th>
+<th>重大度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ANTI_006</td>
+<td><strong>CP リセット漏れ</strong>：手番終了時に CP が <code>null</code> 以外のまま残る</td>
+<td>各手番終了直後に <code>board[K(0,0,0)] === null</code> をアサート</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_007</td>
+<td><strong>石数マイナス</strong>：黒または白の盤上石数・捕獲数が負の値になる</td>
+<td>各手の後に scoreB, scoreW, capB, capW がすべて ≥ 0 をアサート</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_008</td>
+<td><strong>石数の合計が 37 を超える</strong> または合わない：盤上の黒+白+空+CP状態 が 37 と合わない</td>
+<td>各手の後に Σ(black) + Σ(white) + Σ(empty) === 37 をアサート</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_009</td>
+<td><strong>勝者なしでゲーム終了</strong>：endGame 完了時に「勝/負/分」のどれにもならない</td>
+<td>endGame 完了直後に result が { win, lose, draw } のいずれかであることを検査</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_010</td>
+<td><strong>棋譜の手数不一致</strong>：保存された棋譜の手数と実際の進行手数が違う</td>
+<td>saveGameRecord 時に moves.length と手数カウンタを照合</td>
+<td>🟡</td>
+</tr>
+</tbody></table>
+<h2>3. 🚫 設定無視系</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>起きてはダメな事象</th>
+<th>検出方法</th>
+<th>重大度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ANTI_011</td>
+<td><strong>サウンド OFF なのに音が鳴る</strong></td>
+<td>playSound() を hook し、設定 OFF 状態で呼ばれたら記録</td>
+<td>🔵</td>
+</tr>
+<tr>
+<td>ANTI_012</td>
+<td><strong>アニメ OFF なのにアニメが流れる</strong></td>
+<td>animateXxx 系関数を hook し、設定 OFF 状態で呼ばれたら記録</td>
+<td>🔵</td>
+</tr>
+<tr>
+<td>ANTI_013</td>
+<td><strong>ヒント OFF なのにヒントが出る</strong></td>
+<td>ヒント表示用クラス付与を hook し、設定 OFF 状態で出たら記録</td>
+<td>🔵</td>
+</tr>
+</tbody></table>
+<h2>4. 🚫 進行・昇格系</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>起きてはダメな事象</th>
+<th>検出方法</th>
+<th>重大度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ANTI_014</td>
+<td><strong>条件未達で昇格</strong>：必要勝数に達していないのに昇格合格判定が出る</td>
+<td>recordPromotionResult を hook し、winCount &lt; requiredWins で合格していないかを検査</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_015</td>
+<td><strong>同一トロフィーの二重発火</strong>：同じトロフィー ID が 2 回以上獲得される</td>
+<td>獲得済みトロフィー ID セットを保持し、二重発火を検出</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td>ANTI_016</td>
+<td><strong>解放済み Lv の再解放通知</strong>：既に解放されている CPU Lv の解放モーダルが再度出る</td>
+<td>unlockedLevels セットと checkLevelUnlock の発火を照合</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td>ANTI_017</td>
+<td><strong>デイリー二重クリア</strong>：同じ日付が 2 回以上クリアマークされる</td>
+<td>markDailyComplete 呼び出しを hook し、同一日付の重複を検出</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td>ANTI_021</td>
+<td><strong>RM で色が交換されない</strong>：リバースマッチで 1 局目と 2 局目が同じ色になる（v47〜：endGame で humanColor = opp(humanColor) が機能していない）</td>
+<td>RM 中に 1 局目終了後の humanColor と、2 局目開始時の humanColor を比較し、同じ色なら検出</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_022</td>
+<td><strong>RM セット間で色が二重交換される</strong>：Lv.5 以上で L6749 の色交換が余分に発動し、2 セット目 1 局目が 1 セット目 1 局目と同じ色になる（v48 で修正済みの旧バグ）</td>
+<td>2 セット目以降の 1 局目 humanColor を追跡し、パターン「黒白、白黒、黒白」からの逸脱を検出</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td>ANTI_023</td>
+<td><strong>昇格試験進捗が画面遷移で消失</strong>：v48 で削除したはずの自動 clearPromotionExam() が画面遷移で走る</td>
+<td>showPage 呼び出しを hook し、遷移前後で loadPromotionExam() の結果が null 化していないか検査</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_024</td>
+<td><strong>昇格試験セクション非表示バグ</strong>：挑戦可能な昇格試験があるのに <code>#promotion-section</code> が <code>display: none</code> のまま</td>
+<td>showPage('game-setup') 完了後に getAvailablePromotion() が non-null なのに <code>#promotion-section.style.display === 'none'</code> のケースを検出</td>
+<td>🟡</td>
+</tr>
+</tbody></table>
+<h2>5. 🚫 システム系</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>起きてはダメな事象</th>
+<th>検出方法</th>
+<th>重大度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ANTI_018</td>
+<td><strong>JS エラー</strong>：コンソールに <code>Uncaught Exception</code> または <code>Error</code> が出る</td>
+<td>window.onerror と window.onunhandledrejection を hook して捕捉</td>
+<td>🔴</td>
+</tr>
+<tr>
+<td>ANTI_019</td>
+<td><strong>画面外要素のクリック反応</strong>：display:none の要素がクリックイベントを処理してしまう</td>
+<td>クリックハンドラ実行時に対象要素の <code>offsetParent !== null</code> をアサート</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td>ANTI_020</td>
+<td><strong>リプレイ中に着手できる</strong>：リプレイ表示中にプレイヤーが盤面をクリックして石が置けてしまう</td>
+<td>onCellClick で replayMode フラグの状態を検査</td>
+<td>🟡</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>統計</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>カテゴリ数</td>
+<td>5</td>
+</tr>
+<tr>
+<td>総項目数</td>
+<td><strong>24</strong></td>
+</tr>
+<tr>
+<td>🔴 重大</td>
+<td>11</td>
+</tr>
+<tr>
+<td>🟡 中</td>
+<td>10</td>
+</tr>
+<tr>
+<td>🔵 軽</td>
+<td>3</td>
+</tr>
+</tbody></table>
+<h2>検出の仕組み（実装方針メモ）</h2>
+<p>ANTI チェックは、<code>event_check.html</code> や <code>zeus_path_check.html</code> の起動時に <strong>共通のウォッチドッグスクリプト</strong> を iframe 内の本体ゲームに注入することで実現します。具体的には：</p>
+<ol>
+<li><strong>State assertion 系</strong>（ANTI_006, 007, 008, 009 など）<ul>
+<li>各 <code>executeMove</code> / <code>applyMove</code> の <strong>後</strong> に hook を挟み、盤面状態を検査</li>
+</ul>
+</li>
+<li><strong>Function hook 系</strong>（ANTI_001, 002, 011, 012, 013, 014, 015, 016, 017, 020 など）<ul>
+<li>該当関数を差し替え、呼び出し時の引数や状態を記録</li>
+</ul>
+</li>
+<li><strong>Browser-level hook 系</strong>（ANTI_018, 019 など）<ul>
+<li><code>window.onerror</code> / <code>MutationObserver</code> などブラウザ機能を利用</li>
+</ul>
+</li>
+</ol>
+<p>これにより、本体 <code>index.html</code> には一切手を加えず、チェッカ側からの「外付け監視」だけで全 20 項目を検出できます。</p>
+<h2>改訂履歴</h2>
+<table>
+<thead>
+<tr>
+<th>日付</th>
+<th>版</th>
+<th>変更内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2026-04-12</td>
+<td>0.1</td>
+<td>初版（叩き台）。20 項目を 5 カテゴリで構成。西口さんレビュー待ち</td>
+</tr>
+<tr>
+<td>2026-04-24</td>
+<td>0.3</td>
+<td>v45〜v48 対応。ANTI_004 をスーパーコウ対応に拡張（単純コウ + 過去全盤面再現）。新規 4 項目追加：ANTI_021（RM で色交換されない）🔴、ANTI_022（RM セット間の二重交換バグ）🟡、ANTI_023（昇格試験進捗が画面遷移で消失）🔴、ANTI_024（#promotion-section が挑戦可能なのに非表示）🟡。総項目 20→24、重大 9→11、中 8→10</td>
+</tr>
+</tbody></table>
+
+<div class="footer">Generated by Claude先生 / 2026-04-12 / ReverStarGo チェックフォルダ</div>
+</body>
+</html>

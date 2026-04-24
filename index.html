@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v48</p>
+    <p class="app-version">RSG-v49</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -3195,6 +3195,7 @@
     let lastMove = null;            // 最後に置いた場所 [q,r,s]（次の手まで表示）
     let pendingMoveMarker = null;   // GP選択中の仮マーカー [q,r,s]
     let showPlacedAnim = false;     // 置いた瞬間のアニメーション（最初のrenderのみ）
+    let prevKoException = false;    // v49〜: 直前の手がコウ例外で打たれたか（両者連続例外で終局するため）
 
     // ===== AI設定 =====
     let humanColor = 'black';   // プレイヤーの色
@@ -4999,6 +5000,15 @@
       return snapshot;
     }
 
+    // スーパーコウ判定：直前の局面だけでなく全履歴と照合
+    // v48〜: グローバル関数に昇格（イベントチェッカから GAM_010 として監視可能にするため）
+    function isRepeatedPosition(snap, player) {
+      if (!prevBoardSnapshot) return false;
+      if (snap === prevBoardSnapshot) return true;              // 単純コウ
+      const fullSnap = snap + ':' + opp(player);
+      return boardHistory.indexOf(fullSnap) !== -1;             // スーパーコウ
+    }
+
     // CPコールを考慮してコウにならない手かチェック
     // 戻り値: 非コウのCPコール色の配列 ['black', 'white', null 等]
     //   - 空配列 → どのコールでもコウになる（コウ手）
@@ -5006,26 +5016,19 @@
     function getNonKoGPColors(q, r, s, player) {
       if (!prevBoardSnapshot) return ['black', 'white', null];
 
-      // スーパーコウ判定：直前の局面だけでなく全履歴と照合
-      function isRepeatedPosition(snap) {
-        if (snap === prevBoardSnapshot) return true;           // 単純コウ
-        const fullSnap = snap + ':' + opp(player);
-        return boardHistory.indexOf(fullSnap) !== -1;          // スーパーコウ
-      }
-
       const needsCall = needsGPCall(q, r, s, player);
       if (!needsCall) {
         // コール不要 → 自動色で判定
         const gp = bestGPColor(q, r, s, player);
         const snap = simulateFinalSnapshot(q, r, s, player, gp);
-        return !isRepeatedPosition(snap) ? [gp] : [];
+        return !isRepeatedPosition(snap, player) ? [gp] : [];
       }
       // コール必要 → 黒・白それぞれを検証
       const result = [];
       const snapB = simulateFinalSnapshot(q, r, s, player, 'black');
       const snapW = simulateFinalSnapshot(q, r, s, player, 'white');
-      if (!isRepeatedPosition(snapB)) result.push('black');
-      if (!isRepeatedPosition(snapW)) result.push('white');
+      if (!isRepeatedPosition(snapB, player)) result.push('black');
+      if (!isRepeatedPosition(snapW, player)) result.push('white');
       return result;
     }
 
@@ -5325,9 +5328,27 @@
 
     // CPUのターンを実行
     async function cpuPlay() {
-      const validMoves = filterKoMoves(getValidMoves(current), current);
-      // 有効手なし → updateGameのパス処理に委ねる（ここに来ることは本来ない）
-      if (validMoves.length === 0) { await updateGame(); return; }
+      const allValid = getValidMoves(current);
+      const nonKo = filterKoMoves(allValid, current);
+      // v49〜: コウ例外判定 — 非コウ手がないがコウ手があれば、例外として全手から選ぶ
+      // （ルール説明書「② 例外」に対応。これが無いと updateGame との間で無限ループしてタイムアウトする）
+      const koException = nonKo.length === 0 && allValid.length > 0;
+
+      // v49〜: 両者連続コウ例外で終局
+      // （ルール説明書「④ ゲーム終了：両者とも同じ盤面を繰り返す手しか打てない状態が続く場合、ゲーム終了」）
+      if (koException && prevKoException) {
+        await showPassModal('コウの状態が続くためゲーム終了');
+        endGame();
+        return;
+      }
+
+      const validMoves = koException ? allValid : nonKo;
+      // 有効手なし → updateGameのパス処理に委ねる
+      if (validMoves.length === 0) {
+        prevKoException = false;  // パスなのでコウ例外フラグをリセット
+        await updateGame();
+        return;
+      }
 
       // 思考中表示
       showTurn(`${colorLabel(current)} 考え中...`);
@@ -5338,6 +5359,10 @@
                       : cpuSpeedLevel === 1 ? 2500 + Math.random() * 1000
                       :                       1000 + Math.random() * 500;
       await new Promise(r => setTimeout(r, thinkTime));
+
+      // v49〜: 今回の手がコウ例外だったかを executeMove の前に記録（両者連続検知用）
+      // （executeMove 内で updateGame → 次ターン cpuPlay が起動するため、先に設定しないと内部で古い値を見る）
+      prevKoException = koException;
 
       try {
         const chosen = cpuChooseMove(validMoves, current);
@@ -6245,6 +6270,7 @@
       showPlacedAnim = false;
       prevBoardSnapshot = null; // コウ判定リセット
       boardHistory = [];        // スーパーコウ履歴リセット
+      prevKoException = false;  // v49〜: コウ例外連続検知フラグもリセット
       undoSnapshot = null;      // Undoリセット
       undoUsed = false;         // Undo使用済みリセット
       gameStarted = false;      // ゲーム開始フラグリセット
@@ -6868,6 +6894,7 @@
       lastMove = null;
       prevBoardSnapshot = null;
       boardHistory = [];
+      prevKoException = false;  // v49〜
       undoSnapshot = null;
       isAnimating = false;
 
