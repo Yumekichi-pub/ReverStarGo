@@ -368,9 +368,9 @@ const EVENTS = [
   { id: "PRO_007", cat: "PRO 昇格試験系", name: "昇格ステータス更新", hook: { fn: "updatePromotionGameStatus", type: "wrap" } },
   { id: "PRO_008", cat: "PRO 昇格試験系", name: "昇格試験中断", hook: { fn: "clearPromotionExam", type: "wrap" } },
   { id: "PRO_009", cat: "PRO 昇格試験系", name: "リバースマッチ発動（Lv.5+）", hook: { fn: "shouldUseReverseMatch", type: "wrap" } },
-  { id: "PRO_010", cat: "PRO 昇格試験系", name: "RM 1 局目→2 局目 色交換", hook: { type: "manual" } },
-  { id: "PRO_011", cat: "PRO 昇格試験系", name: "RM セット間色継続", hook: { type: "manual" } },
-  { id: "PRO_012", cat: "PRO 昇格試験系", name: "通算 10 勝超表示切替", hook: { type: "manual" } },
+  { id: "PRO_010", cat: "PRO 昇格試験系", name: "RM 1 局目→2 局目 色交換", hook: { type: "customEvent" } },
+  { id: "PRO_011", cat: "PRO 昇格試験系", name: "RM セット間色継続", hook: { type: "customEvent" } },
+  { id: "PRO_012", cat: "PRO 昇格試験系", name: "通算 10 勝超表示切替", hook: { type: "customEvent" } },
 
   // ----- 13. TUT チュートリアル系 -----
   { id: "TUT_001", cat: "TUT チュートリアル系", name: "選択モーダル表示", hook: { fn: "showTutorialChoice", type: "wrap" } },
@@ -622,6 +622,12 @@ function installHooks() {
   let wrappedCount = 0;
   let missingCount = 0;
   const missing = [];
+
+  // (0) v53〜: 本体からの直接通知レシーバー（customEvent 用）
+  // 本体コードで window.__RSG_EVENT__('PRO_010') のように呼ばれたら発火
+  w.__RSG_EVENT__ = (id) => {
+    fire(id);
+  };
 
   // (1) 関数 wrap 系
   for (const ev of EVENTS) {

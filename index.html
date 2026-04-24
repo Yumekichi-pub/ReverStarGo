@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v52</p>
+    <p class="app-version">RSG-v53</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5638,6 +5638,8 @@
           humanColor = opp(humanColor);
           cpuColor = opp(cpuColor);
           reverseMatch.round = 2;
+          // v53〜: イベント台帳への通知（RM 1局目→2局目 色交換）
+          try { window.__RSG_EVENT__ && window.__RSG_EVENT__('PRO_010'); } catch(e) {}
           // 中間結果メッセージ
           const r1 = reverseMatch.round1Result;
           msg = `🏆 リバースマッチ — 1局目終了\n` +
@@ -6752,6 +6754,8 @@
       if (career.wins > 10 && promo.careerWins > 0) {
         const remaining = promo.careerWins - career.wins;
         progressText += (progressText ? '\n' : '') + `通算: ${career.wins}勝${career.losses}敗（あと${remaining}勝で昇格）`;
+        // v53〜: イベント台帳への通知（通算 10 勝超表示切替）
+        try { window.__RSG_EVENT__ && window.__RSG_EVENT__('PRO_012'); } catch(e) {}
       }
 
       if (progressText) {
@@ -6825,6 +6829,8 @@
           // 離脱検知用フラグと履歴スタック（v44〜）
           markReverseMatchPending();
           try { history.pushState({reverseMatchActive: true}, '', location.href); } catch(e) {}
+          // v53〜: イベント台帳への通知（RM セット間色継続／新規 RM 開始）
+          try { window.__RSG_EVENT__ && window.__RSG_EVENT__('PRO_011'); } catch(e) {}
         }
         initGame();
       }
