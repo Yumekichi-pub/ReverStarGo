@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v47</p>
+    <p class="app-version">RSG-v48</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -4011,16 +4011,8 @@
 
     // ===== ページナビゲーション =====
     function showPage(page) {
-      // ランクアップマッチ中に他の画面へ移動しようとした場合の警告
-      if (promotionExam && page !== 'game-setup') {
-        const targetRank = RANKS[promotionExam.targetRank];
-        const matchLabel = getMatchLabel(promotionExam.winsNeeded, promotionExam.level);
-        if (!confirm(`⚔ ランクアップマッチ（${targetRank.name} ${matchLabel}）が進行中です。\n\n移動すると不合格になりますが、よろしいですか？`)) {
-          return; // キャンセル → 移動しない
-        }
-        // 不合格として処理
-        clearPromotionExam();
-      }
+      // v47〜: ランクアップマッチ中でも画面移動は自由（進捗は localStorage に保持される）
+      // 対戦中の離脱のみ 1 敗扱い（REVERSE_MATCH_PENDING_KEY で管理）
       document.getElementById('setup-main').style.display = 'none';
       document.getElementById('setup-game').style.display = 'none';
       document.getElementById('setup-custom').style.display = 'none';
@@ -6702,11 +6694,13 @@
       let progressText = '';
 
       if (exam && exam.targetRank === promo.targetRank) {
-        progressText = `今回: ${exam.wins}勝${exam.losses}敗`;
+        const remainingWins = promo.winsNeeded - exam.wins;
+        progressText = `今回: ${exam.wins}勝${exam.losses}敗（あと${remainingWins}勝で昇格）`;
       }
-      if (career.wins > 0 && promo.careerWins > 0) {
+      // v47〜: 通算成績は 10 勝超えてから表示（心理的ハードル配慮）
+      if (career.wins > 10 && promo.careerWins > 0) {
         const remaining = promo.careerWins - career.wins;
-        progressText += (progressText ? '\n' : '') + `通算: ${career.wins}勝${career.losses}敗（あと${remaining}勝）`;
+        progressText += (progressText ? '\n' : '') + `通算: ${career.wins}勝${career.losses}敗（あと${remaining}勝で昇格）`;
       }
 
       if (progressText) {
