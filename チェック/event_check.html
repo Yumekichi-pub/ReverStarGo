@@ -1695,6 +1695,8 @@ async function phaseA() {
   w.confirm = () => true;
   // パスモーダル等は自動クリック、result-modal はスキップ（終了検出に使う）
   startModalAutoDismiss(true);
+  // v0.5〜: 思考時間パッチを有効化（これが無いと 1 手 350-550ms × 60 手超でタイムアウト）
+  patchCpuSpeed();
 
   updateAutoProgress(`Phase A: CPU対戦 (0/${games})`);
   for (let i = 1; i <= games; i++) {
@@ -1705,6 +1707,7 @@ async function phaseA() {
     const result = await autoPlayOneGame(i);
     if (result) ok++; else ng++;
   }
+  unpatchCpuSpeed();
   stopModalAutoDismiss();
   autoOk(`Phase A 完了: ${ok}局完了 / ${ng}局タイムアウト`);
 }

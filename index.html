@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v54</p>
+    <p class="app-version">RSG-v55</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5393,10 +5393,13 @@
       render([]); // ヒント非表示
 
       // 思考時間（速度設定に連動）
-      const thinkTime = cpuSpeedLevel === 3 ? 350 + Math.random() * 200
+      // v55〜: animationsEnabled=false（自動テスト想定）のときは思考待ちを 0 に。
+      // これが無いと 1 手 350-550ms × 60-70 手 で 30 秒タイムアウトに抵触する。
+      const thinkTime = !animationsEnabled ? 0
+                      : cpuSpeedLevel === 3 ? 350 + Math.random() * 200
                       : cpuSpeedLevel === 1 ? 2500 + Math.random() * 1000
                       :                       1000 + Math.random() * 500;
-      await new Promise(r => setTimeout(r, thinkTime));
+      if (thinkTime > 0) await new Promise(r => setTimeout(r, thinkTime));
 
       // v49〜: 今回の手がコウ例外だったかを executeMove の前に記録（両者連続検知用）
       // （executeMove 内で updateGame → 次ターン cpuPlay が起動するため、先に設定しないと内部で古い値を見る）
