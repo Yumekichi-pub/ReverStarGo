@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v53</p>
+    <p class="app-version">RSG-v54</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5353,6 +5353,19 @@
 
     // CPUのターンを実行
     async function cpuPlay() {
+      // v54〜: 安全弁①（cpuPlay 冒頭） — moveHistory ベース
+      // boardHistory は pass を含まない & executeMove 内でしかチェックしないため、
+      // パス混じりのコウループで閾値に届きにくい。moveHistory は pass も含むので堅い。
+      if (moveHistory.length > 80) {
+        console.warn(`[SAFETY] cpuPlay: moveHistory=${moveHistory.length} > 80 — 強制終局`);
+        isAnimating = false;
+        endGame();
+        return;
+      }
+      // v54〜: 診断ログ（20 手ごと）
+      if (moveHistory.length > 0 && moveHistory.length % 20 === 0) {
+        console.log(`[DIAG cpuPlay] move=${moveHistory.length}, boardHist=${boardHistory.length}, prevKoEx=${prevKoException}, current=${current}`);
+      }
       const allValid = getValidMoves(current);
       const nonKo = filterKoMoves(allValid, current);
       // v49〜: コウ例外判定 — 非コウ手がないがコウ手があれば、例外として全手から選ぶ
@@ -5438,6 +5451,15 @@
     // ターン更新・終了判定
     async function updateGame(showTurnChange = false) {
       if (isTutorial) { render([]); return; }
+
+      // v54〜: 安全弁②（updateGame 冒頭） — moveHistory ベース
+      // cpuPlay を経由しないパスループでも確実に止める
+      if (moveHistory.length > 80) {
+        console.warn(`[SAFETY] updateGame: moveHistory=${moveHistory.length} > 80 — 強制終局`);
+        isAnimating = false;
+        endGame();
+        return;
+      }
 
       const allValidNow = getValidMoves(current);
       const validNow = filterKoMoves(allValidNow, current);

@@ -1630,8 +1630,8 @@ async function autoPlayOneGame(gameNum) {
   `);
   await sleep(50);
 
-  const maxWait = 15000;
-  const maxMoves = 80; // 通常36手前後。80手超えはコウ無限ループとみなす
+  const maxWait = 30000; // v54〜: 本体側 moveHistory>80 安全弁が確実に発動する余裕を確保
+  const maxMoves = 90;   // 本体側は 80 手で終局させるので、こちらは 90 でフォールバック
   const startTime = Date.now();
   _cpuBusy = false;
 
