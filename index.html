@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v50</p>
+    <p class="app-version">RSG-v51</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5277,6 +5277,15 @@
 
         // g. スーパーコウ判定用：局面を履歴に追加
         boardHistory.push(serializeBoard());  // v50〜: ポジショナル式（盤面のみ）
+
+        // v51〜: 安全装置 — 100 手超えは異常ループとみなして強制終局
+        // （盤面は 37 マス、通常 30〜50 手で終局。100 手 = 明らかに異常）
+        if (boardHistory.length > 100) {
+          console.warn('[SAFETY] boardHistory > 100 手 — 強制終局');
+          isAnimating = false;
+          endGame();
+          return;
+        }
 
         // 棋譜記録（gpCallは実際にCP選択が必要だった場合のみtrue）
         const moveNum = moveHistory.filter(m => m.type === 'move').length + 1;
