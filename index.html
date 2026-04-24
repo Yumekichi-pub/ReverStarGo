@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v46</p>
+    <p class="app-version">RSG-v47</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -2680,6 +2680,12 @@
     <div class="setup-section rules-section">
       <h2>🏆 勝敗の決め方</h2>
       <p><strong>盤上の自分の石の数</strong> ＋ <strong>囲んで取った石の数</strong> ＝ 合計ポイント<br>合計ポイントが多い方が勝利です。</p>
+    </div>
+
+    <div class="setup-section rules-section">
+      <h2>🔄 リバースマッチ</h2>
+      <p>Lv.5 以上の対戦では、先手後手の有利不利を解消するため、自動的に「リバースマッチ」になります。白黒を入れ替えて 2 局対戦し、合計得点で勝敗を決めます。</p>
+      <p>複数セット行う場合は、セット間も色が交互になります（1 セット目：黒→白、2 セット目：白→黒、…）。</p>
     </div>
 
     <div class="setup-section rules-section" style="text-align:center;">
@@ -2875,19 +2881,28 @@
         <div class="rules-section">
           <h3>7. コウのルール</h3>
           <p>同じ局面を繰り返すことを防ぐためのルールです。</p>
-          <p><strong>① 基本ルール</strong><br>1手前とまったく同じ盤面に戻してしまう手は打てません。</p>
+          <p><strong>① 基本ルール</strong><br>1手前とまったく同じ盤面に戻してしまう手は打てません。<br>そして、一度現れた局面に戻る手も打てません。</p>
           <p><strong>② 例外</strong><br>その手以外に置ける場所が全くない場合のみ、同じ盤面に戻る手でも打つことができます。</p>
-          <p><strong>③ 例外後のルール</strong><br>例外が適用された場合、今度は相手が同じ盤面に戻す手をすぐに打つことはできません。</p>
-          <p><strong>④ ゲーム終了</strong><br>両者とも同じ盤面に戻る手しか打てない状態が続く場合、ゲーム終了とし、その時点での合計ポイントで勝敗を決します。</p>
+          <p><strong>③ 例外後のルール</strong><br>例外が適用された直後は、相手も同じ盤面を繰り返す手を打つことはできません。</p>
+          <p><strong>④ ゲーム終了</strong><br>両者とも同じ盤面を繰り返す手しか打てない状態が続く場合、ゲーム終了とし、その時点での合計ポイントで勝敗を決します。</p>
           <p><strong>⑤ 盤面の表示</strong><br>
             <span style="color:#c8b832;font-weight:bold;">● 黄色ドット</span> … 置ける場所の目印（どんな背景色の上でも表示）<br>
-            <span style="color:#ee5511;font-weight:bold;">● オレンジ背景＋白枠</span> … CPコールの片方の色がコウで制限。置けますが選べる色は1つです。<br>
+            <span style="color:#f0a030;font-weight:bold;">● オレンジ背景＋白枠</span> … CPコールの片方の色がコウで制限。置けますが選べる色は1つです。<br>
             <span style="color:#e30909;font-weight:bold;">● 赤背景＋白枠</span> … コウでブロックされた手。通常は置けません。<br>
             <span style="color:#e30909;font-weight:bold;">● 赤背景＋白枠＋黄色ドット</span> … 赤しか選択肢がない例外時。置くことができます。</p>
         </div>
 
         <div class="rules-section">
-          <h3>8. ランクアップマッチ</h3>
+          <h3>8. リバースマッチ</h3>
+          <p>先手後手の有利不利を解消するため、Lv.5 以上の対戦では自動的に「リバースマッチ」形式で対戦します。</p>
+          <p><strong>① 2 局 1 セット</strong><br>1 局目と 2 局目で白黒を入れ替えて、同じ相手と 2 回対戦します。</p>
+          <p><strong>② 合計得点で勝敗決定</strong><br>2 局の合計得点が多い方が勝者です。1 局目で負けても、2 局目で大きく勝てば逆転できます。</p>
+          <p><strong>③ セット間も先手交代</strong><br>複数セット行う場合、セット間でも色が自然に交互になります。<br>・1 セット目：黒 → 白<br>・2 セット目：白 → 黒<br>・3 セット目：黒 → 白<br>（通常対戦でも、色を手動で変更しない限りこのパターンが続きます）</p>
+          <p><strong>④ 適用範囲</strong><br>Lv.5 以上のすべての対戦（通常対戦・ランクアップマッチ）<br>※ 2 人対戦モード・チュートリアルでは適用されません</p>
+        </div>
+
+        <div class="rules-section">
+          <h3>9. ランクアップマッチ</h3>
           <p>⚔ 次のレベルのCPUを解放するための特別な連戦です。デイリーチャレンジとは別に挑戦できます。</p>
           <p><strong>① 発生タイミング</strong><br>特定のランクに到達すると、次の昇格ランクへの挑戦権が自動的に発生します。</p>
           <ul>
@@ -2895,18 +2910,19 @@
             <li>スチール → <strong>5番勝負</strong>（先に3勝）→ ブロンズに昇格、<strong>Lv.3</strong>解放</li>
             <li>ゴールド → <strong>7番勝負</strong>（先に4勝）→ プラチナに昇格、<strong>Lv.4</strong>解放</li>
             <li>ガーネット → <strong>7番勝負</strong>（先に4勝）→ トパーズに昇格、<strong>Lv.5</strong>解放</li>
-            <li>エメラルド → <strong>7番勝負</strong>（先に4勝）→ ダイヤモンドに昇格、<strong>MAX</strong>解放</li>
-            <li>マスター → <strong>7番勝負</strong>（先に4勝）→ レジェンドに昇格</li>
-            <li>レジェンド → <strong>15番勝負</strong>（先に8勝）→ グランドマスターに昇格、<strong>FINAL</strong>解放</li>
-            <li>デミゴッド → <strong>11番勝負</strong>（先に6勝）→ ゴッドに昇格</li>
-            <li>ゴッド → <strong>21番勝負</strong>（先に11勝）→ ゼウスに昇格</li>
+            <li>エメラルド → <strong>RM 5番勝負</strong>（先に3勝）→ ダイヤモンドに昇格、<strong>MAX</strong>解放</li>
+            <li>マスター → <strong>RM 7番勝負</strong>（先に4勝）→ レジェンドに昇格</li>
+            <li>レジェンド → <strong>RM 15番勝負</strong>（先に8勝）→ グランドマスターに昇格、<strong>FINAL</strong>解放</li>
+            <li>デミゴッド → <strong>RM 11番勝負</strong>（先に6勝）→ ゴッドに昇格</li>
+            <li>ゴッド → <strong>RM 21番勝負</strong>（先に11勝）→ ゼウスに昇格</li>
           </ul>
+          <p>※ RM ＝ リバースマッチ</p>
           <p><strong>② 基本ルール</strong></p>
           <ul>
             <li>必ず連続で全試合を戦い抜く必要があります</li>
             <li>途中で他の画面に移動すると不合格になります</li>
             <li>白黒は1試合ごとに自動で交代します</li>
-            <li>プラチナからレジェンドまでの7番勝負は、通算20勝でも昇格できます</li>
+            <li>プラチナからレジェンドまでの昇格試験は、通算20勝でも昇格できます（ダイヤモンド・レジェンドは RM 通算）</li>
           </ul>
           <p><strong>③ 不合格でも大丈夫</strong><br>不合格になっても何度でも再挑戦できます。納得できるまで挑戦してください。</p>
         </div>
@@ -2924,7 +2940,7 @@
       <p>他の場所に一手置いてからなら、再び石を置くことができます。</p>
       <p>💡 ヒント表示のしくみ：<br>
         <span style="color:#c8b832;font-weight:bold;">● 黄色ドット</span> = 置ける場所（背景色問わず）
-        <span style="color:#ee5511;font-weight:bold;">● オレンジ背景＋白枠</span> = CPコール制限あり（置ける）<br>
+        <span style="color:#f0a030;font-weight:bold;">● オレンジ背景＋白枠</span> = CPコール制限あり（置ける）<br>
         <span style="color:#e30909;font-weight:bold;">● 赤背景＋白枠</span> = コウで禁止（黄色ドットがあれば例外で置ける）</p>
       <button class="ko-help-close-btn" onclick="hideKoHelp()">閉じる</button>
     </div>
@@ -3093,16 +3109,17 @@
         <p><img src="icon/6.png" style="width:18px;height:18px;vertical-align:middle;"> スチール → <img src="icon/7.png" style="width:18px;height:18px;vertical-align:middle;"> ブロンズ：<strong>5番勝負</strong>（先に3勝）／Lv.3 解放</p>
         <p><img src="icon/9.png" style="width:18px;height:18px;vertical-align:middle;"> ゴールド → <img src="icon/10.png" style="width:18px;height:18px;vertical-align:middle;"> プラチナ：<strong>7番勝負</strong>（先に4勝）／Lv.4 解放</p>
         <p><img src="icon/13.png" style="width:18px;height:18px;vertical-align:middle;"> ガーネット → <img src="icon/14.png" style="width:18px;height:18px;vertical-align:middle;"> トパーズ：<strong>7番勝負</strong>（先に4勝）／Lv.5 解放</p>
-        <p><img src="icon/18.png" style="width:18px;height:18px;vertical-align:middle;"> エメラルド → <img src="icon/19.png" style="width:18px;height:18px;vertical-align:middle;"> ダイヤモンド：<strong>7番勝負</strong>（先に4勝）／MAX 解放</p>
-        <p><img src="icon/23.png" style="width:18px;height:18px;vertical-align:middle;"> マスター → <img src="icon/24.png" style="width:18px;height:18px;vertical-align:middle;"> レジェンド：<strong>7番勝負</strong>（先に4勝）</p>
-        <p><img src="icon/24.png" style="width:18px;height:18px;vertical-align:middle;"> レジェンド → <img src="icon/25.png" style="width:18px;height:18px;vertical-align:middle;"> グランドマスター：<strong>15番勝負</strong>（先に8勝）／FINAL 解放</p>
-        <p><img src="icon/28.png" style="width:18px;height:18px;vertical-align:middle;"> デミゴッド → <img src="icon/29.png" style="width:18px;height:18px;vertical-align:middle;"> ゴッド：<strong>11番勝負</strong>（先に6勝）</p>
-        <p><img src="icon/29.png" style="width:18px;height:18px;vertical-align:middle;"> ゴッド → <img src="icon/30.png" style="width:18px;height:18px;vertical-align:middle;"> ゼウス：<strong>21番勝負</strong>（先に11勝）</p>
+        <p><img src="icon/18.png" style="width:18px;height:18px;vertical-align:middle;"> エメラルド → <img src="icon/19.png" style="width:18px;height:18px;vertical-align:middle;"> ダイヤモンド：<strong>RM 5番勝負</strong>（先に3勝）／MAX 解放</p>
+        <p><img src="icon/23.png" style="width:18px;height:18px;vertical-align:middle;"> マスター → <img src="icon/24.png" style="width:18px;height:18px;vertical-align:middle;"> レジェンド：<strong>RM 7番勝負</strong>（先に4勝）</p>
+        <p><img src="icon/24.png" style="width:18px;height:18px;vertical-align:middle;"> レジェンド → <img src="icon/25.png" style="width:18px;height:18px;vertical-align:middle;"> グランドマスター：<strong>RM 15番勝負</strong>（先に8勝）／FINAL 解放</p>
+        <p><img src="icon/28.png" style="width:18px;height:18px;vertical-align:middle;"> デミゴッド → <img src="icon/29.png" style="width:18px;height:18px;vertical-align:middle;"> ゴッド：<strong>RM 11番勝負</strong>（先に6勝）</p>
+        <p><img src="icon/29.png" style="width:18px;height:18px;vertical-align:middle;"> ゴッド → <img src="icon/30.png" style="width:18px;height:18px;vertical-align:middle;"> ゼウス：<strong>RM 21番勝負</strong>（先に11勝）</p>
+        <p>※ RM ＝ リバースマッチ</p>
         <p><strong>基本ルール</strong></p>
         <p>・必ず連続で全試合を戦い抜く必要があります</p>
         <p>・途中で他の画面に移動すると不合格になります</p>
         <p>・白黒は1試合ごとに自動で交代します</p>
-        <p>・プラチナからレジェンドまでの7番勝負は、通算20勝でも昇格できます</p>
+        <p>・プラチナからレジェンドまでの昇格試験は、通算20勝でも昇格できます（ダイヤモンド・レジェンドは RM 通算）</p>
         <p>不合格でも何度でも再挑戦できますので、納得できるまで挑戦してください！</p>
       </div>
       <div style="display:flex; flex-direction:column; gap:20px; width:100%; max-width:240px; margin:0 auto;">
@@ -3196,7 +3213,8 @@
     let sessionWins = { black: 0, white: 0, draw: 0 }; // セッション勝敗カウント
 
     // ===== Reverse Match（v41〜） =====
-    // トパーズ以上 × Lv.5以上の対戦を 2局1セット（色入れ替え合計得点制）で行う
+    // Lv.5以上の対戦を 2局1セット（色入れ替え合計得点制）で行う
+    // 先手後手の有利不利を解消し、実力のみで勝負できる仕組み
     // null = 通常対戦 / {...} = SM 進行中
     let reverseMatch = null;
     // reverseMatch の構造:
@@ -3232,22 +3250,22 @@
       { name: 'アクアマリン', icon: 'icon/12.png', condition: 'Lv.4に累計5勝' },       // 11
       { name: 'ガーネット', icon: 'icon/13.png', condition: 'Lv.4に累計10勝' },       // 12
       { name: 'トパーズ', icon: 'icon/14.png', condition: '7番勝負で勝ち越し' },       // 13 🔓Lv.5
-      { name: 'アメジスト', icon: 'icon/15.png', condition: 'Lv.5に累計2勝' },        // 14
-      { name: 'ルビー', icon: 'icon/16.png', condition: 'Lv.5に累計5勝' },           // 15
-      { name: 'サファイア', icon: 'icon/17.png', condition: 'Lv.5に累計10勝' },       // 16
-      { name: 'エメラルド', icon: 'icon/18.png', condition: 'Lv.5に累計20勝' },       // 17
-      { name: 'ダイヤモンド', icon: 'icon/19.png', condition: '7番勝負で勝ち越し' },   // 18 🔓MAX
-      { name: 'スペシャリスト', icon: 'icon/20.png', condition: 'MAXに累計2勝' },      // 19
-      { name: 'エキスパート', icon: 'icon/21.png', condition: 'MAXに累計5勝' },       // 20
-      { name: 'チャンピオン', icon: 'icon/22.png', condition: 'MAXに累計10勝' },      // 21
-      { name: 'マスター', icon: 'icon/23.png', condition: 'MAXに累計20勝' },          // 22
-      { name: 'レジェンド', icon: 'icon/24.png', condition: '7番勝負で勝ち越し' },     // 23
-      { name: 'グランドマスター', icon: 'icon/25.png', condition: '15番勝負で勝ち越し' }, // 24 🔓FINAL
-      { name: 'アークマスター', icon: 'icon/26.png', condition: 'FINALに累計10勝' },   // 25
-      { name: 'オーバーロード', icon: 'icon/27.png', condition: 'FINALに累計30勝' },   // 26
-      { name: 'デミゴッド', icon: 'icon/28.png', condition: 'FINALに累計50勝' },       // 27
-      { name: 'ゴッド', icon: 'icon/29.png', condition: '11番勝負で勝ち越し' },     // 28
-      { name: 'ゼウス', icon: 'icon/30.png', condition: '21番勝負で勝ち越し' },    // 29
+      { name: 'アメジスト', icon: 'icon/15.png', condition: 'Lv.5に RM 累計2勝' },    // 14
+      { name: 'ルビー', icon: 'icon/16.png', condition: 'Lv.5に RM 累計5勝' },       // 15
+      { name: 'サファイア', icon: 'icon/17.png', condition: 'Lv.5に RM 累計10勝' },   // 16
+      { name: 'エメラルド', icon: 'icon/18.png', condition: 'Lv.5に RM 累計20勝' },   // 17
+      { name: 'ダイヤモンド', icon: 'icon/19.png', condition: 'RM 5番勝負で勝ち越し' }, // 18 🔓MAX
+      { name: 'スペシャリスト', icon: 'icon/20.png', condition: 'MAXに RM 累計2勝' },  // 19
+      { name: 'エキスパート', icon: 'icon/21.png', condition: 'MAXに RM 累計5勝' },   // 20
+      { name: 'チャンピオン', icon: 'icon/22.png', condition: 'MAXに RM 累計10勝' },  // 21
+      { name: 'マスター', icon: 'icon/23.png', condition: 'MAXに RM 累計20勝' },      // 22
+      { name: 'レジェンド', icon: 'icon/24.png', condition: 'RM 7番勝負で勝ち越し' }, // 23
+      { name: 'グランドマスター', icon: 'icon/25.png', condition: 'RM 15番勝負で勝ち越し' }, // 24 🔓FINAL
+      { name: 'アークマスター', icon: 'icon/26.png', condition: 'FINALに RM 累計10勝' }, // 25
+      { name: 'オーバーロード', icon: 'icon/27.png', condition: 'FINALに RM 累計30勝' }, // 26
+      { name: 'デミゴッド', icon: 'icon/28.png', condition: 'FINALに RM 累計50勝' },   // 27
+      { name: 'ゴッド', icon: 'icon/29.png', condition: 'RM 11番勝負で勝ち越し' },   // 28
+      { name: 'ゼウス', icon: 'icon/30.png', condition: 'RM 21番勝負で勝ち越し' },   // 29
     ];
 
     function rankIcon(idx, size) {
@@ -3401,11 +3419,11 @@
       6:  { level: 2, winsNeeded: 3, maxLosses: 3, label: 'Lv.3 解放', careerWins: 0 },   // ブロンズ（5番勝負）
       9:  { level: 3, winsNeeded: 4, maxLosses: 4, label: 'Lv.4 解放', careerWins: 20 },   // プラチナ（7番勝負）
       13: { level: 4, winsNeeded: 4, maxLosses: 4, label: 'Lv.5 解放', careerWins: 20 },   // トパーズ（7番勝負）
-      18: { level: 5, winsNeeded: 4, maxLosses: 4, label: 'MAX 解放', careerWins: 20 },    // ダイヤモンド（7番勝負）
-      23: { level: 6, winsNeeded: 4, maxLosses: 4, label: 'レジェンド', careerWins: 20 },   // レジェンド（7番勝負）
-      24: { level: 6, winsNeeded: 8, maxLosses: 8, label: 'グランドマスター', careerWins: 0 }, // グランドマスター（15番勝負）
-      28: { level: 7, winsNeeded: 6, maxLosses: 6, label: 'ゴッド', careerWins: 0 },        // ゴッド（11番勝負）
-      29: { level: 7, winsNeeded: 11, maxLosses: 11, label: 'ゼウス', careerWins: 0 },      // ゼウス（21番勝負）
+      18: { level: 5, winsNeeded: 3, maxLosses: 3, label: 'MAX 解放', careerWins: 20 },    // ダイヤモンド（RM 5番勝負）
+      23: { level: 6, winsNeeded: 4, maxLosses: 4, label: 'レジェンド', careerWins: 20 },   // レジェンド（RM 7番勝負）
+      24: { level: 6, winsNeeded: 8, maxLosses: 8, label: 'グランドマスター', careerWins: 0 }, // グランドマスター（RM 15番勝負）
+      28: { level: 7, winsNeeded: 6, maxLosses: 6, label: 'ゴッド', careerWins: 0 },        // ゴッド（RM 11番勝負）
+      29: { level: 7, winsNeeded: 11, maxLosses: 11, label: 'ゼウス', careerWins: 0 },      // ゼウス（RM 21番勝負）
     };
 
     // 合格済みの昇格試験を読み込み/保存
@@ -3506,7 +3524,7 @@
     }
 
     // Reverse Match を適用すべきか判定（v41〜）
-    // 適用条件: トパーズ以上（rank>=13）×Lv.5以上、または Lv.5以上の昇格試験
+    // 適用条件: Lv.5以上の全対戦、または Lv.5以上の昇格試験
     // ただし 2人対戦・チュートリアルは除外
     function shouldUseReverseMatch() {
       if (battleMode === 'two') return false;
@@ -3515,8 +3533,9 @@
         // 昇格試験: 対象レベルが Lv.5 以上なら適用
         return promotionExam.level >= 5;
       }
-      // 通常対戦: トパーズ以上（index 13）× Lv.5 以上
-      return calculateRank() >= 13 && cpuLevel >= 5;
+      // 通常対戦: Lv.5 以上の全対戦（白有利解消のため）
+      // Lv.5 以降は全対戦を RM 化（先手後手の有利不利を解消するため）
+      return cpuLevel >= 5;
     }
 
     function loadPromotionExam() {
@@ -3995,7 +4014,7 @@
       // ランクアップマッチ中に他の画面へ移動しようとした場合の警告
       if (promotionExam && page !== 'game-setup') {
         const targetRank = RANKS[promotionExam.targetRank];
-        const matchLabel = getMatchLabel(promotionExam.winsNeeded);
+        const matchLabel = getMatchLabel(promotionExam.winsNeeded, promotionExam.level);
         if (!confirm(`⚔ ランクアップマッチ（${targetRank.name} ${matchLabel}）が進行中です。\n\n移動すると不合格になりますが、よろしいですか？`)) {
           return; // キャンセル → 移動しない
         }
@@ -4120,12 +4139,14 @@
         html += `<td>${rankIcon(i, 24)}</td>`;
         html += `<td>${i + 1}. ${RANKS[i].name}</td>`;
         const exam = PROMOTION_EXAMS[i];
-        const condLine2 = (exam && exam.careerWins > 0) ? `<br><span style="font-size:0.7rem;color:#e0a050;">または通算${exam.careerWins}勝</span>` : '';
+        const careerPrefix = (exam && exam.level >= 5) ? 'RM ' : '';
+        const condLine2 = (exam && exam.careerWins > 0) ? `<br><span style="font-size:0.7rem;color:#e0a050;">または${careerPrefix}通算${exam.careerWins}勝</span>` : '';
         html += `<td>${RANKS[i].condition}${condLine2}</td>`;
         html += `<td>${unlockLabel}</td>`;
         html += '</tr>';
       }
       html += '</tbody></table>';
+      html += '<p style="text-align:center;margin-top:8px;padding:4px 12px;">※ RM ＝ リバースマッチ</p>';
       html += '</div>';
       html += '<button class="rank-list-close-btn" onclick="closeRankList()">閉じる</button>';
       html += '</div></div>';
@@ -5699,7 +5720,7 @@
                 if (promoResult.careerPass) {
                   msg += `\n\n🎉 通算${promoResult.career.wins}勝達成！\nランクアップマッチ 合格！`;
                 } else {
-                  const passLabel = getMatchLabel(promoResult.exam.winsNeeded);
+                  const passLabel = getMatchLabel(promoResult.exam.winsNeeded, promoResult.exam.level);
                   msg += `\n\n🎉 ランクアップマッチ 合格！\n${passLabel}: ${promoResult.exam.wins}勝${promoResult.exam.losses}敗`;
                 }
               } else {
@@ -5708,13 +5729,13 @@
                 if (examDef && examDef.careerWins > 0) {
                   careerMsg = `\n通算: ${promoResult.career.wins}勝（あと${examDef.careerWins - promoResult.career.wins}勝で昇格）`;
                 }
-                const failLabel = getMatchLabel(promoResult.exam.winsNeeded);
+                const failLabel = getMatchLabel(promoResult.exam.winsNeeded, promoResult.exam.level);
                 msg += `\n\n😢 ランクアップマッチ 不合格...\n${failLabel}: ${promoResult.exam.wins}勝${promoResult.exam.losses}敗${careerMsg}\nもう一度挑戦できます！`;
               }
             } else {
               // 試験続行中 - 次の試合番号を表示
               const nextMatch = promotionExam.wins + promotionExam.losses + 1;
-              const mLabel = getMatchLabel(promotionExam.winsNeeded);
+              const mLabel = getMatchLabel(promotionExam.winsNeeded, promotionExam.level);
               msg += `\n\n⚔ ランクアップマッチ（${mLabel}）\n第${matchNum}試合終了\n${promotionExam.wins}勝${promotionExam.losses}敗（次: 第${nextMatch}試合）`;
             }
           }
@@ -5943,7 +5964,7 @@
         if (isKoBlocked && hintEnabled) {
           fill = '#e30909'; // 赤: コウでブロック（例外時でも赤のまま）
         } else if (isValid && hintEnabled) {
-          fill = koRestrictedSet.has(k) ? '#ee5511' : currentTheme.cellValid;
+          fill = koRestrictedSet.has(k) ? '#f0a030' : currentTheme.cellValid;
         }
         if (isGP && cellColor === null) fill = '#7b1fa2';
         poly.setAttribute('fill', fill);
@@ -6551,7 +6572,7 @@
 
     function showPromoAnnounce(promo) {
       const targetRank = RANKS[promo.targetRank];
-      const matchLabel = getMatchLabel(promo.winsNeeded);
+      const matchLabel = getMatchLabel(promo.winsNeeded, promo.level);
       document.getElementById('promo-announce-title').textContent = `🎉 ${promo.label}への挑戦権を獲得！`;
       document.getElementById('promo-announce-desc').textContent = `${targetRank.name} ランクアップマッチ（${matchLabel}）に挑戦できます！`;
       // 初回のランクアップマッチのみヘルプを自動展開（以降は？ボタンで確認可能）
@@ -6667,7 +6688,7 @@
 
       section.style.display = '';
       const targetRank = RANKS[promo.targetRank];
-      const matchLabel = getMatchLabel(promo.winsNeeded);
+      const matchLabel = getMatchLabel(promo.winsNeeded, promo.level);
       document.getElementById('promotion-title').innerHTML = `⚔ ランクアップマッチ → ${rankIcon(promo.targetRank, 22)} ${targetRank.name}`;
 
       let descText = `${matchLabel}で勝ち越しで昇格`;
@@ -6696,14 +6717,17 @@
       }
     }
 
-    function getMatchLabel(winsNeeded) {
-      if (winsNeeded === 2) return '3番勝負';
-      if (winsNeeded === 3) return '5番勝負';
-      if (winsNeeded === 4) return '7番勝負';
-      if (winsNeeded === 6) return '11番勝負';
-      if (winsNeeded === 8) return '15番勝負';
-      if (winsNeeded === 11) return '21番勝負';
-      return `${winsNeeded * 2 - 1}番勝負`;
+    function getMatchLabel(winsNeeded, level) {
+      let base;
+      if (winsNeeded === 2) base = '3番勝負';
+      else if (winsNeeded === 3) base = '5番勝負';
+      else if (winsNeeded === 4) base = '7番勝負';
+      else if (winsNeeded === 6) base = '11番勝負';
+      else if (winsNeeded === 8) base = '15番勝負';
+      else if (winsNeeded === 11) base = '21番勝負';
+      else base = `${winsNeeded * 2 - 1}番勝負`;
+      // Lv.5 以上の昇格試験は RM プレフィックスを付ける
+      return (level !== undefined && level >= 5) ? 'RM ' + base : base;
     }
 
     function updatePromotionGameStatus() {
@@ -6714,7 +6738,7 @@
       }
       const targetRank = RANKS[promotionExam.targetRank];
       const matchNum = promotionExam.wins + promotionExam.losses + 1;
-      const matchLabel = getMatchLabel(promotionExam.winsNeeded);
+      const matchLabel = getMatchLabel(promotionExam.winsNeeded, promotionExam.level);
       statusEl.style.display = '';
       const colorMark = humanColor === 'black' ? '●黒' : '○白';
       statusEl.innerHTML = `⚔ ランクアップマッチ ${rankIcon(promotionExam.targetRank, 18)}${targetRank.name}（${matchLabel}）<br>第${matchNum}試合 ${colorMark}（${promotionExam.wins}勝${promotionExam.losses}敗）`;
@@ -6736,8 +6760,9 @@
           initGame();
           return;
         }
-        // ランクアップマッチ中は白黒を交互にする（v41〜：SM の場合は除外）
-        if (promotionExam && !reverseMatch) {
+        // ランクアップマッチ中は白黒を交互にする（v41〜）
+        // Lv.5 以上は Reverse Match（セット内で色交代）で自動的にパターンが維持されるため、ここでは Lv.4 以下のみ実行
+        if (promotionExam && !reverseMatch && promotionExam.level < 5) {
           humanColor = opp(humanColor);
           cpuColor = opp(humanColor);
           // 設定画面の選択状態も更新

@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v46</p>
+    <p class="app-version">RSG-v47</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -2875,13 +2875,13 @@
         <div class="rules-section">
           <h3>7. Ko Rule</h3>
           <p>The ko rule prevents infinite repetition of the same board position.</p>
-          <p><strong>① Basic Rule</strong><br>You cannot make a move that returns the board to the exact same position as one move ago.</p>
-          <p><strong>② Exception</strong><br>If you have no other valid moves, you may play a ko move.</p>
-          <p><strong>③ After Exception</strong><br>If the exception is used, the opponent cannot immediately play a move that would return to the previous position.</p>
-          <p><strong>④ Game End</strong><br>If both players can only make ko moves and the situation persists, the game ends and the winner is determined by the current scores.</p>
+          <p><strong>① Basic Rule</strong><br>You cannot play a move that returns the board to the exact state one turn ago.<br>Furthermore, you cannot play a move that returns the board to any previously-seen state.</p>
+          <p><strong>② Exception</strong><br>Only when there is no other place you can play, you may play a move that returns the board to a previous state.</p>
+          <p><strong>③ After Exception</strong><br>Right after an exception is applied, the opponent also cannot play a move that repeats a previous state.</p>
+          <p><strong>④ Game End</strong><br>If both players can only play moves that repeat previous states, the game ends and the winner is determined by the total score at that moment.</p>
           <p><strong>⑤ Visual Indicators</strong><br>
             <span style="color:#c8b832;font-weight:bold;">● Yellow Dot</span> — Marks a placeable cell (regardless of background color).<br>
-            <span style="color:#ee5511;font-weight:bold;">● Orange background + white border</span> — Placeable, but only one CP call color is allowed (other is ko-restricted).<br>
+            <span style="color:#f0a030;font-weight:bold;">● Orange background + white border</span> — Placeable, but only one CP call color is allowed (other is ko-restricted).<br>
             <span style="color:#e30909;font-weight:bold;">● Red background + white border</span> — Blocked by ko. Normally cannot be played.<br>
             <span style="color:#e30909;font-weight:bold;">● Red + white border + yellow dot</span> — Exception: only red remains, so placing is allowed.</p>
         </div>
@@ -2924,7 +2924,7 @@
       <p>After placing a stone elsewhere first, you can place there again.</p>
       <p>💡 How hints work:<br>
         <span style="color:#c8b832;font-weight:bold;">● Yellow dot</span> = Placeable cell (shown on any background)<br>
-        <span style="color:#ee5511;font-weight:bold;">● Orange background + white border</span> = CP call restricted (placeable)<br>
+        <span style="color:#f0a030;font-weight:bold;">● Orange background + white border</span> = CP call restricted (placeable)<br>
         <span style="color:#e30909;font-weight:bold;">● Red background + white border</span> = Blocked by ko (exception placement if yellow dot also shown)</p>
       <button class="ko-help-close-btn" onclick="hideKoHelp()">Close</button>
     </div>
@@ -5930,7 +5930,7 @@
         if (isKoBlocked && hintEnabled) {
           fill = '#e30909'; // Red: blocked by ko (stays red even in exception)
         } else if (isValid && hintEnabled) {
-          fill = koRestrictedSet.has(k) ? '#ee5511' : currentTheme.cellValid;
+          fill = koRestrictedSet.has(k) ? '#f0a030' : currentTheme.cellValid;
         }
         if (isGP && cellColor === null) fill = '#7b1fa2';
         poly.setAttribute('fill', fill);
