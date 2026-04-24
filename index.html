@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v51</p>
+    <p class="app-version">RSG-v52</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -3596,6 +3596,20 @@
       if (lvBtn) lvBtn.classList.add('selected');
       saveSettings();
       prevRank = calculateRank();
+      // v52〜: Reverse Match を発動判定（Lv.5 以上の昇格試験で必須）
+      // これが無いと、ダイヤモンド／レジェンド／グランドマスター等で
+      // リバースマッチにならず、普通の1局対戦になってしまう
+      if (shouldUseReverseMatch()) {
+        reverseMatch = {
+          round: 1,
+          round1Result: null,
+          initialHumanColor: humanColor
+        };
+        markReverseMatchPending();
+        try { history.pushState({reverseMatchActive: true}, '', location.href); } catch(e) {}
+      } else {
+        reverseMatch = null;
+      }
       document.getElementById('setup-game').style.display = 'none';
       document.getElementById('setup-main').style.display = 'none';
       initGame();
