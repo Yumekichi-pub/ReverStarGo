@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v49</p>
+    <p class="app-version">RSG-v50</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5002,11 +5002,13 @@
 
     // スーパーコウ判定：直前の局面だけでなく全履歴と照合
     // v48〜: グローバル関数に昇格（イベントチェッカから GAM_010 として監視可能にするため）
+    // v50〜: ポジショナル式（盤面のみ）に統一。深さ解析 HTML で 51,000 局検証済み
+    //       ルール説明「一度現れた局面に戻る手は打てません」と完全整合
+    //       引数の player は後方互換のため残すが、v50 からは未使用
     function isRepeatedPosition(snap, player) {
       if (!prevBoardSnapshot) return false;
       if (snap === prevBoardSnapshot) return true;              // 単純コウ
-      const fullSnap = snap + ':' + opp(player);
-      return boardHistory.indexOf(fullSnap) !== -1;             // スーパーコウ
+      return boardHistory.indexOf(snap) !== -1;                 // スーパーコウ（ポジショナル式）
     }
 
     // CPコールを考慮してコウにならない手かチェック
@@ -5274,7 +5276,7 @@
         if (board[gpK] !== null) board[gpK] = null;
 
         // g. スーパーコウ判定用：局面を履歴に追加
-        boardHistory.push(serializeBoard() + ':' + opp(current));
+        boardHistory.push(serializeBoard());  // v50〜: ポジショナル式（盤面のみ）
 
         // 棋譜記録（gpCallは実際にCP選択が必要だった場合のみtrue）
         const moveNum = moveHistory.filter(m => m.type === 'move').length + 1;
