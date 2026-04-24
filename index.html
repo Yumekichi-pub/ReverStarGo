@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v55</p>
+    <p class="app-version">RSG-v56</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5383,8 +5383,10 @@
       const validMoves = koException ? allValid : nonKo;
       // 有効手なし → updateGameのパス処理に委ねる
       if (validMoves.length === 0) {
+        console.log(`[DIAG cpuPlay] validMoves=0, delegating to updateGame: cur=${current}, mv=${moveHistory.length}`);
         prevKoException = false;  // パスなのでコウ例外フラグをリセット
         await updateGame();
+        console.log(`[DIAG cpuPlay] updateGame returned (from validMoves=0 branch): cur=${current}, mv=${moveHistory.length}`);
         return;
       }
 
@@ -5476,22 +5478,29 @@
       const effectiveOpp = koExceptionOpp ? allValidOpp : validOpp;
 
       if (effectiveNow.length === 0 && effectiveOpp.length === 0) {
+        console.log(`[DIAG updateGame] both-pass branch: mv=${moveHistory.length}, cur=${current}, stones=${Object.values(board).filter(v => v !== null).length}`);
         render([]);
         // 盤面が埋まっている場合はパス表示なしで即終了
         const boardFull = ALL_CELLS.every(([q,r,s]) =>
           (q===0 && r===0 && s===0) || board[K(q,r,s)] !== null
         );
         if (!boardFull) {
+          console.log(`[DIAG updateGame] both-pass: showing 1st passModal (${colorLabel(current)})`);
           // 空きマスあり → 順番にパス表示してから終了
           await showPassModal(`${colorLabel(current)}は置けません`);
+          console.log(`[DIAG updateGame] both-pass: 1st passModal resolved`);
           current = opp(current);
           render([]);
+          console.log(`[DIAG updateGame] both-pass: showing 2nd passModal (${colorLabel(current)})`);
           await showPassModal(`${colorLabel(current)}は置けません`);
+          console.log(`[DIAG updateGame] both-pass: 2nd passModal resolved`);
         }
+        console.log(`[DIAG updateGame] both-pass: calling endGame()`);
         endGame();
         return;
       }
       if (effectiveNow.length === 0) {
+        console.log(`[DIAG updateGame] one-pass branch: mv=${moveHistory.length}, cur=${current}, effectiveOpp=${effectiveOpp.length}`);
         // 片方だけ置けない → パス表示 → 次へ
         render([]);
         // 棋譜にパス記録
@@ -5501,7 +5510,9 @@
           boardAfter: serializeBoard(),
           capturedAfter: { black: captured.black, white: captured.white }
         });
+        console.log(`[DIAG updateGame] one-pass: showing passModal (${colorLabel(current)})`);
         await showPassModal(`${colorLabel(current)}は置けません`);
+        console.log(`[DIAG updateGame] one-pass: passModal resolved, switching to ${colorLabel(opp(current))}`);
         current = opp(current);
         await updateGame(true);
         return;
@@ -5613,6 +5624,8 @@
 
     // 終了処理
     function endGame() {
+      // v56〜: 診断ログ（endGame 呼び出し検出用）
+      console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
       // ゲーム終了時は「1手戻る」を完全に無効化（勝利2重カウント防止）
       undoUsed = true;
       undoSnapshot = null;

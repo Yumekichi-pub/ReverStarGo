@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ReverStarGo イベントチェッカ v0.5</title>
+<title>ReverStarGo イベントチェッカ v0.6</title>
 <style>
   * { box-sizing: border-box; }
   html, body {
@@ -201,7 +201,7 @@
 <div id="app">
   <!-- 左パネル -->
   <div id="left">
-    <h1>🔍 イベントチェッカ v0.5</h1>
+    <h1>🔍 イベントチェッカ v0.6</h1>
 
     <button class="btn ok" id="btn-load">▶ ゲーム読込／再起動</button>
     <button class="btn" id="btn-install">🔌 フック注入</button>
@@ -629,33 +629,9 @@ function installHooks() {
     fire(id);
   };
 
-  // v0.5〜: iframe 内の console.warn / console.log を event_check のログ欄にも出力
-  //   [SAFETY] や [DIAG] のキーワードを含むものだけ拾う（ノイズ削減）
-  try {
-    if (!w.__RSG_CONSOLE_PATCHED__) {
-      const origWarn = w.console.warn.bind(w.console);
-      const origLog  = w.console.log.bind(w.console);
-      w.console.warn = function(...args) {
-        origWarn(...args);
-        try {
-          const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
-          if (msg.indexOf('[SAFETY]') >= 0 || msg.indexOf('[DIAG') >= 0) {
-            log('⚠ ' + msg, 'w');
-          }
-        } catch(e) {}
-      };
-      w.console.log = function(...args) {
-        origLog(...args);
-        try {
-          const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
-          if (msg.indexOf('[SAFETY]') >= 0 || msg.indexOf('[DIAG') >= 0) {
-            log('ℹ ' + msg, 'i');
-          }
-        } catch(e) {}
-      };
-      w.__RSG_CONSOLE_PATCHED__ = true;
-    }
-  } catch(e) { log('console パッチ失敗: ' + e.message, 'e'); }
+  // v0.6 で console パッチを入れたが、1 局目から止まる症状が出たため v0.6 で撤去。
+  // [SAFETY]/[DIAG cpuPlay] は F12 開発者ツールの Console で確認してもらう方針に変更。
+  // タイムアウト時の状態ダンプ（autoPlayOneGame 内）は維持。
 
   // (1) 関数 wrap 系
   for (const ev of EVENTS) {
@@ -1698,7 +1674,7 @@ async function autoPlayOneGame(gameNum) {
     await sleep(30);
 
     if (Date.now() - startTime > maxWait) {
-      // v0.5〜: タイムアウト時の詳細ダンプで原因特定を支援
+      // v0.6〜: タイムアウト時の詳細ダンプで原因特定を支援
       const dump = ae(`(() => {
         try {
           const resultModal = document.getElementById('result-modal');
@@ -1743,7 +1719,7 @@ async function phaseA() {
   w.confirm = () => true;
   // パスモーダル等は自動クリック、result-modal はスキップ（終了検出に使う）
   startModalAutoDismiss(true);
-  // v0.5〜: 思考時間パッチを有効化（これが無いと 1 手 350-550ms × 60 手超でタイムアウト）
+  // v0.6〜: 思考時間パッチを有効化（これが無いと 1 手 350-550ms × 60 手超でタイムアウト）
   patchCpuSpeed();
 
   updateAutoProgress(`Phase A: CPU対戦 (0/${games})`);
@@ -2827,7 +2803,7 @@ document.getElementById("btn-auto").onclick = () => {
 buildEventList();
 buildAntiList();
 updateUI();
-log("v0.5 起動。「ゲーム読込」ボタンから始めてください。", "i");
+log("v0.6 起動。「ゲーム読込」ボタンから始めてください。", "i");
 </script>
 </body>
 </html>
