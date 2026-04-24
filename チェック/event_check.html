@@ -629,6 +629,34 @@ function installHooks() {
     fire(id);
   };
 
+  // v0.5〜: iframe 内の console.warn / console.log を event_check のログ欄にも出力
+  //   [SAFETY] や [DIAG] のキーワードを含むものだけ拾う（ノイズ削減）
+  try {
+    if (!w.__RSG_CONSOLE_PATCHED__) {
+      const origWarn = w.console.warn.bind(w.console);
+      const origLog  = w.console.log.bind(w.console);
+      w.console.warn = function(...args) {
+        origWarn(...args);
+        try {
+          const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+          if (msg.indexOf('[SAFETY]') >= 0 || msg.indexOf('[DIAG') >= 0) {
+            log('⚠ ' + msg, 'w');
+          }
+        } catch(e) {}
+      };
+      w.console.log = function(...args) {
+        origLog(...args);
+        try {
+          const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+          if (msg.indexOf('[SAFETY]') >= 0 || msg.indexOf('[DIAG') >= 0) {
+            log('ℹ ' + msg, 'i');
+          }
+        } catch(e) {}
+      };
+      w.__RSG_CONSOLE_PATCHED__ = true;
+    }
+  } catch(e) { log('console パッチ失敗: ' + e.message, 'e'); }
+
   // (1) 関数 wrap 系
   for (const ev of EVENTS) {
     if (ev.hook.type !== "wrap") continue;
@@ -1670,7 +1698,27 @@ async function autoPlayOneGame(gameNum) {
     await sleep(30);
 
     if (Date.now() - startTime > maxWait) {
-      autoErr(`第 ${gameNum} 局 タイムアウト`);
+      // v0.5〜: タイムアウト時の詳細ダンプで原因特定を支援
+      const dump = ae(`(() => {
+        try {
+          const resultModal = document.getElementById('result-modal');
+          const passModal = document.getElementById('pass-modal');
+          const stones = typeof board !== 'undefined' ? Object.values(board).filter(v => v !== null).length : -1;
+          return {
+            mv: typeof moveHistory !== 'undefined' ? moveHistory.length : '?',
+            bh: typeof boardHistory !== 'undefined' ? boardHistory.length : '?',
+            cur: typeof current !== 'undefined' ? current : '?',
+            hm: typeof humanColor !== 'undefined' ? humanColor : '?',
+            pKE: typeof prevKoException !== 'undefined' ? prevKoException : '?',
+            anim: typeof isAnimating !== 'undefined' ? isAnimating : '?',
+            rm: resultModal ? (resultModal.style.display || 'empty') : 'missing',
+            pm: passModal ? (passModal.style.display || 'empty') : 'missing',
+            stones: stones,
+            cpuBusy: typeof _cpuBusy !== 'undefined' ? _cpuBusy : '?'
+          };
+        } catch(e) { return { err: e.message }; }
+      })()`, null);
+      autoErr(`第 ${gameNum} 局 タイムアウト ${JSON.stringify(dump)}`);
       _cpuBusy = false;
       return false;
     }
