@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v57</p>
+    <p class="app-version">RSG-v58</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -4009,6 +4009,9 @@
         document.getElementById('setup-game').style.display = 'flex';
         updateLevelButtons();
         const titleEl = document.getElementById('game-setup-title');
+        // v57.1~: tutorial-btn was removed in v38, so getElementById returns null.
+        // Accessing .style caused a TypeError that aborted the entire showPage(),
+        // preventing updatePromotionSection() from running. Add null check.
         const tutBtn = document.getElementById('tutorial-btn');
         const backBtn = document.getElementById('game-setup-back');
         const battleSection = document.getElementById('battle-mode-section');
@@ -4018,14 +4021,14 @@
           const m = parseInt(parts[1]);
           const d = parseInt(parts[2]);
           titleEl.textContent = '📅 Daily - ' + m + '/' + d;
-          tutBtn.style.display = 'none';
+          if (tutBtn) tutBtn.style.display = 'none';
           battleSection.style.display = 'none';
           promoSection.style.display = 'none';
           backBtn.textContent = 'Return to Daily';
           backBtn.onclick = function() { isDailySetup = false; showPage('daily'); };
         } else {
           titleEl.textContent = '🎮 Game Setup';
-          tutBtn.style.display = '';
+          if (tutBtn) tutBtn.style.display = '';
           battleSection.style.display = '';
           backBtn.textContent = 'Return to Main';
           backBtn.onclick = function() { showPage('main'); };

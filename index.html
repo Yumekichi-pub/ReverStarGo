@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v57</p>
+    <p class="app-version">RSG-v58</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -4044,6 +4044,10 @@
         document.getElementById('setup-game').style.display = 'flex';
         updateLevelButtons();
         const titleEl = document.getElementById('game-setup-title');
+        // v57.1〜: tutorial-btn は v38 で削除済み。getElementById は null を返すため
+        // 「.style」アクセスで TypeError が発生していた。これが showPage 全体の
+        // 処理中断を引き起こし、updatePromotionSection が呼ばれず ランクアップマッチ
+        // セクションが非表示になっていた真犯人。null チェックを追加。
         const tutBtn = document.getElementById('tutorial-btn');
         const backBtn = document.getElementById('game-setup-back');
         const battleSection = document.getElementById('battle-mode-section');
@@ -4053,14 +4057,14 @@
           const m = parseInt(parts[1]);
           const d = parseInt(parts[2]);
           titleEl.textContent = '📅 デイリー - ' + m + '月' + d + '日';
-          tutBtn.style.display = 'none';
+          if (tutBtn) tutBtn.style.display = 'none';
           battleSection.style.display = 'none';
           promoSection.style.display = 'none';
           backBtn.textContent = 'デイリーへ戻る';
           backBtn.onclick = function() { isDailySetup = false; showPage('daily'); };
         } else {
           titleEl.textContent = '🎮 ゲーム設定';
-          tutBtn.style.display = '';
+          if (tutBtn) tutBtn.style.display = '';
           battleSection.style.display = '';
           backBtn.textContent = 'メインへ戻る';
           backBtn.onclick = function() { showPage('main'); };
