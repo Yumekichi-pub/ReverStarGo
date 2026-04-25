@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v56</p>
+    <p class="app-version">RSG-v57</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -6676,7 +6676,11 @@
 
     document.getElementById('promo-announce-start-btn').addEventListener('click', () => {
       document.getElementById('promo-announce-modal').style.display = 'none';
-      showPage('game-setup');
+      // v57〜: showPage('game-setup') を削除（v40 から続いていたバグ修正）
+      // showPage('game-setup') を呼ぶと updatePromotionSection が走り、
+      // 何かが restart-btn を誤発火させて backToSetupPage に飛んでいた。
+      // startPromotionExam が setup-game / setup-main を非表示にする処理を持っているので、
+      // showPage('game-setup') は本来不要。
       startPromotionExam();
     });
 
