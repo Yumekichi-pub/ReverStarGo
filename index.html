@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v58</p>
+    <p class="app-version">RSG-v59</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -6483,7 +6483,7 @@
       document.getElementById('level-unlock-icon').textContent = '🎊';
       document.getElementById('level-unlock-title').textContent = `${lvLabel} 解放！`;
       document.getElementById('level-unlock-desc').textContent = `おめでとうございます！\n新しいレベルで遊べるようになりました！`;
-      document.getElementById('level-unlock-note').textContent = `※ 今のレベルのままではランクアップできません`;
+      document.getElementById('level-unlock-note').textContent = `※ 次のランクへ進むには ${lvLabel} での挑戦が必要です`;
       document.getElementById('level-unlock-yes-btn').textContent = `${lvLabel} に進む`;
       document.getElementById('level-unlock-modal').style.display = 'flex';
       launchFireworks(4000);

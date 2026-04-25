@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 Developer Mode Active</p>
-    <p class="app-version">RSG-v58</p>
+    <p class="app-version">RSG-v59</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -6365,7 +6365,7 @@
       document.getElementById('level-unlock-icon').textContent = '🎊';
       document.getElementById('level-unlock-title').textContent = `${lvLabel} Unlocked!`;
       document.getElementById('level-unlock-desc').textContent = `Congratulations!\nA new level is now available!`;
-      document.getElementById('level-unlock-note').textContent = `* You cannot rank up at the current level`;
+      document.getElementById('level-unlock-note').textContent = `* Play at ${lvLabel} to challenge for the next rank`;
       document.getElementById('level-unlock-yes-btn').textContent = `Go to ${lvLabel}`;
       document.getElementById('level-unlock-modal').style.display = 'flex';
       launchFireworks(4000);
