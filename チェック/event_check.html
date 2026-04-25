@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ReverStarGo イベントチェッカ v0.6</title>
+<title>ReverStarGo イベントチェッカ v0.8</title>
 <style>
   * { box-sizing: border-box; }
   html, body {
@@ -201,7 +201,7 @@
 <div id="app">
   <!-- 左パネル -->
   <div id="left">
-    <h1>🔍 イベントチェッカ v0.6</h1>
+    <h1>🔍 イベントチェッカ v0.8</h1>
 
     <button class="btn ok" id="btn-load">▶ ゲーム読込／再起動</button>
     <button class="btn" id="btn-install">🔌 フック注入</button>
@@ -1369,8 +1369,12 @@ function installHooks() {
     w.document.addEventListener("click", (e) => {
       const target = e.target;
       if (!target) return;
-      const id = (target.id || "").toLowerCase();
-      const cls = (target.className || "").toLowerCase();
+      // v0.8〜: SVG 要素 (盤面のヘキサゴン) は className が SVGAnimatedString オブジェクトで
+      // .toLowerCase() を持たない。typeof === 'string' で防御。
+      const idRaw = target.id;
+      const id = (typeof idRaw === 'string' ? idRaw : '').toLowerCase();
+      const clsRaw = target.className;
+      const cls = (typeof clsRaw === 'string' ? clsRaw : '').toLowerCase();
       const txt = (target.textContent || "").trim();
       // restart/quit/中断 ボタンクリックで中断確認が出る
       if (id === "restart-btn" || id === "quit-btn" ||
@@ -1427,11 +1431,26 @@ function installHooks() {
 // =========================================================================
 // イベントハンドラ
 // =========================================================================
+// v0.8〜: URL パラメータ "target" で iframe のソースを切替可能
+//   通常:       event_check.html
+//   bisect v40: event_check.html?target=_bisect/v40
+//   これで index.html と古いバージョンを簡単に比較できる
+function _getIframeSrc() {
+  const params = new URLSearchParams(location.search);
+  const target = params.get('target');
+  if (target) {
+    // 相対パス: チェック/ → ../<target>/index.html
+    return `../${target}/index.html?_t=` + Date.now();
+  }
+  return "../index.html?_t=" + Date.now();
+}
+
 document.getElementById("btn-load").onclick = () => {
   const iframe = document.getElementById("game-iframe");
-  iframe.src = "../index.html?_t=" + Date.now();
+  const src = _getIframeSrc();
+  iframe.src = src;
   state.hooked = false;
-  log("ゲーム本体を読込中...", "i");
+  log(`ゲーム本体を読込中... (${src})`, "i");
   iframe.onload = () => {
     log("ゲーム本体ロード完了", "ok");
     setTimeout(installHooks, 300);
@@ -2803,7 +2822,15 @@ document.getElementById("btn-auto").onclick = () => {
 buildEventList();
 buildAntiList();
 updateUI();
-log("v0.6 起動。「ゲーム読込」ボタンから始めてください。", "i");
+log("v0.8 起動。「ゲーム読込」ボタンから始めてください。", "i");
+// v0.8〜: bisect モード識別表示
+(() => {
+  const p = new URLSearchParams(location.search);
+  const t = p.get('target');
+  if (t) {
+    log(`🔬 BISECT モード: target="${t}" (../${t}/index.html を読込対象にします)`, "w");
+  }
+})();
 </script>
 </body>
 </html>
