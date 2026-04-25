@@ -2493,7 +2493,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v59</p>
+    <p class="app-version">RSG-v60</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -5372,23 +5372,28 @@
       }
       const allValid = getValidMoves(current);
       const nonKo = filterKoMoves(allValid, current);
-      // v49〜: コウ例外判定 — 非コウ手がないがコウ手があれば、例外として全手から選ぶ
-      // （ルール説明書「② 例外」に対応。これが無いと updateGame との間で無限ループしてタイムアウトする）
-      const koException = nonKo.length === 0 && allValid.length > 0;
+      // v60〜: コウルール ②③④ の完全実装
+      // ② 例外:    通常手がないがコウ手があれば例外として全手から選ぶ
+      // ③ 例外後:  直前にコウ例外があれば自分は例外を使えない
+      // ④ 終局:    自分にコウ例外必要 + 直前もコウ例外 → 連続コウ例外で終局
+      const needsKoException = nonKo.length === 0 && allValid.length > 0;
 
-      // v49〜: 両者連続コウ例外で終局
-      // （ルール説明書「④ ゲーム終了：両者とも同じ盤面を繰り返す手しか打てない状態が続く場合、ゲーム終了」）
-      if (koException && prevKoException) {
-        await showPassModal('コウの状態が続くためゲーム終了');
+      // ルール④: 連続コウ例外を検出して終局
+      // v60〜: showPassModal を呼ばない（自動テストで詰まる原因を回避）
+      if (needsKoException && prevKoException) {
+        console.log('[KO-RULE-④] 連続コウ例外で終局 (cpuPlay)');
         endGame();
         return;
       }
 
+      // ルール③: 直前にコウ例外があれば自分は例外を使えない
+      const koException = needsKoException && !prevKoException;
+
       const validMoves = koException ? allValid : nonKo;
       // 有効手なし → updateGameのパス処理に委ねる
       if (validMoves.length === 0) {
-        console.log(`[DIAG cpuPlay] validMoves=0, delegating to updateGame: cur=${current}, mv=${moveHistory.length}`);
-        prevKoException = false;  // パスなのでコウ例外フラグをリセット
+        console.log(`[DIAG cpuPlay] validMoves=0, delegating to updateGame: cur=${current}, mv=${moveHistory.length}, prevKoEx=${prevKoException}`);
+        // v60〜: パス時に prevKoException をリセットしない（ルール④ の連鎖検知のため）
         await updateGame();
         console.log(`[DIAG cpuPlay] updateGame returned (from validMoves=0 branch): cur=${current}, mv=${moveHistory.length}`);
         return;
@@ -5475,9 +5480,25 @@
       const allValidOpp = getValidMoves(opp(current));
       const validOpp = filterKoMoves(allValidOpp, opp(current));
 
-      // コウ例外判定: 非コウ手がないがコウ手がある場合はコウ手を許可
-      const koExceptionNow = validNow.length === 0 && allValidNow.length > 0;
-      const koExceptionOpp = validOpp.length === 0 && allValidOpp.length > 0;
+      // v60〜: コウルール ②③④ の完全実装
+      // ② 例外: 通常手がないがコウ手がある場合はコウ手を許可
+      // ③ 例外後: 直前にコウ例外があれば、現プレイヤーは例外を使えない
+      // ④ 終局:  自分にコウ例外必要 + 直前もコウ例外 → 連続コウ例外で終局
+      const needsKoExceptionNow = validNow.length === 0 && allValidNow.length > 0;
+      const needsKoExceptionOpp = validOpp.length === 0 && allValidOpp.length > 0;
+
+      // ルール④: 連続コウ例外を検出して終局
+      // v60〜: showPassModal を呼ばない（自動テストで詰まる原因を回避）。endGame の結果モーダルで十分
+      if (needsKoExceptionNow && prevKoException) {
+        console.log('[KO-RULE-④] 連続コウ例外で終局 (updateGame)');
+        render([]);
+        endGame();
+        return;
+      }
+
+      // ルール③: 直前にコウ例外があれば自分は例外を使えない
+      const koExceptionNow = needsKoExceptionNow && !prevKoException;
+      const koExceptionOpp = needsKoExceptionOpp;  // 相手側は次ターンで再判定
       const effectiveNow = koExceptionNow ? allValidNow : validNow;
       const effectiveOpp = koExceptionOpp ? allValidOpp : validOpp;
 
@@ -5504,8 +5525,11 @@
         return;
       }
       if (effectiveNow.length === 0) {
-        console.log(`[DIAG updateGame] one-pass branch: mv=${moveHistory.length}, cur=${current}, effectiveOpp=${effectiveOpp.length}`);
+        console.log(`[DIAG updateGame] one-pass branch: mv=${moveHistory.length}, cur=${current}, effectiveOpp=${effectiveOpp.length}, prevKoEx=${prevKoException}`);
         // 片方だけ置けない → パス表示 → 次へ
+        // v60〜: パス時に prevKoException をリセットしない
+        // 理由: ルール④「コウ例外しか打てない状態が"続く"」を検知するには、
+        //       パスを挟んでも前のコウ例外フラグを保持する必要がある
         render([]);
         // 棋譜にパス記録
         moveHistory.push({
@@ -6251,7 +6275,7 @@
       return [rq, rr, rs];
     }
 
-    function onCellClick(q, r, s) {
+    async function onCellClick(q, r, s) {
       if (replayMode) return; // リプレイ中はクリック無効
       if (isAnimating) return;
       if (isTutorial) { handleTutorialClick(q, r, s); return; }
@@ -6260,14 +6284,29 @@
       if (board[K(q,r,s)] !== null) return;
       const allValid = getValidMoves(current);
       const valid = filterKoMoves(allValid, current);
-      // コウ例外: 非コウ手がゼロならコウ手を許可
-      const koException = valid.length === 0 && allValid.length > 0;
+      // v60〜: コウルール ②③④ の完全実装
+      const needsKoException = valid.length === 0 && allValid.length > 0;
+
+      // ルール④: 連続コウ例外を検出して終局
+      // v60〜: showPassModal を呼ばない（自動テストで詰まる原因を回避）
+      if (needsKoException && prevKoException) {
+        console.log('[KO-RULE-④] 連続コウ例外で終局 (onCellClick)');
+        endGame();
+        return;
+      }
+
+      // ルール③: 直前にコウ例外があれば自分は例外を使えない
+      const koException = needsKoException && !prevKoException;
+
       // コウ手を踏んだ場合：有効手だがコウで禁止されている
       const isKoCell = allValid.some(([vq,vr,vs]) => vq===q && vr===r && vs===s)
                     && !valid.some(([vq,vr,vs]) => vq===q && vr===r && vs===s);
       if (isKoCell && !koException) { showKoMessage(); return; }
       const playable = koException ? allValid : valid;
       if (!playable.some(([vq,vr,vs]) => vq===q && vr===r && vs===s)) return;
+
+      // v60〜: GPモーダル経由でも反映されるよう、手を打つ前にフラグ更新
+      prevKoException = koException;
 
       saveUndoState();
       if (needsGPCall(q,r,s,current)) {
