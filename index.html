@@ -4760,6 +4760,15 @@
     // ===== AI ロジック =====
 
     // 手のスコアを評価する（フリップ数＋取り除き数）
+    /**
+     * (q,r,s) に player が打つ手の評価値を計算する（1 手読み用）。
+     * 挟んでひっくり返す数 + 囲み取りの数 + ポジション重みの合計。
+     * @param {number} q - cube 座標 q
+     * @param {number} r - cube 座標 r
+     * @param {number} s - cube 座標 s
+     * @param {'black'|'white'} player - 手番のプレイヤー
+     * @returns {number} 手の評価値（高いほど良い）
+     */
     function evaluateMove(q, r, s, player) {
       const gp = bestGPColor(q, r, s, player);
       const flips = realFlipCount(q, r, s, player, gp);
@@ -5219,6 +5228,15 @@
     }
 
     // 手を実行する（取り除きアニメーション付き）
+    /**
+     * 手を実際に盤面へ反映する。石を置く・ひっくり返す・囲み取り・棋譜記録・
+     * boardHistory 更新（スーパーコウ用）・current 切替・updateGame 再呼出までを担当。
+     * アニメーションも同期的に await する（animationsEnabled=false のときは即時）。
+     * @param {number} q - 着手位置 cube 座標
+     * @param {number} r - 着手位置 cube 座標
+     * @param {number} s - 着手位置 cube 座標
+     * @param {'black'|'white'|null} gpColor - GP コール色（CP 経由時、それ以外は null）
+     */
     async function executeMove(q, r, s, gpColor) {
       isAnimating = true;
       gameStarted = true;         // ゲームが開始された
