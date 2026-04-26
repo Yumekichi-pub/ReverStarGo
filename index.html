@@ -3279,6 +3279,11 @@
       return `<img src="${RANKS[idx].icon}" alt="${RANKS[idx].name}" style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;">`;
     }
 
+    /**
+     * 戦績と合格済み試験から現在のランクを計算する。
+     * 累計勝利数 + 合格試験 + 開発者モード設定 を考慮して 1〜30 のランクインデックスを返す。
+     * @returns {number} ランクインデックス（1=ペーパー〜30=ゼウス）
+     */
     function calculateRank() {
       const record = loadBattleRecord();  // 累計
       const daily = loadDailyRecord();    // 当日
@@ -3528,6 +3533,12 @@
     // Reverse Match を適用すべきか判定（v41〜）
     // 適用条件: Lv.5以上の全対戦、または Lv.5以上の昇格試験
     // ただし 2人対戦・チュートリアルは除外
+    /**
+     * 現在の対戦設定で Reverse Match を適用すべきかを判定する。
+     * 適用条件: トパーズ以上のランク × Lv.5 以上の対戦、または Lv.5+ の昇格試験中。
+     * 2 人対戦・チュートリアル・Lv.4 以下では false。
+     * @returns {boolean} RM を適用するなら true
+     */
     function shouldUseReverseMatch() {
       if (battleMode === 'two') return false;
       if (tutorialMiniGame) return false;
@@ -3569,6 +3580,11 @@
     }
 
     // 昇格試験を開始
+    /**
+     * 昇格試験（ランクアップマッチ）を開始する。
+     * 試験タイプに応じた連戦数（3〜21番勝負）と勝利条件を設定し、
+     * RM 適用の場合は Reverse Match 形式で進行。途中離脱は不合格扱い。
+     */
     function startPromotionExam() {
       const promo = getAvailablePromotion();
       if (!promo) return;
@@ -3617,6 +3633,11 @@
     }
 
     // 昇格試験の結果を記録
+    /**
+     * 昇格試験中の 1 局の結果を記録し、合格・不合格・続行を判定する。
+     * 連勝数が必要勝利数に達したら合格 → ランクアップ、必要敗北数なら不合格。
+     * @param {boolean} isWin - その局でプレイヤーが勝利したか
+     */
     function recordPromotionResult(isWin) {
       if (!promotionExam) return null;
       if (isWin) promotionExam.wins++;
@@ -3658,6 +3679,12 @@
     // ===== レベル解放システム =====
     const LEVEL_UNLOCK_RANK = [0, 0, 3, 6, 9, 13, 18, 24]; // index 0 unused, levels 1-7(FINAL)
 
+    /**
+     * 指定 CPU レベルが解放されているかを判定する。
+     * Lv.1 は最初から解放、Lv.2 以降はランクと昇格試験合格状況で判定。
+     * @param {number} level - CPU レベル（1〜5 + MAX/FINAL 相当）
+     * @returns {boolean} 解放済みなら true
+     */
     function isLevelUnlocked(level) {
       if (devMode) return true; // devMode: 全レベル解放
       return calculateRank() >= LEVEL_UNLOCK_RANK[level];
