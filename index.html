@@ -3202,6 +3202,40 @@
     let showPlacedAnim = false;     // 置いた瞬間のアニメーション（最初のrenderのみ）
     let prevKoException = false;    // 直前の手がコウ例外で打たれたか（両者連続例外で終局するため）
 
+    // ===== シード可能な疑似乱数生成器（決定論モード用）=====
+    // 通常は randomSeed=null で nextRandom() を呼び出す（従来の動作と完全互換）。
+    // CPU Battle Lab 等で setRandomSeed(数値) を呼べば、その値から確定的な乱数列が
+    // 生成され、リファクタ前後の同一棋譜検証が可能になる。
+    let randomSeed = null;
+    let _randomState = 0;
+
+    /** mulberry32: 高品質で高速な 32-bit PRNG。状態は _randomState で管理する。 */
+    function _mulberry32() {
+      _randomState = (_randomState + 0x6D2B79F5) | 0;
+      let t = _randomState;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+
+    /**
+     * シード可能な乱数を返す。nextRandom() のドロップイン代替。
+     * randomSeed が null なら従来通り nextRandom()、それ以外なら確定的乱数。
+     * @returns {number} [0, 1) の乱数
+     */
+    function nextRandom() {
+      return randomSeed === null ? Math.random() : _mulberry32();
+    }
+
+    /**
+     * シードを設定して決定論モードを開始/解除する。
+     * @param {number|null} seed - シード値（null で決定論モード解除＝Math.random に戻る）
+     */
+    function setRandomSeed(seed) {
+      randomSeed = seed;
+      _randomState = seed === null ? 0 : (seed | 0);
+    }
+
     // ===== AI設定 =====
     let humanColor = 'black';   // プレイヤーの色
     let cpuColor = 'white';     // コンピューターの色
@@ -4476,7 +4510,7 @@
           const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
           const data = buf.getChannelData(0);
           for (let i = 0; i < data.length; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.012));
+            data[i] = (nextRandom() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.012));
           }
           const src = ctx.createBufferSource();
           src.buffer = buf;
@@ -5015,12 +5049,12 @@
         }));
         scored.sort((a,b) => a.score - b.score); // 昇順（悪い手が先）
         const pool = scored.slice(0, Math.max(1, Math.ceil(scored.length * 0.5)));
-        return pool[Math.floor(Math.random() * pool.length)].move;
+        return pool[Math.floor(nextRandom() * pool.length)].move;
       }
 
       if (cpuLevel === 2) {
         // Lv.2 初級: 完全ランダム
-        return validMoves[Math.floor(Math.random() * validMoves.length)];
+        return validMoves[Math.floor(nextRandom() * validMoves.length)];
       }
 
       if (cpuLevel === 3) {
@@ -5031,7 +5065,7 @@
         }));
         scored.sort((a,b) => b.score - a.score);
         const pool = scored.slice(0, Math.max(1, Math.ceil(scored.length * 0.6)));
-        return pool[Math.floor(Math.random() * pool.length)].move;
+        return pool[Math.floor(nextRandom() * pool.length)].move;
       }
 
       if (cpuLevel === 4) {
@@ -5043,7 +5077,7 @@
           if (ev > bestScore) { bestScore = ev; bestMoves = [[q,r,s]]; }
           else if (ev === bestScore) bestMoves.push([q,r,s]);
         }
-        return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        return bestMoves[Math.floor(nextRandom() * bestMoves.length)];
       }
 
       if (cpuLevel === 5) {
@@ -5057,7 +5091,7 @@
           if (total > bestScore) { bestScore = total; bestMoves = [[q,r,s]]; }
           else if (total === bestScore) bestMoves.push([q,r,s]);
         }
-        return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        return bestMoves[Math.floor(nextRandom() * bestMoves.length)];
       }
 
       // Lv.6〜7: negamax with alpha-beta（先読み深さをレベルで変える）
@@ -5080,7 +5114,7 @@
         else if (val === bestScore) bestMoves.push([q,r,s]);
       }
       return bestMoves.length > 0
-        ? bestMoves[Math.floor(Math.random() * bestMoves.length)]
+        ? bestMoves[Math.floor(nextRandom() * bestMoves.length)]
         : validMoves[0];
     }
 
@@ -5552,9 +5586,9 @@
       // animationsEnabled=false（自動テスト想定）のときは思考待ちを 0 に。
       // これが無いと 1 手 350-550ms × 60-70 手 で 30 秒タイムアウトに抵触する。
       const thinkTime = !animationsEnabled ? 0
-                      : cpuSpeedLevel === 3 ? 350 + Math.random() * 200
-                      : cpuSpeedLevel === 1 ? 2500 + Math.random() * 1000
-                      :                       1000 + Math.random() * 500;
+                      : cpuSpeedLevel === 3 ? 350 + nextRandom() * 200
+                      : cpuSpeedLevel === 1 ? 2500 + nextRandom() * 1000
+                      :                       1000 + nextRandom() * 500;
       if (thinkTime > 0) await new Promise(r => setTimeout(r, thinkTime));
 
       // 今回の手がコウ例外だったかを executeMove の前に記録（両者連続検知用）
@@ -5569,7 +5603,7 @@
       } catch(e) {
         console.error('CPU手選択エラー:', e);
         // エラー時はランダムな有効手でフォールバック
-        const [q, r, s] = validMoves[Math.floor(Math.random() * validMoves.length)];
+        const [q, r, s] = validMoves[Math.floor(nextRandom() * validMoves.length)];
         const gp = pickNonKoGPColor(q, r, s, current);
         await executeMove(q, r, s, gp);
       }
@@ -6572,19 +6606,19 @@
       const startTime = Date.now();
 
       function createBurst(x, y) {
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        const count = 30 + Math.floor(Math.random() * 20);
+        const color = colors[Math.floor(nextRandom() * colors.length)];
+        const count = 30 + Math.floor(nextRandom() * 20);
         for (let i = 0; i < count; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 2 + Math.random() * 4;
+          const angle = nextRandom() * Math.PI * 2;
+          const speed = 2 + nextRandom() * 4;
           particles.push({
             x, y,
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
             life: 1,
-            decay: 0.01 + Math.random() * 0.015,
+            decay: 0.01 + nextRandom() * 0.015,
             color,
-            size: 2 + Math.random() * 3,
+            size: 2 + nextRandom() * 3,
           });
         }
       }
@@ -6600,10 +6634,10 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // 定期的に新しい花火を打ち上げ
-        if (elapsed - lastBurst > 300 + Math.random() * 400) {
+        if (elapsed - lastBurst > 300 + nextRandom() * 400) {
           createBurst(
-            canvas.width * 0.2 + Math.random() * canvas.width * 0.6,
-            canvas.height * 0.15 + Math.random() * canvas.height * 0.4
+            canvas.width * 0.2 + nextRandom() * canvas.width * 0.6,
+            canvas.height * 0.15 + nextRandom() * canvas.height * 0.4
           );
           lastBurst = elapsed;
         }
