@@ -4629,6 +4629,16 @@
     }
 
     // 裏返し枚数（CP単体挟みも有効）
+    /**
+     * (q,r,s) に着手した時に「実際にひっくり返る石」の数を返す。
+     * getFlippable から得たリストの長さと同じだが、評価関数で頻用するため別関数化。
+     * @param {number} q - cube 座標 q
+     * @param {number} r - cube 座標 r
+     * @param {number} s - cube 座標 s
+     * @param {'black'|'white'} player - 手番
+     * @param {'black'|'white'|null} gpColor - GP コール色
+     * @returns {number} ひっくり返る石数
+     */
     function realFlipCount(q, r, s, player, gpColor) {
       return getFlippable(q,r,s,player,gpColor).length;
     }
@@ -4683,6 +4693,16 @@
     }
 
     // 手を仮実行した最終盤面スナップショット（CPリセット後）を返す
+    /**
+     * (q,r,s) に着手し、ひっくり返し→囲み取りまで完了した最終盤面のスナップショットを返す。
+     * 実際の盤面を変更せずに、コピーを使ってシミュレーションする（コウ判定や AI 評価で使用）。
+     * @param {number} q - 着手位置の cube 座標
+     * @param {number} r - 着手位置の cube 座標
+     * @param {number} s - 着手位置の cube 座標
+     * @param {'black'|'white'} player - 手番
+     * @param {'black'|'white'|null} gpColor - GP コール色
+     * @returns {Object} 着手後の盤面オブジェクト（コピー）
+     */
     function simulateFinalSnapshot(q, r, s, player, gpColor) {
       const saved = new Map();
       const save = (k) => { if (!saved.has(k)) saved.set(k, board[k]); };
@@ -4797,6 +4817,15 @@
     }
 
     // 位置の戦略的価値（角・辺 = 高得点）
+    /**
+     * セル (q,r,s) のポジション重み（戦略的価値）を返す。
+     * 中央のコアポイント周辺は高得点、星の腕先端も高め、その他は低め。
+     * 評価関数 evaluateBoardFor の構成要素。
+     * @param {number} q - cube 座標 q
+     * @param {number} r - cube 座標 r
+     * @param {number} s - cube 座標 s
+     * @returns {number} そのセルのポジション重み
+     */
     function positionValue(q, r, s) {
       // 腕の先端（角）は最も価値が高い ― オセロの角と同等
       const tips = [[4,-2,-2],[-4,2,2],[-2,4,-2],[2,-4,2],[-2,-2,4],[2,2,-4]];
@@ -4837,6 +4866,16 @@
     }
 
     // 仮に手を適用してevalFnを実行し、ボードを完全スナップショットで確実に復元する
+    /**
+     * 仮想的に (q,r,s) へ着手し、その後の盤面で evalFn を実行して結果を返す。
+     * 実行後、盤面は元に戻される（破壊的でない評価）。negamax の再帰探索で使用。
+     * @param {number} q - 着手位置の cube 座標
+     * @param {number} r - 着手位置の cube 座標
+     * @param {number} s - 着手位置の cube 座標
+     * @param {'black'|'white'} player - 着手するプレイヤー
+     * @param {Function} evalFn - 着手後の盤面で実行する評価関数
+     * @returns {*} evalFn の戻り値
+     */
     function withMove(q, r, s, player, evalFn) {
       const snap = Object.assign({}, board); // 全セルの完全コピー
       // Rule 4: snap を pre-board snapshot として再利用
@@ -5019,6 +5058,12 @@
     // ===== コウ（Ko）判定 =====
 
     // ボード全体を文字列化（コウ判定用スナップショット）
+    /**
+     * 現在の盤面を文字列にシリアライズする（boardHistory のキーとして使用）。
+     * スーパーコウ判定（過去局面との一致チェック）の高速化のため、
+     * 各セルの状態を 'b'/'w'/'.' の 1 文字に圧縮して結合する。
+     * @returns {string} 盤面を表す固定長の文字列
+     */
     function serializeBoard() {
       return ALL_CELLS.map(([q,r,s]) => {
         if (q===0 && r===0 && s===0) return 'n'; // GPは常にリセットされるので固定
@@ -5051,6 +5096,16 @@
     // 戻り値: 非コウのCPコール色の配列 ['black', 'white', null 等]
     //   - 空配列 → どのコールでもコウになる（コウ手）
     //   - 非空 → この手は合法（その色でコールすれば非コウ）
+    /**
+     * (q,r,s) で GP コールするとき、コウ違反にならない色のリストを返す。
+     * 'black' のコール、'white' のコールそれぞれを試して、結果がコウなら除外。
+     * UI でオレンジドット表示（CP コール片色制限）の判定に使用。
+     * @param {number} q - 着手位置の cube 座標
+     * @param {number} r - 着手位置の cube 座標
+     * @param {number} s - 着手位置の cube 座標
+     * @param {'black'|'white'} player - 手番
+     * @returns {Array<'black'|'white'>} コウ違反にならない GP コール色のリスト
+     */
     function getNonKoGPColors(q, r, s, player) {
       if (!prevBoardSnapshot) return ['black', 'white', null];
 
