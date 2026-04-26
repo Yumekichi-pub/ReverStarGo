@@ -3195,7 +3195,7 @@
     let lastMove = null;            // 最後に置いた場所 [q,r,s]（次の手まで表示）
     let pendingMoveMarker = null;   // GP選択中の仮マーカー [q,r,s]
     let showPlacedAnim = false;     // 置いた瞬間のアニメーション（最初のrenderのみ）
-    let prevKoException = false;    // v49〜: 直前の手がコウ例外で打たれたか（両者連続例外で終局するため）
+    let prevKoException = false;    // 直前の手がコウ例外で打たれたか（両者連続例外で終局するため）
 
     // ===== AI設定 =====
     let humanColor = 'black';   // プレイヤーの色
@@ -3596,7 +3596,7 @@
       if (lvBtn) lvBtn.classList.add('selected');
       saveSettings();
       prevRank = calculateRank();
-      // v52〜: Reverse Match を発動判定（Lv.5 以上の昇格試験で必須）
+      // Reverse Match を発動判定（Lv.5 以上の昇格試験で必須）
       // これが無いと、ダイヤモンド／レジェンド／グランドマスター等で
       // リバースマッチにならず、普通の1局対戦になってしまう
       if (shouldUseReverseMatch()) {
@@ -4026,7 +4026,7 @@
 
     // ===== ページナビゲーション =====
     function showPage(page) {
-      // v47〜: ランクアップマッチ中でも画面移動は自由（進捗は localStorage に保持される）
+      // ランクアップマッチ中でも画面移動は自由（進捗は localStorage に保持される）
       // 対戦中の離脱のみ 1 敗扱い（REVERSE_MATCH_PENDING_KEY で管理）
       document.getElementById('setup-main').style.display = 'none';
       document.getElementById('setup-game').style.display = 'none';
@@ -5019,8 +5019,8 @@
     }
 
     // スーパーコウ判定：直前の局面だけでなく全履歴と照合
-    // v48〜: グローバル関数に昇格（イベントチェッカから GAM_010 として監視可能にするため）
-    // v50〜: ポジショナル式（盤面のみ）に統一。深さ解析 HTML で 51,000 局検証済み
+    // グローバル関数に昇格（イベントチェッカから GAM_010 として監視可能にするため）
+    // ポジショナル式（盤面のみ）に統一。深さ解析 HTML で 51,000 局検証済み
     //       ルール説明「一度現れた局面に戻る手は打てません」と完全整合
     //       引数の player は後方互換のため残すが、v50 からは未使用
     function isRepeatedPosition(snap, player) {
@@ -5294,9 +5294,9 @@
         if (board[gpK] !== null) board[gpK] = null;
 
         // g. スーパーコウ判定用：局面を履歴に追加
-        boardHistory.push(serializeBoard());  // v50〜: ポジショナル式（盤面のみ）
+        boardHistory.push(serializeBoard());  // ポジショナル式（盤面のみ）
 
-        // v51〜: 安全装置 — 100 手超えは異常ループとみなして強制終局
+        // 安全装置 — 100 手超えは異常ループとみなして強制終局
         // （盤面は 37 マス、通常 30〜50 手で終局。100 手 = 明らかに異常）
         if (boardHistory.length > 100) {
           console.warn('[SAFETY] boardHistory > 100 手 — 強制終局');
@@ -5357,7 +5357,7 @@
 
     // CPUのターンを実行
     async function cpuPlay() {
-      // v54〜: 安全弁①（cpuPlay 冒頭） — moveHistory ベース
+      // 安全弁①（cpuPlay 冒頭） — moveHistory ベース
       // boardHistory は pass を含まない & executeMove 内でしかチェックしないため、
       // パス混じりのコウループで閾値に届きにくい。moveHistory は pass も含むので堅い。
       if (moveHistory.length > 80) {
@@ -5366,20 +5366,20 @@
         endGame();
         return;
       }
-      // v54〜: 診断ログ（20 手ごと）
+      // 診断ログ（20 手ごと）
       if (moveHistory.length > 0 && moveHistory.length % 20 === 0) {
         console.log(`[DIAG cpuPlay] move=${moveHistory.length}, boardHist=${boardHistory.length}, prevKoEx=${prevKoException}, current=${current}`);
       }
       const allValid = getValidMoves(current);
       const nonKo = filterKoMoves(allValid, current);
-      // v60〜: コウルール ②③④ の完全実装
+      // コウルール ②③④ の完全実装
       // ② 例外:    通常手がないがコウ手があれば例外として全手から選ぶ
       // ③ 例外後:  直前にコウ例外があれば自分は例外を使えない
       // ④ 終局:    自分にコウ例外必要 + 直前もコウ例外 → 連続コウ例外で終局
       const needsKoException = nonKo.length === 0 && allValid.length > 0;
 
       // ルール④: 連続コウ例外を検出して終局
-      // v60〜: showPassModal を呼ばない（自動テストで詰まる原因を回避）
+      // showPassModal を呼ばない（自動テストで詰まる原因を回避）
       if (needsKoException && prevKoException) {
         console.log('[KO-RULE-④] 連続コウ例外で終局 (cpuPlay)');
         endGame();
@@ -5393,7 +5393,7 @@
       // 有効手なし → updateGameのパス処理に委ねる
       if (validMoves.length === 0) {
         console.log(`[DIAG cpuPlay] validMoves=0, delegating to updateGame: cur=${current}, mv=${moveHistory.length}, prevKoEx=${prevKoException}`);
-        // v60〜: パス時に prevKoException をリセットしない（ルール④ の連鎖検知のため）
+        // パス時に prevKoException をリセットしない（ルール④ の連鎖検知のため）
         await updateGame();
         console.log(`[DIAG cpuPlay] updateGame returned (from validMoves=0 branch): cur=${current}, mv=${moveHistory.length}`);
         return;
@@ -5404,7 +5404,7 @@
       render([]); // ヒント非表示
 
       // 思考時間（速度設定に連動）
-      // v55〜: animationsEnabled=false（自動テスト想定）のときは思考待ちを 0 に。
+      // animationsEnabled=false（自動テスト想定）のときは思考待ちを 0 に。
       // これが無いと 1 手 350-550ms × 60-70 手 で 30 秒タイムアウトに抵触する。
       const thinkTime = !animationsEnabled ? 0
                       : cpuSpeedLevel === 3 ? 350 + Math.random() * 200
@@ -5412,7 +5412,7 @@
                       :                       1000 + Math.random() * 500;
       if (thinkTime > 0) await new Promise(r => setTimeout(r, thinkTime));
 
-      // v49〜: 今回の手がコウ例外だったかを executeMove の前に記録（両者連続検知用）
+      // 今回の手がコウ例外だったかを executeMove の前に記録（両者連続検知用）
       // （executeMove 内で updateGame → 次ターン cpuPlay が起動するため、先に設定しないと内部で古い値を見る）
       prevKoException = koException;
 
@@ -5466,7 +5466,7 @@
     async function updateGame(showTurnChange = false) {
       if (isTutorial) { render([]); return; }
 
-      // v54〜: 安全弁②（updateGame 冒頭） — moveHistory ベース
+      // 安全弁②（updateGame 冒頭） — moveHistory ベース
       // cpuPlay を経由しないパスループでも確実に止める
       if (moveHistory.length > 80) {
         console.warn(`[SAFETY] updateGame: moveHistory=${moveHistory.length} > 80 — 強制終局`);
@@ -5480,7 +5480,7 @@
       const allValidOpp = getValidMoves(opp(current));
       const validOpp = filterKoMoves(allValidOpp, opp(current));
 
-      // v60〜: コウルール ②③④ の完全実装
+      // コウルール ②③④ の完全実装
       // ② 例外: 通常手がないがコウ手がある場合はコウ手を許可
       // ③ 例外後: 直前にコウ例外があれば、現プレイヤーは例外を使えない
       // ④ 終局:  自分にコウ例外必要 + 直前もコウ例外 → 連続コウ例外で終局
@@ -5488,7 +5488,7 @@
       const needsKoExceptionOpp = validOpp.length === 0 && allValidOpp.length > 0;
 
       // ルール④: 連続コウ例外を検出して終局
-      // v60〜: showPassModal を呼ばない（自動テストで詰まる原因を回避）。endGame の結果モーダルで十分
+      // showPassModal を呼ばない（自動テストで詰まる原因を回避）。endGame の結果モーダルで十分
       if (needsKoExceptionNow && prevKoException) {
         console.log('[KO-RULE-④] 連続コウ例外で終局 (updateGame)');
         render([]);
@@ -5527,7 +5527,7 @@
       if (effectiveNow.length === 0) {
         console.log(`[DIAG updateGame] one-pass branch: mv=${moveHistory.length}, cur=${current}, effectiveOpp=${effectiveOpp.length}, prevKoEx=${prevKoException}`);
         // 片方だけ置けない → パス表示 → 次へ
-        // v60〜: パス時に prevKoException をリセットしない
+        // パス時に prevKoException をリセットしない
         // 理由: ルール④「コウ例外しか打てない状態が"続く"」を検知するには、
         //       パスを挟んでも前のコウ例外フラグを保持する必要がある
         render([]);
@@ -5652,7 +5652,7 @@
 
     // 終了処理
     function endGame() {
-      // v56〜: 診断ログ（endGame 呼び出し検出用）
+      // 診断ログ（endGame 呼び出し検出用）
       console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
       // ゲーム終了時は「1手戻る」を完全に無効化（勝利2重カウント防止）
       undoUsed = true;
@@ -5704,7 +5704,7 @@
           humanColor = opp(humanColor);
           cpuColor = opp(cpuColor);
           reverseMatch.round = 2;
-          // v53〜: イベント台帳への通知（RM 1局目→2局目 色交換）
+          // イベント台帳への通知（RM 1局目→2局目 色交換）
           try { window.__RSG_EVENT__ && window.__RSG_EVENT__('PRO_010'); } catch(e) {}
           // 中間結果メッセージ
           const r1 = reverseMatch.round1Result;
@@ -6284,11 +6284,11 @@
       if (board[K(q,r,s)] !== null) return;
       const allValid = getValidMoves(current);
       const valid = filterKoMoves(allValid, current);
-      // v60〜: コウルール ②③④ の完全実装
+      // コウルール ②③④ の完全実装
       const needsKoException = valid.length === 0 && allValid.length > 0;
 
       // ルール④: 連続コウ例外を検出して終局
-      // v60〜: showPassModal を呼ばない（自動テストで詰まる原因を回避）
+      // showPassModal を呼ばない（自動テストで詰まる原因を回避）
       if (needsKoException && prevKoException) {
         console.log('[KO-RULE-④] 連続コウ例外で終局 (onCellClick)');
         endGame();
@@ -6305,7 +6305,7 @@
       const playable = koException ? allValid : valid;
       if (!playable.some(([vq,vr,vs]) => vq===q && vr===r && vs===s)) return;
 
-      // v60〜: GPモーダル経由でも反映されるよう、手を打つ前にフラグ更新
+      // GPモーダル経由でも反映されるよう、手を打つ前にフラグ更新
       prevKoException = koException;
 
       saveUndoState();
@@ -6378,7 +6378,7 @@
       showPlacedAnim = false;
       prevBoardSnapshot = null; // コウ判定リセット
       boardHistory = [];        // スーパーコウ履歴リセット
-      prevKoException = false;  // v49〜: コウ例外連続検知フラグもリセット
+      prevKoException = false;  // コウ例外連続検知フラグもリセット
       undoSnapshot = null;      // Undoリセット
       undoUsed = false;         // Undo使用済みリセット
       gameStarted = false;      // ゲーム開始フラグリセット
@@ -6719,7 +6719,7 @@
 
     document.getElementById('promo-announce-start-btn').addEventListener('click', () => {
       document.getElementById('promo-announce-modal').style.display = 'none';
-      // v57〜: showPage('game-setup') を削除（v40 から続いていたバグ修正）
+      // showPage('game-setup') を削除（v40 から続いていたバグ修正）
       // showPage('game-setup') を呼ぶと updatePromotionSection が走り、
       // 何かが restart-btn を誤発火させて backToSetupPage に飛んでいた。
       // startPromotionExam が setup-game / setup-main を非表示にする処理を持っているので、
@@ -6835,11 +6835,11 @@
         const remainingWins = promo.winsNeeded - exam.wins;
         progressText = `今回: ${exam.wins}勝${exam.losses}敗（あと${remainingWins}勝で昇格）`;
       }
-      // v47〜: 通算成績は 10 勝超えてから表示（心理的ハードル配慮）
+      // 通算成績は 10 勝超えてから表示（心理的ハードル配慮）
       if (career.wins > 10 && promo.careerWins > 0) {
         const remaining = promo.careerWins - career.wins;
         progressText += (progressText ? '\n' : '') + `通算: ${career.wins}勝${career.losses}敗（あと${remaining}勝で昇格）`;
-        // v53〜: イベント台帳への通知（通算 10 勝超表示切替）
+        // イベント台帳への通知（通算 10 勝超表示切替）
         try { window.__RSG_EVENT__ && window.__RSG_EVENT__('PRO_012'); } catch(e) {}
       }
 
@@ -6914,7 +6914,7 @@
           // 離脱検知用フラグと履歴スタック（v44〜）
           markReverseMatchPending();
           try { history.pushState({reverseMatchActive: true}, '', location.href); } catch(e) {}
-          // v53〜: イベント台帳への通知（RM セット間色継続／新規 RM 開始）
+          // イベント台帳への通知（RM セット間色継続／新規 RM 開始）
           try { window.__RSG_EVENT__ && window.__RSG_EVENT__('PRO_011'); } catch(e) {}
         }
         initGame();
@@ -7010,7 +7010,7 @@
       lastMove = null;
       prevBoardSnapshot = null;
       boardHistory = [];
-      prevKoException = false;  // v49〜
+      prevKoException = false;  // コウ例外連続検知フラグもリセット
       undoSnapshot = null;
       isAnimating = false;
 
