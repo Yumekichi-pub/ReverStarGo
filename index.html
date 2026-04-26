@@ -5127,9 +5127,16 @@
       let bestMoves = [];
 
       for (const {move:[q,r,s]} of ranked) {
-        const val = withMove(q, r, s, player, () =>
-          -negamax(searchDepth, opp(player), -Infinity, Infinity)
-        );
+        // 反復深化探索: 浅い深さから順に negamax を呼ぶ。
+        // 浅い深さの探索結果は TT に蓄積され、深い探索でキャッシュヒットして
+        // 大幅に高速化される（Iterative Deepening + TT の組み合わせ効果）。
+        const val = withMove(q, r, s, player, () => {
+          let v = 0;
+          for (let d = 1; d <= searchDepth; d++) {
+            v = -negamax(d, opp(player), -Infinity, Infinity);
+          }
+          return v;
+        });
         if (val > bestScore) { bestScore = val; bestMoves = [[q,r,s]]; }
         else if (val === bestScore) bestMoves.push([q,r,s]);
       }
