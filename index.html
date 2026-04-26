@@ -4023,6 +4023,10 @@
     }
 
     // ===== ページナビゲーション =====
+    /**
+     * 画面（ページ）の切り替えを行う。各ページの表示/非表示を一括管理。
+     * @param {string} page - 切り替え先ページ名（'main', 'game', 'settings', 'daily', 'account', 'rules', 'rank' など）
+     */
     function showPage(page) {
       // ランクアップマッチ中でも画面移動は自由（進捗は localStorage に保持される）
       // 対戦中の離脱のみ 1 敗扱い（REVERSE_MATCH_PENDING_KEY で管理）
@@ -4204,6 +4208,10 @@
       }
     }
 
+    /**
+     * カスタム設定（速度・アニメ・テーマ・棋譜表記・ヒント・効果音・対戦モード等）を
+     * localStorage に保存する。ゲーム開始や画面遷移時に呼び出される。
+     */
     function saveSettings() {
       const settings = {
         speed: cpuSpeedLevel,
@@ -4221,6 +4229,10 @@
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {}
     }
 
+    /**
+     * localStorage に保存されたカスタム設定を読み込み、グローバル変数と UI に反映する。
+     * 初回起動や画面遷移時に呼び出される。設定がなければデフォルト値のまま。
+     */
     function loadSettings() {
       try {
         const data = JSON.parse(localStorage.getItem(SETTINGS_KEY));
@@ -4240,6 +4252,10 @@
 
     // 前回プレイしたゲーム設定の復元（v40〜）
     // updateLevelButtons() でロック状態が確定した後に呼ぶ必要がある
+    /**
+     * ゲーム設定（プレイヤー色・CPUレベル・対戦モード）を localStorage から復元する。
+     * カスタム設定（loadSettings）とは別の保存領域で、ゲーム開始時に使用。
+     */
     function loadGameSettings() {
       try {
         const data = JSON.parse(localStorage.getItem(SETTINGS_KEY));
@@ -4523,6 +4539,10 @@
       document.querySelectorAll('[data-level]').forEach(b => b.classList.remove('selected'));
       document.querySelector(`[data-level="${lv}"]`).classList.add('selected');
     }
+    /**
+     * ゲーム開始処理。盤面・棋譜・履歴のリセット、Reverse Match 適用判定、
+     * 昇格試験の引き継ぎ、UI 表示の切り替えなどを一括で行う。
+     */
     function startGame() {
       saveSettings();
       // 前回の Reverse Match 途中離脱を検知 → 1敗として記録（v44〜）
