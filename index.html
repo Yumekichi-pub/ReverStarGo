@@ -3403,10 +3403,6 @@
       return 0;
     }
 
-    function getRankDisplay() {
-      const idx = calculateRank();
-      return `${rankIcon(idx)} ${RANKS[idx].name}`;
-    }
 
     // ===== 昇格試験システム =====
     const PROMOTION_KEY = 'reverstargo-promotions';
@@ -3774,9 +3770,6 @@
       saveDailyData(data);
     }
 
-    function isDailyComplete(dateStr) {
-      return !!loadDailyData()[dateStr];
-    }
 
     function getTodayStr() {
       const d = new Date();
@@ -4824,60 +4817,6 @@
     }
 
     // シミュレーション用：手を仮に打った後の盤面スコア差を返す
-    function simulateFullMove(q, r, s, player) {
-      const saved = new Map();
-      const save = (k) => { if (!saved.has(k)) saved.set(k, board[k]); };
-
-      // Rule 4: 既存囲み保護用に手を打つ前のボード状態を保存
-      const preBoardSnap = snapshotBoardForCapture();
-      const gpK = K(0,0,0);
-      const gpWasAlreadySurrounded = DIRS.every(([dq,dr,ds]) => board[K(dq,dr,ds)] === player);
-      const gp = bestGPColor(q, r, s, player);
-
-      // 石を置く
-      save(K(q,r,s));
-      board[K(q,r,s)] = player;
-
-      // CP石をフリップ前に配置
-      save(gpK);
-      if (gp && board[gpK] === null) board[gpK] = gp;
-
-      // フリップ
-      const flipped = getFlippable(q, r, s, player, gp);
-      for (const [fq,fr,fs] of flipped) {
-        save(K(fq,fr,fs)); board[K(fq,fr,fs)] = player;
-      }
-
-      // 自動囲み：今回初めて囲まれた場合のみ
-      if (board[gpK] === null && !gpWasAlreadySurrounded &&
-          DIRS.every(([dq,dr,ds]) => board[K(dq,dr,ds)] === player)) {
-        board[gpK] = opp(player);
-      }
-
-      // Rule 4: 既存囲みを除外した実取り除き
-      const groups = filterRealCaptures(findCaptureGroups(player), preBoardSnap);
-      let capCount = 0;
-      for (const group of groups) {
-        for (const [cq,cr,cs] of group) {
-          save(K(cq,cr,cs));
-          board[K(cq,cr,cs)] = null;
-          capCount++;
-        }
-      }
-
-      // 盤面スコア計算
-      let myStones = 0, oppStones = 0;
-      for (const [cq,cr,cs] of ALL_CELLS) {
-        const c = board[K(cq,cr,cs)];
-        if (c === player) myStones++;
-        else if (c === opp(player)) oppStones++;
-      }
-
-      // ボード復元
-      for (const [k, v] of saved) board[k] = v;
-
-      return { score: myStones - oppStones + capCount, capCount, flips: flipped.length };
-    }
 
     // CPUの手を選ぶ
     function cpuChooseMove(validMoves, player) {
@@ -4988,35 +4927,6 @@
     }
 
     // 手を打った後のボード状態をシミュレーション（実ボードは変更しない）
-    function simulateMoveSnapshot(q, r, s, player) {
-      const saved = new Map();
-      const save = (k) => { if (!saved.has(k)) saved.set(k, board[k]); };
-
-      // Rule 4: 既存囲み保護用に手を打つ前のボード状態を保存
-      const preBoardSnap = snapshotBoardForCapture();
-
-      save(K(q,r,s));
-      board[K(q,r,s)] = player;
-
-      const flipped = getFlippable(q, r, s, player, null);
-      for (const [fq,fr,fs] of flipped) {
-        save(K(fq,fr,fs));
-        board[K(fq,fr,fs)] = player;
-      }
-
-      // Rule 4: 既存囲みを除外した実取り除き
-      const groups = filterRealCaptures(findCaptureGroups(player), preBoardSnap);
-      for (const group of groups) {
-        for (const [cq,cr,cs] of group) {
-          save(K(cq,cr,cs));
-          board[K(cq,cr,cs)] = null;
-        }
-      }
-
-      const snapshot = serializeBoard();
-      for (const [k, v] of saved) board[k] = v;
-      return snapshot;
-    }
 
     // スーパーコウ判定：直前の局面だけでなく全履歴と照合
     // グローバル関数に昇格（イベントチェッカから GAM_010 として監視可能にするため）
@@ -5970,29 +5880,6 @@
     }
 
     // 六角形リングを描画
-    function drawHexRing(svg, radius, stroke, strokeWidth, glowColor, glowWidth) {
-      const pts = [];
-      for (let i = 0; i < 6; i++) {
-        const a = -Math.PI / 2 + Math.PI / 3 * i;
-        pts.push(`${radius * Math.cos(a)},${radius * Math.sin(a)}`);
-      }
-      if (glowColor) {
-        const glow = document.createElementNS('http://www.w3.org/2000/svg','polygon');
-        glow.setAttribute('points', pts.join(' '));
-        glow.setAttribute('fill', 'none');
-        glow.setAttribute('stroke', glowColor);
-        glow.setAttribute('stroke-width', String(glowWidth || strokeWidth * 3));
-        glow.setAttribute('stroke-linejoin', 'round');
-        svg.appendChild(glow);
-      }
-      const ring = document.createElementNS('http://www.w3.org/2000/svg','polygon');
-      ring.setAttribute('points', pts.join(' '));
-      ring.setAttribute('fill', 'none');
-      ring.setAttribute('stroke', stroke);
-      ring.setAttribute('stroke-width', String(strokeWidth));
-      ring.setAttribute('stroke-linejoin', 'round');
-      svg.appendChild(ring);
-    }
 
     function render(validMoves, koRestrictedSet, koBlockedMoves) {
       const showAnim = showPlacedAnim;  // このrender1回だけアニメーション発火
@@ -7568,11 +7455,6 @@
       return text;
     }
 
-    function copyNotation() {
-      const text = generateNotationText();
-      document.getElementById('notation-text-area').textContent = text;
-      document.getElementById('notation-modal').style.display = 'flex';
-    }
 
     function copyNotationText() {
       const text = document.getElementById('notation-text-area').textContent;
