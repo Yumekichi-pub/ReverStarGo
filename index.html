@@ -3144,6 +3144,11 @@
     const SQRT3 = Math.sqrt(3);
     const DIRS = [[1,-1,0],[1,0,-1],[0,1,-1],[-1,1,0],[-1,0,1],[0,-1,1]];
 
+    // 安全弁の閾値（コウ無限ループ等の異常状態を検知して強制終局）
+    const SAFETY_MAX_MOVES = 80;            // moveHistory.length がこれを超えたら強制終局
+    const SAFETY_MAX_BOARD_HISTORY = 100;   // boardHistory.length がこれを超えたら強制終局
+    const DIAG_LOG_INTERVAL = 20;           // 診断ログを何手ごとに出すか
+
     // ===== 37マス星型ボード (cube座標 [q,r,s], q+r+s=0) =====
     const ALL_CELLS = [
       // 中央六角形 (半径2 = 19マス)
@@ -5208,7 +5213,7 @@
 
         // 安全装置 — 100 手超えは異常ループとみなして強制終局
         // （盤面は 37 マス、通常 30〜50 手で終局。100 手 = 明らかに異常）
-        if (boardHistory.length > 100) {
+        if (boardHistory.length > SAFETY_MAX_BOARD_HISTORY) {
           console.warn('[SAFETY] boardHistory > 100 手 — 強制終局');
           isAnimating = false;
           endGame();
@@ -5270,14 +5275,14 @@
       // 安全弁①（cpuPlay 冒頭） — moveHistory ベース
       // boardHistory は pass を含まない & executeMove 内でしかチェックしないため、
       // パス混じりのコウループで閾値に届きにくい。moveHistory は pass も含むので堅い。
-      if (moveHistory.length > 80) {
+      if (moveHistory.length > SAFETY_MAX_MOVES) {
         console.warn(`[SAFETY] cpuPlay: moveHistory=${moveHistory.length} > 80 — 強制終局`);
         isAnimating = false;
         endGame();
         return;
       }
       // 診断ログ（20 手ごと）
-      if (moveHistory.length > 0 && moveHistory.length % 20 === 0) {
+      if (moveHistory.length > 0 && moveHistory.length % DIAG_LOG_INTERVAL === 0) {
         console.log(`[DIAG cpuPlay] move=${moveHistory.length}, boardHist=${boardHistory.length}, prevKoEx=${prevKoException}, current=${current}`);
       }
       const allValid = getValidMoves(current);
@@ -5378,7 +5383,7 @@
 
       // 安全弁②（updateGame 冒頭） — moveHistory ベース
       // cpuPlay を経由しないパスループでも確実に止める
-      if (moveHistory.length > 80) {
+      if (moveHistory.length > SAFETY_MAX_MOVES) {
         console.warn(`[SAFETY] updateGame: moveHistory=${moveHistory.length} > 80 — 強制終局`);
         isAnimating = false;
         endGame();
