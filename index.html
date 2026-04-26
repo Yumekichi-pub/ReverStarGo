@@ -3236,6 +3236,12 @@
       _randomState = seed === null ? 0 : (seed | 0);
     }
 
+    // ===== トランスポジションテーブル（AI 探索結果のキャッシュ）=====
+    // 同じ局面・同じ深さで再度探索されたとき、過去の評価結果を再利用する。
+    // 各ゲーム開始時（initGame）にクリアされる。サイズ上限到達時は古いものから捨てる。
+    const transTable = new Map();
+    const TT_MAX_SIZE = 50000;
+
     // ===== AI設定 =====
     let humanColor = 'black';   // プレイヤーの色
     let cpuColor = 'white';     // コンピューターの色
@@ -5004,6 +5010,11 @@
     function negamax(depth, currentPlayer, alpha, beta) {
       if (depth === 0) return evaluateBoardFor(currentPlayer);
 
+      // TT lookup: 同じ局面・同じ手番・同じ深さなら過去の探索結果を再利用
+      const ttKey = serializeBoard() + ':' + currentPlayer + ':' + depth;
+      const cached = transTable.get(ttKey);
+      if (cached !== undefined) return cached;
+
       const moves = getValidMoves(currentPlayer);
       if (moves.length === 0) {
         // 有効手なし（パス）: ボード変更せず相手番を再帰
@@ -5017,13 +5028,22 @@
       })).sort((a,b) => b.pri - a.pri);
 
       let best = -Infinity;
+      let cutOff = false;
       for (const {move:[q,r,s]} of ranked) {
         const val = withMove(q, r, s, currentPlayer, () =>
           -negamax(depth - 1, opp(currentPlayer), -beta, -alpha)
         );
         if (val > best) best = val;
         if (best > alpha) alpha = best;
-        if (alpha >= beta) break; // alpha-beta枝刈り
+        if (alpha >= beta) { cutOff = true; break; } // alpha-beta枝刈り
+      }
+
+      // TT 記録: α-β カットしなかった場合のみ正確値としてキャッシュ
+      if (!cutOff) {
+        if (transTable.size >= TT_MAX_SIZE) {
+          transTable.delete(transTable.keys().next().value);
+        }
+        transTable.set(ttKey, best);
       }
       return best;
     }
@@ -6548,6 +6568,7 @@
       prevBoardSnapshot = null; // コウ判定リセット
       boardHistory = [];        // スーパーコウ履歴リセット
       prevKoException = false;  // コウ例外連続検知フラグもリセット
+      transTable.clear();       // 前ゲームの探索キャッシュを破棄
       undoSnapshot = null;      // Undoリセット
       undoUsed = false;         // Undo使用済みリセット
       gameStarted = false;      // ゲーム開始フラグリセット
