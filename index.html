@@ -4745,6 +4745,12 @@
     }
 
     // 盤面を総合評価（playerの視点で正値=有利）
+    /**
+     * 現在の盤面を player 視点で評価する。
+     * 自分の石数 - 相手の石数 + ポジション重み + キャプチャ済み石数差。
+     * @param {'black'|'white'} player - 評価視点のプレイヤー
+     * @returns {number} player 有利なら正、不利なら負の評価値
+     */
     function evaluateBoardFor(player) {
       const opponent = opp(player);
       let myPos = 0, oppPos = 0;
@@ -4794,6 +4800,15 @@
     }
 
     // Negamax with alpha-beta pruning（currentPlayerの視点でスコアを返す）
+    /**
+     * Negamax 探索 + α-β 枝刈りによる最善手評価。
+     * 現在のプレイヤーの観点から、再帰的に最善スコアを計算する。
+     * @param {number} depth - 残りの探索深さ（0 で評価関数を呼ぶ）
+     * @param {'black'|'white'} currentPlayer - 現在の手番
+     * @param {number} alpha - α-β 枝刈りの下限
+     * @param {number} beta - α-β 枝刈りの上限
+     * @returns {number} currentPlayer から見た最善評価値
+     */
     function negamax(depth, currentPlayer, alpha, beta) {
       if (depth === 0) return evaluateBoardFor(currentPlayer);
 
@@ -4824,6 +4839,13 @@
     // シミュレーション用：手を仮に打った後の盤面スコア差を返す
 
     // CPUの手を選ぶ
+    /**
+     * CPU の手選択ロジック。レベル別に異なる戦略を使う。
+     * Lv.1 はランダム、Lv.2+ は1手読み、Lv.3+ は negamax で多手読み。
+     * @param {Array<[number,number,number]>} validMoves - 候補手の cube 座標リスト
+     * @param {'black'|'white'} player - 手番のプレイヤー
+     * @returns {[number,number,number]} 選んだ手の cube 座標 [q, r, s]
+     */
     function cpuChooseMove(validMoves, player) {
       if (validMoves.length === 0) return null;
 
@@ -4905,6 +4927,12 @@
     }
 
     // 有効な手のリストを返す（GP自体の裏返しは除外して判定）
+    /**
+     * player が打てる全ての有効手（コウ手も含む）を返す。
+     * コウ判定は filterKoMoves で別途行う。
+     * @param {'black'|'white'} player - 手番のプレイヤー
+     * @returns {Array<[number,number,number]>} 有効手の cube 座標リスト
+     */
     function getValidMoves(player) {
       const moves = [];
       for (const [q,r,s] of ALL_CELLS) {
@@ -4938,6 +4966,13 @@
     // ポジショナル式（盤面のみ）に統一。深さ解析 HTML で 51,000 局検証済み
     //       ルール説明「一度現れた局面に戻る手は打てません」と完全整合
     //       引数の player は後方互換のため残すが、v50 からは未使用
+    /**
+     * snap の盤面が boardHistory に既出かを判定（ポジショナル・スーパーコウ）。
+     * ルール ① の「一度現れた局面に戻る手は打てない」の判定に使用。
+     * @param {string} snap - serializeBoard() で得た盤面文字列
+     * @param {'black'|'white'} player - 手番のプレイヤー（現状未使用、将来用）
+     * @returns {boolean} 既出なら true
+     */
     function isRepeatedPosition(snap, player) {
       if (!prevBoardSnapshot) return false;
       if (snap === prevBoardSnapshot) return true;              // 単純コウ
@@ -4968,6 +5003,13 @@
     }
 
     // コウ手を除外する（全手がコウならパス扱い＝空配列を返す）
+    /**
+     * 候補手リストから「コウ違反になる手」を除外する。
+     * ① 1手前と同じ盤面に戻る手 ② 過去の局面に戻る手 を取り除く。
+     * @param {Array<[number,number,number]>} moves - 全候補手
+     * @param {'black'|'white'} player - 手番のプレイヤー
+     * @returns {Array<[number,number,number]>} コウに引っかからない手のみ
+     */
     function filterKoMoves(moves, player) {
       if (!prevBoardSnapshot || moves.length === 0) return moves;
       const nonKo = moves.filter(([q,r,s]) => getNonKoGPColors(q, r, s, player).length > 0);
