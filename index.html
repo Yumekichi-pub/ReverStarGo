@@ -3808,6 +3808,10 @@
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
+    /**
+     * デイリーチャレンジのカレンダー UI を描画する。
+     * 当月の日付、完了済み日、未完了日、月跨ぎナビなどを表示。
+     */
     function renderCalendar() {
       const data = loadDailyData();
       const today = new Date();
@@ -3921,6 +3925,10 @@
       return true;
     }
 
+    /**
+     * 月別トロフィーアイコンを描画する。
+     * 各月のデイリーチャレンジ全完了でブロンズ→シルバー→ゴールドが付与される仕組み。
+     */
     function renderTrophies() {
       const year = calYear;
       const month = calMonth;
@@ -3942,6 +3950,10 @@
       container.appendChild(label);
     }
 
+    /**
+     * 取得済みトロフィーの一覧をモーダルに描画する。
+     * 月ごとのトロフィー画像とラベルを表示。
+     */
     function renderTrophyList() {
       const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
       const container = document.getElementById('trophy-list-container');
@@ -4137,6 +4149,10 @@
       }
     }
 
+    /**
+     * ヘッダーや設定画面のランク表示（アイコン＋名前）を更新する。
+     * calculateRank() の結果に基づいて DOM 要素を書き換える。
+     */
     function updateRankDisplay() {
       const el = document.getElementById('player-rank-display');
       if (el) {
@@ -4153,6 +4169,10 @@
       }
     }
 
+    /**
+     * 全 30 ランクの一覧モーダルを表示する。
+     * 各ランクの条件・解放レベル・現在ランクのハイライトを含む。
+     */
     function showRankList() {
       const currentRank = calculateRank();
       let html = '<div class="rank-list-modal-overlay" onclick="closeRankList()">';
@@ -4202,6 +4222,10 @@
       if (el) el.remove();
     }
 
+    /**
+     * CPU レベル選択ボタン（Lv.1〜MAX/FINAL）の状態を更新する。
+     * 解放済みレベルのみ有効化、未解放はロックアイコン付きで表示。
+     */
     function updateLevelButtons() {
       for (let lv = 1; lv <= 7; lv++) {
         const btn = document.querySelector(`[data-level="${lv}"]`);
