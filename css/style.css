@@ -1569,7 +1569,7 @@
       background: linear-gradient(160deg, #1a3a2a 0%, #0d2818 40%, #1a3a2a 100%);
     }
     .setup-page.dark-theme.bg-image {
-      background: url('bg.jpg') center top / 100% auto no-repeat #0d2818;
+      background: url('../bg.jpg') center top / 100% auto no-repeat #0d2818;
       padding: 20px 24px 28px;
       padding-top: 34vw;
       gap: 16px;
