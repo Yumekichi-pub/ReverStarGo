@@ -5370,6 +5370,11 @@
     }
 
     // CPUのターンを実行
+    /**
+     * CPU の手番処理。コウルール ②③④ の判定、思考時間（速度設定連動）、
+     * 最善手選択（cpuChooseMove）、executeMove までを一括で担当。
+     * 安全弁（moveHistory > SAFETY_MAX_MOVES）と診断ログも内蔵。
+     */
     async function cpuPlay() {
       // 安全弁①（cpuPlay 冒頭） — moveHistory ベース
       // boardHistory は pass を含まない & executeMove 内でしかチェックしないため、
@@ -5476,7 +5481,12 @@
       });
     }
 
-    // ターン更新・終了判定
+    /**
+     * 1 ターンごとの状態更新と終局判定を行う。
+     * コウルール ②（例外）③（例外後）④（連続終局）の中核判定、
+     * 両者打てない時の終局、片方のみパス時の処理、CPU/人間ターンへの分岐を担当。
+     * @param {boolean} [showTurnChange=false] - 2人対戦モードで「次は◯のターンです」を表示するか
+     */
     async function updateGame(showTurnChange = false) {
       if (isTutorial) { render([]); return; }
 
@@ -6266,6 +6276,14 @@
       return [rq, rr, rs];
     }
 
+    /**
+     * 人間プレイヤーがセルをクリックしたときの手処理。コウルール ②③④ 判定、
+     * GP コール必要時のモーダル表示（color 選択待ち）、executeMove の呼び出しを担当。
+     * リプレイ中・アニメ中・チュートリアル中はクリック無効。
+     * @param {number} q - クリックされたセルの cube 座標 q
+     * @param {number} r - クリックされたセルの cube 座標 r
+     * @param {number} s - クリックされたセルの cube 座標 s
+     */
     async function onCellClick(q, r, s) {
       if (replayMode) return; // リプレイ中はクリック無効
       if (isAnimating) return;
