@@ -3190,10 +3190,10 @@
     };
 
     // ===== 状態 =====
-    let board = {};
-    let current = 'black';
-    let captured = { black: 0, white: 0 };
-    let pendingMove = null;
+    let board = {};                            // 各セルの状態 {key: 'black'|'white'|null}
+    let current = 'black';                     // 現在の手番（'black' or 'white'）
+    let captured = { black: 0, white: 0 };     // 各色が囲み取りで取った石数の累計
+    let pendingMove = null;                    // GP コール待ちの手 [q,r,s]
     let passState = 0; // 0=通常パス, 1=終了前1人目, 2=終了前2人目
     let capturePending = new Set(); // アニメーション中の取り除き対象セル
     let isAnimating = false;        // アニメーション中はクリック無効
@@ -3218,10 +3218,10 @@
     let boardHistory = [];         // スーパーコウ判定用：全局面の履歴
     let sessionWins = { black: 0, white: 0, draw: 0 }; // セッション勝敗カウント
 
-    // ===== Reverse Match（v41〜） =====
-    // Lv.5以上の対戦を 2局1セット（色入れ替え合計得点制）で行う
+    // ===== Reverse Match =====
+    // Lv.5 以上の対戦を 2 局 1 セット（色入れ替え合計得点制）で行う
     // 先手後手の有利不利を解消し、実力のみで勝負できる仕組み
-    // null = 通常対戦 / {...} = SM 進行中
+    // null = 通常対戦 / {...} = RM 進行中
     let reverseMatch = null;
     // reverseMatch の構造:
     //   round: 1 or 2 （現在の局）
