@@ -158,17 +158,21 @@ function saveSettings() {
 function loadSettings() {
   try {
     const data = JSON.parse(localStorage.getItem(SETTINGS_KEY));
-    if (!data) return;
-    if (data.speed) selectSpeed(data.speed);
-    if (data.anim !== undefined) selectAnim(data.anim);
-    if (data.hint !== undefined) selectHint(data.hint);
-    if (data.sound !== undefined) selectSound(data.sound);
-    if (data.theme) selectTheme(data.theme);
-    if (data.bg) selectBgColor(data.bg);
-    if (data.name) {
-      playerName = data.name;
-      document.getElementById('player-name-input').value = playerName;
+    if (data) {
+      if (data.speed) selectSpeed(data.speed);
+      if (data.anim !== undefined) selectAnim(data.anim);
+      if (data.hint !== undefined) selectHint(data.hint);
+      if (data.sound !== undefined) selectSound(data.sound);
+      if (data.theme) selectTheme(data.theme);
+      if (data.bg) selectBgColor(data.bg);
+      if (data.name) {
+        playerName = data.name;
+        document.getElementById('player-name-input').value = playerName;
+      }
     }
+    // HTML 初期 selected の補強：保存値がなければ現在のキー（=デフォルト）を再適用
+    if (!data || !data.theme) selectTheme(currentThemeKey);
+    if (!data || !data.bg) selectBgColor(currentBgKey);
   } catch(e) {}
 }
 
