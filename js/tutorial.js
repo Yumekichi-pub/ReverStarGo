@@ -42,6 +42,8 @@ function startTutorial(mode) {
   tutorialMode = mode;
   isTutorial = true;
   tutorialStep = 0;
+  // v61: チュートリアル中の body 下余白を有効化（コール選択ボタンが tutorial-bar に隠れないため）
+  document.body.classList.add('tutorial-active');
   hideTutorialChoice();
   document.getElementById('setup-main').style.display = 'none';
   document.getElementById('setup-game').style.display = 'none';
@@ -485,6 +487,8 @@ function startTutorialMiniGame() {
 
   // チュートリアルモード終了（通常ゲームとして動かす）
   isTutorial = false;
+  // v61: tutorial-active 解除（普段は body 下余白なし）
+  document.body.classList.remove('tutorial-active');
   tutorialMiniGame = true;
 
   // 強制設定：Lv.1、黒（先手）、ヒントON、notationオフ
@@ -524,6 +528,8 @@ function tutorialPrev() {
 function exitTutorial() {
   if (tutorialAutoTimer) { clearTimeout(tutorialAutoTimer); tutorialAutoTimer = null; }
   isTutorial = false;
+  // v61: tutorial-active 解除（普段は body 下余白なし）
+  document.body.classList.remove('tutorial-active');
   tutorialMode = null;
   tutorialStep = 0;
   tutorialSubStep = 0;

@@ -1905,6 +1905,11 @@
       align-items: center;
       box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
     }
+    /* v61: チュートリアル中、メインコンテンツ下端が tutorial-bar に覆われないよう余白を確保。
+       これがないと、説明文が長い Step（Step 5 など）でコール選択ボタンが説明に隠れてしまう。 */
+    body.tutorial-active {
+      padding-bottom: 30vh;
+    }
     #tutorial-step-info {
       font-size: 0.75rem;
       font-weight: bold;
