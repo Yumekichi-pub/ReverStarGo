@@ -376,6 +376,16 @@ document.getElementById('restart-btn').addEventListener('click', () => {
     backToSetupPage();
     return;
   }
+  // v62: プレイヤーがまだ自分の石を1手も置いていない場合は、警告なしで即座に戻る。
+  // 白番で「ゲーム開始」を押すと CPU が即座に黒の1手目を置くため、設定変更したくても
+  // 「中断＝負け」モーダルに阻まれるという問題を解消する。CPU 対戦時のみ適用。
+  if (battleMode === 'cpu') {
+    const playerNotMoved = !moveHistory.some(m => m.player === humanColor);
+    if (playerNotMoved) {
+      backToSetupPage();
+      return;
+    }
+  }
   // ゲーム中は確認ポップアップを表示（対戦モードでメッセージ切り替え）
   const quitMsg = document.querySelector('.quit-confirm-inner p');
   if (battleMode === 'two') {
