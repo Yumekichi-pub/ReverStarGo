@@ -122,6 +122,23 @@ function playSound(type) {
         osc.connect(gain); gain.connect(ctx.destination);
         osc.start(t); osc.stop(t + 0.22);
       });
+
+    } else if (type === 'capture-praise') {
+      // v66: キャプチャ称賛 — 短い上昇3音（達成感のある成功音）
+      // E5 → A5 → D6 の上昇形、triangle 波で温かみを出す
+      const notes = [659, 880, 1175];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const t = now + i * 0.07;
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0, t);
+        gain.gain.linearRampToValueAtTime(0.20, t + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.30);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + 0.30);
+      });
     }
   } catch(e) { /* AudioContext unavailable */ }
 }

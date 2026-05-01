@@ -343,6 +343,10 @@ async function executeMove(q, r, s, gpColor) {
         else captured.white += total;
         updateScore();
       });
+
+      // v66: キャプチャ称賛（プレイヤー手で 3個以上取った時）
+      // 設計B: 多く取った時はこちらを優先表示、「いい手」評価は evaluateMoveQuality 内で既にスキップ済み
+      try { showCaptureBonus(allCaptured.length, current); } catch (e) {}
     }
 
     // f. CPにまだ石が残っていたらリセット

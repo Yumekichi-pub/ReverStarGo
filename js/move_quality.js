@@ -27,6 +27,16 @@ const MOVE_QUALITY_MESSAGES = {
   3: ['OK', '良い手', 'なかなか', '良し', '堅実']
 };
 
+// v66: キャプチャ（囲み取り）称賛メッセージ
+// {N} は実際の取り石数に置換される
+const MQ_CAPTURE_MESSAGES = {
+  large:  ['圧巻の{N}個取り！', '一網打尽！', '大量取り！', '見事な囲み！', '完全包囲！'],   // 7個以上
+  medium: ['すごい！', 'お手柄！', '鮮やか！', '包囲成功！', '見事！'],                       // 5-6個
+  small:  ['取った！', 'やった！', '上手い！', '囲んだ！', 'ナイス取り！']                  // 3-4個
+};
+
+const MQ_CAPTURE_THRESHOLD = 3;  // 3個以上取った時に称賛表示（同時に「いい手」表示はスキップ）
+
 // ===== 定数 =====
 // v64: 表示頻度を上げる調整
 //   - 石差: 10 → 12（少し開いた接戦も含める）
@@ -60,6 +70,15 @@ function evaluateMoveQuality(q, r, s, player) {
   if (player !== humanColor) return null;
   if (cpuLevel < MQ_MIN_LEVEL) return null;
   if (isTutorial || tutorialMiniGame) return null;  // チュートリアル中は表示しない
+
+  // v66: キャプチャ予定数が閾値以上なら「いい手」評価スキップ（キャプチャ称賛が優先）
+  // simulateCaptures は手を打った時の取り石を | 区切り文字列で返す
+  try {
+    const gp = bestGPColor(q, r, s, player);
+    const capPreview = simulateCaptures(q, r, s, player, gp);
+    const capCount = capPreview.split('|').filter(x => x).length;
+    if (capCount >= MQ_CAPTURE_THRESHOLD) return null;
+  } catch (e) { /* 失敗時は通常評価へフォールスルー */ }
 
   // 両者合計手数（moveHistory.length）
   if (moveHistory.length < MQ_MIN_MOVES) return null;
@@ -162,6 +181,71 @@ function showMoveQuality(rank) {
   toast.style.animation = 'mqFadeInOut 2.5s ease forwards';
 
   // 2.5秒後に非表示
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 2500);
+}
+
+// ============================================================
+// v66: キャプチャ称賛
+// ============================================================
+
+/**
+ * キャプチャ数に応じた称賛レベルを返す。
+ * @param {number} count - 取り石数
+ * @returns {'large'|'medium'|'small'|null}
+ */
+function getCaptureLevel(count) {
+  if (count >= 7) return 'large';
+  if (count >= 5) return 'medium';
+  if (count >= MQ_CAPTURE_THRESHOLD) return 'small';  // 3-4個
+  return null;
+}
+
+/**
+ * キャプチャ称賛メッセージをランダム選択し、{N} を実数に置換して返す。
+ */
+function pickCaptureMessage(count) {
+  const level = getCaptureLevel(count);
+  if (!level) return null;
+  const pool = MQ_CAPTURE_MESSAGES[level];
+  let msg = pool[Math.floor(Math.random() * pool.length)];
+  msg = msg.replace('{N}', count);
+  return { msg, level };
+}
+
+/**
+ * キャプチャ称賛トーストを表示する。
+ * - プレイヤーの手で 3個以上取った時のみ呼ぶ前提
+ * - 「いい手」表示と同じ場所、赤・オレンジ系の派手な色
+ * - 効果音 'capture-praise'
+ *
+ * @param {number} count - 取り石数
+ * @param {'black'|'white'} player - 取ったプレイヤー
+ */
+function showCaptureBonus(count, player) {
+  // 条件チェック（プレイヤー専用、CPU対戦のみ、チュートリアル外）
+  if (battleMode !== 'cpu') return;
+  if (player !== humanColor) return;
+  if (isTutorial || tutorialMiniGame) return;
+
+  const result = pickCaptureMessage(count);
+  if (!result) return;
+
+  const toast = document.getElementById('move-quality-toast');
+  if (!toast) return;
+
+  // 赤・オレンジ系のクラス
+  toast.className = 'mq-toast mq-capture-' + result.level;
+  toast.textContent = result.msg;
+  toast.style.display = 'block';
+
+  try { playSound('capture-praise'); } catch (e) {}
+
+  toast.style.animation = 'none';
+  void toast.offsetWidth;
+  toast.style.animation = 'mqFadeInOut 2.5s ease forwards';
+
   setTimeout(() => {
     toast.style.display = 'none';
   }, 2500);
