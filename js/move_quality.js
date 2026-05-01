@@ -154,14 +154,15 @@ function showMoveQuality(rank) {
   try { playSound('praise'); } catch (e) {}
 
   // フェードアニメーション（CSS の animation で制御）
-  // animation-fill-mode: forwards で最後の状態保持 → 1.5秒後に display:none
+  // animation-fill-mode: forwards で最後の状態保持 → 2.5秒後に display:none
+  // v65: 表示時間 1.5s → 2.5s（西口さん感覚で「もう少し長めに」）
   toast.style.animation = 'none';
   // リフロー強制（アニメーション再開のため）
   void toast.offsetWidth;
-  toast.style.animation = 'mqFadeInOut 1.5s ease forwards';
+  toast.style.animation = 'mqFadeInOut 2.5s ease forwards';
 
-  // 1.5秒後に非表示
+  // 2.5秒後に非表示
   setTimeout(() => {
     toast.style.display = 'none';
-  }, 1500);
+  }, 2500);
 }
