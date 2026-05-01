@@ -105,6 +105,23 @@ function playSound(type) {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
       osc.connect(gain); gain.connect(ctx.destination);
       osc.start(now); osc.stop(now + 0.45);
+
+    } else if (type === 'praise') {
+      // v63: 「いい手」表示用 — 控えめな2音チャイム（A5 → D6）
+      // 軽やかで上品、目立ちすぎない
+      const notes = [880, 1175];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const t = now + i * 0.06;
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0, t);
+        gain.gain.linearRampToValueAtTime(0.13, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + 0.22);
+      });
     }
   } catch(e) { /* AudioContext unavailable */ }
 }

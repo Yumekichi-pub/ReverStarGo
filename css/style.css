@@ -1910,6 +1910,46 @@
     body.tutorial-active {
       padding-bottom: 30vh;
     }
+
+    /* v63: 「いい手」表示トースト — 盤面の中央上にふわっとフェード表示 */
+    .mq-toast {
+      position: fixed;
+      top: 18%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 28px;
+      border-radius: 16px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      text-align: center;
+      z-index: 200;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+      white-space: nowrap;
+    }
+    .mq-toast.mq-rank-1 {
+      background: linear-gradient(135deg, #ffd700, #ffb340);
+      color: #5a3500;
+      border: 2px solid #d4a520;
+    }
+    .mq-toast.mq-rank-2 {
+      background: linear-gradient(135deg, #d4e8ff, #a4c8e8);
+      color: #1a3a5a;
+      border: 2px solid #6090c0;
+    }
+    .mq-toast.mq-rank-3 {
+      background: linear-gradient(135deg, #f0f0f0, #d8d8d8);
+      color: #404040;
+      border: 2px solid #909090;
+    }
+    @keyframes mqFadeInOut {
+      0%   { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.92); }
+      18%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.02); }
+      28%  { transform: translateX(-50%) translateY(0) scale(1); }
+      78%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.98); }
+    }
     #tutorial-step-info {
       font-size: 0.75rem;
       font-weight: bold;

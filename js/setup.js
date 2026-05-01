@@ -272,6 +272,13 @@ async function executeMove(q, r, s, gpColor) {
   pendingMoveMarker = null;   // GP選択中の仮マーカーをクリア
   lastMove = [q, r, s];       // 置いた場所を記録
   showPlacedAnim = true;      // 次のrenderでポップ＆グローを発火
+
+  // v63: プレイヤーの手の品質評価（board を変更する前に実施）
+  // 候補手数・順位・cpuLevel・battleMode・手数・石差などの条件をすべて満たした時のみ
+  // 1〜3 のランクを返す。それ以外は null（表示なし）。
+  let _moveQualityRank = null;
+  try { _moveQualityRank = evaluateMoveQuality(q, r, s, current); } catch (e) {}
+
   try {
     // コウ判定用：手を打つ前のボード状態を記録
     prevBoardSnapshot = serializeBoard();
@@ -286,6 +293,11 @@ async function executeMove(q, r, s, gpColor) {
     playSound('place');
     showPlacedAnim = animationsEnabled;
     render([]);
+
+    // v63: 「いい手」表示（手を置いた直後、フリップアニメと並行）
+    if (_moveQualityRank) {
+      try { showMoveQuality(_moveQualityRank); } catch (e) {}
+    }
 
     // b. コールがあればCP石をフリップ前に配置
     const gpK = K(0,0,0);

@@ -79,7 +79,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v62</p>
+    <p class="app-version">RSG-v63</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -729,6 +729,7 @@
   <script src="js/board.js"></script>
   <script src="js/ai.js"></script>
   <script src="js/sound.js"></script>
+  <script src="js/move_quality.js"></script>
   <script src="js/records.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/daily.js"></script>
@@ -739,6 +740,9 @@
   <script src="js/kifu.js"></script>
   <script src="js/promotion_ui.js"></script>
   <script src="js/main.js"></script>
+
+  <!-- v63: 「いい手」トースト表示用要素 -->
+  <div id="move-quality-toast" class="mq-toast"></div>
 
 </body>
 </html>
