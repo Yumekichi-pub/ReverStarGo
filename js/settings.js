@@ -140,6 +140,7 @@ function saveSettings() {
     anim: animationsEnabled,
     hint: hintEnabled,
     sound: soundEnabled,
+    moveQuality: moveQualityEnabled,
     theme: currentThemeKey,
     bg: currentBgKey,
     name: playerName,
@@ -163,6 +164,7 @@ function loadSettings() {
       if (data.anim !== undefined) selectAnim(data.anim);
       if (data.hint !== undefined) selectHint(data.hint);
       if (data.sound !== undefined) selectSound(data.sound);
+      if (data.moveQuality !== undefined) selectMoveQuality(data.moveQuality);
       if (data.theme) selectTheme(data.theme);
       if (data.bg) selectBgColor(data.bg);
       if (data.name) {

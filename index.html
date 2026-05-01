@@ -79,7 +79,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v66</p>
+    <p class="app-version">RSG-v67</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -157,6 +157,14 @@
         <div class="btn-grid-2">
           <button class="custom-btn selected" data-sound="on" onclick="selectSound(true)">ON</button>
           <button class="custom-btn" data-sound="off" onclick="selectSound(false)">OFF</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>称賛メッセージ（いい手・取り石数）</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn selected" data-mq="on" onclick="selectMoveQuality(true)">ON</button>
+          <button class="custom-btn" data-mq="off" onclick="selectMoveQuality(false)">OFF</button>
         </div>
       </div>
 
@@ -730,6 +738,7 @@
   <script src="js/ai.js"></script>
   <script src="js/sound.js"></script>
   <script src="js/move_quality.js"></script>
+  <script src="js/perfect.js"></script>
   <script src="js/records.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/daily.js"></script>
@@ -743,6 +752,8 @@
 
   <!-- v63: 「いい手」トースト表示用要素 -->
   <div id="move-quality-toast" class="mq-toast"></div>
+  <div id="fireworks-layer"></div>
+  <div id="confetti-layer"></div>
 
 </body>
 </html>

@@ -107,6 +107,11 @@ function selectSound(enabled) {
   document.querySelectorAll('[data-sound]').forEach(b => b.classList.remove('selected'));
   document.querySelector(`[data-sound="${enabled ? 'on' : 'off'}"]`).classList.add('selected');
 }
+function selectMoveQuality(enabled) {
+  moveQualityEnabled = enabled;
+  document.querySelectorAll('[data-mq]').forEach(b => b.classList.remove('selected'));
+  document.querySelector(`[data-mq="${enabled ? 'on' : 'off'}"]`).classList.add('selected');
+}
 
 // セットアップ画面の選択
 function selectColor(color) {

@@ -139,6 +139,59 @@ function playSound(type) {
         osc.connect(gain); gain.connect(ctx.destination);
         osc.start(t); osc.stop(t + 0.30);
       });
+
+    } else if (type === 'fanfare') {
+      // v67: パーフェクト用 — 豪華なファンファーレ
+      // C5→E5→G5→C6→E6→G6 上昇形 + 最後にトレモロ
+      const notes = [523, 659, 784, 1047, 1319, 1568];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const t = now + i * 0.10;
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0, t);
+        gain.gain.linearRampToValueAtTime(0.30, t + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.40);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + 0.40);
+      });
+      // 最後のトレモロ（G6 が華やかにシャラララ）
+      for (let r = 0; r < 8; r++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const t = now + 0.7 + r * 0.08;
+        osc.type = 'sine';
+        osc.frequency.value = r % 2 === 0 ? 1568 : 1976;  // G6 / B6
+        gain.gain.setValueAtTime(0.0, t);
+        gain.gain.linearRampToValueAtTime(0.16, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.10);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + 0.10);
+      }
+
+    } else if (type === 'applause') {
+      // v67: 盤面制覇用 — 拍手音（高速ホワイトノイズバースト）
+      const duration = 1.6;
+      const bursts = 28;
+      for (let i = 0; i < bursts; i++) {
+        const t = now + i * (duration / bursts) + (Math.random() * 0.04);
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let j = 0; j < data.length; j++) {
+          data[j] = (Math.random() * 2 - 1) * Math.exp(-j / (ctx.sampleRate * 0.008));
+        }
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 1500;
+        gain.gain.setValueAtTime(0.20, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+        src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+        src.start(t);
+      }
     }
   } catch(e) { /* AudioContext unavailable */ }
 }

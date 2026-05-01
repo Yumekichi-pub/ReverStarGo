@@ -287,7 +287,15 @@ function endGame() {
       }
     }
   }
-  playSound(soundType);
+  // v67: パーフェクト/盤面制覇 判定（CPU対戦・通常対戦・プレイヤー勝利のみ）
+  const perfectKind = (typeof checkPerfectBonus === 'function')
+    ? checkPerfectBonus(bTotal, wTotal, bCount, wCount)
+    : null;
+  if (perfectKind) {
+    triggerPerfectBonus(perfectKind);  // 専用音と演出（通常勝利音はスキップ）
+  } else {
+    playSound(soundType);
+  }
   document.getElementById('result-text').textContent = msg;
   // もう一度ボタンのラベル（ランクアップマッチ中は「次の試合へ」）
   const playAgainBtn = document.getElementById('play-again-btn');
