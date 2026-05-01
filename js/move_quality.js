@@ -28,11 +28,18 @@ const MOVE_QUALITY_MESSAGES = {
 };
 
 // ===== 定数 =====
+// v64: 表示頻度を上げる調整
+//   - 石差: 10 → 12（少し開いた接戦も含める）
+//   - 候補手による段階制御:
+//       3+ → 1位のみ
+//       4+ → 1位・2位
+//       6+ → 1位・2位・3位
 const MQ_MIN_LEVEL = 3;          // この cpuLevel 以上で動作
 const MQ_MIN_MOVES = 12;         // 両者合計手数の下限
-const MQ_MAX_DIFF  = 10;         // 石差の上限（これ以上開いたら表示しない）
-const MQ_MIN_VALID = 5;          // 候補手数の下限
-const MQ_RANK3_VALID = 7;        // 3位を表示するための候補手数下限
+const MQ_MAX_DIFF  = 12;         // 石差の上限（これ以上開いたら表示しない）
+const MQ_MIN_VALID = 3;          // 候補手数の下限（3未満なら全く表示しない）
+const MQ_RANK2_VALID = 4;        // 2位を表示するための候補手数下限
+const MQ_RANK3_VALID = 6;        // 3位を表示するための候補手数下限
 
 /**
  * プレイヤーの手の品質を評価し、順位を返す。
@@ -102,7 +109,11 @@ function evaluateMoveQuality(q, r, s, player) {
 
   if (playerRank <= 0 || playerRank > 3) return null;
 
-  // 候補手数による段階制御: 5-6個の時は3位を表示しない
+  // v64: 候補手数による段階制御
+  //   3個 → 1位のみ
+  //   4-5個 → 1位・2位
+  //   6個以上 → 1位・2位・3位
+  if (validMoves.length < MQ_RANK2_VALID && playerRank === 2) return null;
   if (validMoves.length < MQ_RANK3_VALID && playerRank === 3) return null;
 
   return playerRank;
