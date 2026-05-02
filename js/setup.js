@@ -168,6 +168,17 @@ function startGame() {
   } else {
     reverseMatch = null;
   }
+
+  // v69: 初めて RM 対戦が始まる直前にリバースマッチ説明モーダルを表示
+  if (reverseMatch && typeof hasSeenRmIntro === 'function' && !hasSeenRmIntro()) {
+    showReverseMatchIntro(() => {
+      markRmIntroSeen();
+      document.getElementById('setup-game').style.display = 'none';
+      initGame();
+    });
+    return;
+  }
+
   document.getElementById('setup-game').style.display = 'none';
   initGame();
 }

@@ -109,6 +109,24 @@ function showLevelUnlock(level) {
   launchFireworks(4000);
 }
 
+// v69: Lv.5 解放時のリバースマッチ昇格試験説明 → 昇格試験案内 の共通フロー
+function _showPromoIfAnyAfterUnlock() {
+  const promo = getAvailablePromotion();
+  if (promo && !promotionExam) {
+    showPromoAnnounce(promo);
+  }
+}
+function _afterLevelUnlockClose() {
+  if (_unlockedLevel === 5 && typeof hasSeenRmPromoIntro === 'function' && !hasSeenRmPromoIntro()) {
+    showReverseMatchPromoIntro(() => {
+      markRmPromoIntroSeen();
+      _showPromoIfAnyAfterUnlock();
+    });
+  } else {
+    _showPromoIfAnyAfterUnlock();
+  }
+}
+
 document.getElementById('level-unlock-yes-btn').addEventListener('click', () => {
   document.getElementById('level-unlock-modal').style.display = 'none';
   // 解放されたレベルに切り替えて次の試合を開始
@@ -119,18 +137,10 @@ document.getElementById('level-unlock-yes-btn').addEventListener('click', () => 
   saveSettings();
   prevRank = calculateRank();
   initGame();
-  // 昇格試験案内があれば表示
-  const promo = getAvailablePromotion();
-  if (promo && !promotionExam) {
-    showPromoAnnounce(promo);
-  }
+  _afterLevelUnlockClose();
 });
 
 document.getElementById('level-unlock-no-btn').addEventListener('click', () => {
   document.getElementById('level-unlock-modal').style.display = 'none';
-  // 昇格試験案内があれば表示
-  const promo = getAvailablePromotion();
-  if (promo && !promotionExam) {
-    showPromoAnnounce(promo);
-  }
+  _afterLevelUnlockClose();
 });

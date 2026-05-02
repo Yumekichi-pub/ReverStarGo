@@ -79,7 +79,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v68</p>
+    <p class="app-version">RSG-v69</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -747,6 +747,7 @@
   <script src="js/sound.js"></script>
   <script src="js/move_quality.js"></script>
   <script src="js/perfect.js"></script>
+  <script src="js/reverse_match_intro.js"></script>
   <script src="js/records.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/daily.js"></script>
@@ -762,6 +763,38 @@
   <div id="move-quality-toast" class="mq-toast"></div>
   <div id="fireworks-layer"></div>
   <div id="confetti-layer"></div>
+
+  <!-- v69: リバースマッチ自体の初回説明モーダル -->
+  <div id="reverse-match-intro-modal" style="display:none;">
+    <div class="rm-intro-content">
+      <div class="rm-intro-icon">🔄</div>
+      <h2 class="rm-intro-title">リバースマッチ について</h2>
+      <div class="rm-intro-body">
+        <p>Lv.5 以上の対戦では、先手後手の有利不利を解消するため、自動的に「<strong>リバースマッチ</strong>」形式になります。</p>
+        <p><strong>① 2 局 1 セット</strong><br>1 局目と 2 局目で白黒を入れ替えて、同じ相手と 2 回対戦します。</p>
+        <p><strong>② 合計得点で勝敗決定</strong><br>2 局の合計得点が多い方が勝者です。1 局目で負けても、2 局目で大きく勝てば逆転できます。</p>
+        <p><strong>③ セット間も先手交代</strong><br>続けて遊ぶ場合、セット間でも色が自然に交互になります。</p>
+      </div>
+      <p class="rm-intro-note">※ ルール画面でいつでも詳しく確認できます</p>
+      <button class="rm-intro-btn" id="rm-intro-ok-btn">理解しました</button>
+    </div>
+  </div>
+
+  <!-- v69: Lv.5 解放時のランクアップマッチ説明モーダル -->
+  <div id="reverse-match-promo-intro-modal" style="display:none;">
+    <div class="rm-intro-content">
+      <div class="rm-intro-icon">⚔ 🔄</div>
+      <h2 class="rm-intro-title">ランクアップマッチ について</h2>
+      <div class="rm-intro-body">
+        <p>Lv.5 以降のランクアップマッチは、すべて「<strong>リバースマッチ</strong>」形式で行われます。</p>
+        <p><strong>① 1 試合 = 1 セット（2 局）</strong><br>「RM ◯番勝負」の各試合は、白黒を入れ替えた 2 局のセットです。</p>
+        <p><strong>② セット単位で勝敗を集計</strong><br>各セットの合計得点で勝者を決定。先に必要勝数に達すると合格です。</p>
+        <p><strong>③ セットごとに白黒自動交代</strong><br>公平を期すため、セットが切り替わるたびに先手・後手も入れ替わります。</p>
+      </div>
+      <p class="rm-intro-note">※ ルール画面でいつでも詳しく確認できます</p>
+      <button class="rm-intro-btn" id="rm-promo-intro-ok-btn">理解しました</button>
+    </div>
+  </div>
 
 </body>
 </html>

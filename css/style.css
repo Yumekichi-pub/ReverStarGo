@@ -2014,6 +2014,75 @@
       60%  { opacity: 1; }
       100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
     }
+    /* v69: リバースマッチ説明モーダル */
+    #reverse-match-intro-modal,
+    #reverse-match-promo-intro-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 9050;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .rm-intro-content {
+      background: #fff8ee;
+      border: 2px solid #c09020;
+      border-radius: 16px;
+      padding: 22px 26px 20px;
+      max-width: 460px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    }
+    .rm-intro-icon {
+      font-size: 2.4rem;
+      text-align: center;
+      margin-bottom: 4px;
+      letter-spacing: 0.1em;
+    }
+    .rm-intro-title {
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: #9a7010;
+      text-align: center;
+      margin: 0 0 14px;
+    }
+    .rm-intro-body {
+      font-size: 0.95rem;
+      color: #3a2a1a;
+      line-height: 1.65;
+    }
+    .rm-intro-body p {
+      margin: 0 0 10px;
+    }
+    .rm-intro-body strong {
+      color: #9a4010;
+    }
+    .rm-intro-note {
+      font-size: 0.78rem;
+      color: #806040;
+      margin: 4px 0 0;
+      text-align: center;
+    }
+    .rm-intro-btn {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px 24px;
+      background: #c09020;
+      color: #fff8ee;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .rm-intro-btn:hover {
+      background: #b07810;
+    }
+
     /* 紙吹雪 */
     .confetti-piece {
       position: absolute;
