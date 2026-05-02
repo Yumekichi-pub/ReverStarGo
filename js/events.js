@@ -325,6 +325,15 @@ function devResetDaily() {
 }
 
 function showPromoAnnounce(promo) {
+  // v70: 初の RM 形式ランクアップマッチ案内時、説明モーダルを先に表示
+  // (Lv.5 以上の昇格試験は RM 形式。promo.level >= 5 で判定)
+  if (promo.level >= 5 && typeof hasSeenRmPromoIntro === 'function' && !hasSeenRmPromoIntro()) {
+    showReverseMatchPromoIntro(() => {
+      markRmPromoIntroSeen();
+      showPromoAnnounce(promo);  // 再帰: 次回は seen=true なので素通り
+    });
+    return;
+  }
   const targetRank = RANKS[promo.targetRank];
   const matchLabel = getMatchLabel(promo.winsNeeded, promo.level);
   document.getElementById('promo-announce-title').textContent = `🎉 ${promo.label}への挑戦権を獲得！`;

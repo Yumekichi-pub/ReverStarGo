@@ -109,21 +109,12 @@ function showLevelUnlock(level) {
   launchFireworks(4000);
 }
 
-// v69: Lv.5 解放時のリバースマッチ昇格試験説明 → 昇格試験案内 の共通フロー
+// v70: ランクアップマッチ説明モーダルは showPromoAnnounce 側でフック (events.js)
+//      ここでは昇格試験案内のみを呼ぶ (Lv.5 解放時の説明モーダルは廃止)
 function _showPromoIfAnyAfterUnlock() {
   const promo = getAvailablePromotion();
   if (promo && !promotionExam) {
     showPromoAnnounce(promo);
-  }
-}
-function _afterLevelUnlockClose() {
-  if (_unlockedLevel === 5 && typeof hasSeenRmPromoIntro === 'function' && !hasSeenRmPromoIntro()) {
-    showReverseMatchPromoIntro(() => {
-      markRmPromoIntroSeen();
-      _showPromoIfAnyAfterUnlock();
-    });
-  } else {
-    _showPromoIfAnyAfterUnlock();
   }
 }
 
@@ -137,10 +128,10 @@ document.getElementById('level-unlock-yes-btn').addEventListener('click', () => 
   saveSettings();
   prevRank = calculateRank();
   initGame();
-  _afterLevelUnlockClose();
+  _showPromoIfAnyAfterUnlock();
 });
 
 document.getElementById('level-unlock-no-btn').addEventListener('click', () => {
   document.getElementById('level-unlock-modal').style.display = 'none';
-  _afterLevelUnlockClose();
+  _showPromoIfAnyAfterUnlock();
 });
