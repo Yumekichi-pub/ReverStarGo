@@ -141,6 +141,7 @@ function saveSettings() {
     hint: hintEnabled,
     sound: soundEnabled,
     moveQuality: moveQualityEnabled,
+    moveQualityTwo: moveQualityTwoPlayerEnabled,
     theme: currentThemeKey,
     bg: currentBgKey,
     name: playerName,
@@ -165,6 +166,7 @@ function loadSettings() {
       if (data.hint !== undefined) selectHint(data.hint);
       if (data.sound !== undefined) selectSound(data.sound);
       if (data.moveQuality !== undefined) selectMoveQuality(data.moveQuality);
+      if (data.moveQualityTwo !== undefined) selectMoveQualityTwo(data.moveQualityTwo);
       if (data.theme) selectTheme(data.theme);
       if (data.bg) selectBgColor(data.bg);
       if (data.name) {

@@ -112,6 +112,11 @@ function selectMoveQuality(enabled) {
   document.querySelectorAll('[data-mq]').forEach(b => b.classList.remove('selected'));
   document.querySelector(`[data-mq="${enabled ? 'on' : 'off'}"]`).classList.add('selected');
 }
+function selectMoveQualityTwo(enabled) {
+  moveQualityTwoPlayerEnabled = enabled;
+  document.querySelectorAll('[data-mq2]').forEach(b => b.classList.remove('selected'));
+  document.querySelector(`[data-mq2="${enabled ? 'on' : 'off'}"]`).classList.add('selected');
+}
 
 // セットアップ画面の選択
 function selectColor(color) {

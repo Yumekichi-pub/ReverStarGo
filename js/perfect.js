@@ -1,20 +1,23 @@
 /* ============================================================
-   perfect.js — パーフェクト/盤面制覇 演出 (v67 新規)
+   perfect.js — パーフェクト/盤面制覇 演出 (v67 新規, v68 で2人対戦対応)
 
    仕様:
-   - battleMode === 'cpu' のみ
    - 通常対戦のみ（reverseMatch 中は対象外）
    - チュートリアル外
-   - プレイヤー (humanColor) が勝者
-   - 盤面の全 37 マスが自分の色で埋まっている（空白なし、敵の盤面駒なし）
    - moveQualityEnabled === false の時は完全に黙る（称賛メッセージ OFF と連動）
+   - CPU対戦: プレイヤー (humanColor) が勝者の時のみ
+   - 2人対戦: moveQualityTwoPlayerEnabled === true の時、勝者のどちらでも発動
+   - 盤面の全 37 マスが勝者の色で埋まっている（空白なし、敗者の盤面駒なし）
 
    2段階:
-   - perfect : 上記 + 敵の合計石数 = 0 (取られた石も0) → 「パーフェクト🎉/完全制覇🎉」+ 花火 + ファンファーレ
-   - dominant: 上記 + 敵の合計石数 > 0 → 「盤面制覇！/真っ◯に染めた！」+ 紙吹雪 + 拍手音
+   - perfect : 上記 + 敗者の合計石数 = 0 (取られた石も0)
+              → 「パーフェクト🎉/完全制覇🎉」+ 花火 + ファンファーレ
+   - dominant: 上記 + 敗者の合計石数 > 0
+              → 「盤面制覇！/真っ◯に染めた！」+ 紙吹雪 + 拍手音
 
-   依存: state (humanColor, battleMode, moveQualityEnabled, reverseMatch, isTutorial,
-                tutorialMiniGame), config (ALL_CELLS), sound (playSound)
+   依存: state (humanColor, battleMode, moveQualityEnabled, moveQualityTwoPlayerEnabled,
+                reverseMatch, isTutorial, tutorialMiniGame),
+        config (ALL_CELLS), sound (playSound)
    ============================================================ */
 
 const PERFECT_MESSAGES = ['パーフェクト🎉', '完全制覇🎉'];
@@ -23,9 +26,9 @@ function pickPerfectMessage() {
   return PERFECT_MESSAGES[Math.floor(Math.random() * PERFECT_MESSAGES.length)];
 }
 
-function pickDominantMessage() {
-  // humanColor に応じて「真っ白／真っ黒」を切り替え
-  const colorWord = humanColor === 'black' ? '真っ黒' : '真っ白';
+function pickDominantMessage(winnerColor) {
+  // 勝者の色に応じて「真っ白／真っ黒」を切り替え
+  const colorWord = winnerColor === 'black' ? '真っ黒' : '真っ白';
   const messages = ['盤面制覇！', `${colorWord}に染めた！`];
   return messages[Math.floor(Math.random() * messages.length)];
 }
@@ -36,37 +39,54 @@ function pickDominantMessage() {
  * @param {number} wTotal - 白の合計石数
  * @param {number} bCount - 黒の盤面石数
  * @param {number} wCount - 白の盤面石数
- * @returns {'perfect'|'dominant'|null}
+ * @returns {{kind:'perfect'|'dominant', winner:'black'|'white'}|null}
  */
 function checkPerfectBonus(bTotal, wTotal, bCount, wCount) {
   if (!moveQualityEnabled) return null;            // 称賛メッセージ OFF と連動
-  if (battleMode !== 'cpu') return null;
   if (reverseMatch) return null;                    // RM は通常勝負と扱いが違うので除外
   if (isTutorial || tutorialMiniGame) return null;
 
-  // 勝者がプレイヤーか
-  const isHumanWin = humanColor === 'black' ? bTotal > wTotal : wTotal > bTotal;
-  if (!isHumanWin) return null;
+  // モード別判定
+  if (battleMode === 'cpu') {
+    // CPU対戦: 後でプレイヤー (humanColor) が勝者かチェック
+  } else if (battleMode === 'two') {
+    if (!moveQualityTwoPlayerEnabled) return null; // 2人対戦は設定 ON のときのみ
+  } else {
+    return null;
+  }
 
-  // 敵の盤面駒数 = 0 か（盤面に敵の駒が1つも残っていない）
-  const enemyBoardCount = humanColor === 'black' ? wCount : bCount;
-  if (enemyBoardCount > 0) return null;
+  // 勝者を判定（引き分けは対象外）
+  let winner;
+  if (bTotal > wTotal) winner = 'black';
+  else if (wTotal > bTotal) winner = 'white';
+  else return null;
 
-  // 盤面の空白なし（自分の駒で全マスが埋まっている）
-  const myBoardCount = humanColor === 'black' ? bCount : wCount;
-  if (myBoardCount < ALL_CELLS.length) return null;
+  // CPU対戦時は人間勝ちのみ。2人対戦時はどちらの勝利でも OK
+  if (battleMode === 'cpu' && winner !== humanColor) return null;
 
-  // 敵の合計石数（取られた石含む）
-  const enemyTotal = humanColor === 'black' ? wTotal : bTotal;
+  // 敗者の盤面駒数 = 0 か（盤面に敗者の駒が1つも残っていない）
+  const loserBoardCount = winner === 'black' ? wCount : bCount;
+  if (loserBoardCount > 0) return null;
 
-  return enemyTotal === 0 ? 'perfect' : 'dominant';
+  // 盤面の空白なし（勝者の駒で全マスが埋まっている）
+  const winnerBoardCount = winner === 'black' ? bCount : wCount;
+  if (winnerBoardCount < ALL_CELLS.length) return null;
+
+  // 敗者の合計石数（取られた石含む）
+  const loserTotal = winner === 'black' ? wTotal : bTotal;
+
+  return {
+    kind: loserTotal === 0 ? 'perfect' : 'dominant',
+    winner
+  };
 }
 
 /**
  * パーフェクト or 盤面制覇の演出を実行する。
- * @param {'perfect'|'dominant'} kind
+ * @param {{kind:'perfect'|'dominant', winner:'black'|'white'}} result
  */
-function triggerPerfectBonus(kind) {
+function triggerPerfectBonus(result) {
+  const { kind, winner } = result;
   const toast = document.getElementById('move-quality-toast');
   if (!toast) return;
 
@@ -84,7 +104,7 @@ function triggerPerfectBonus(kind) {
   } else {
     // dominant
     toast.className = 'mq-toast mq-dominant';
-    toast.textContent = pickDominantMessage();
+    toast.textContent = pickDominantMessage(winner);
     toast.style.display = 'block';
     toast.style.animation = 'none';
     void toast.offsetWidth;

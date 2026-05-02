@@ -287,12 +287,12 @@ function endGame() {
       }
     }
   }
-  // v67: パーフェクト/盤面制覇 判定（CPU対戦・通常対戦・プレイヤー勝利のみ）
-  const perfectKind = (typeof checkPerfectBonus === 'function')
+  // v67/v68: パーフェクト/盤面制覇 判定（通常対戦のみ、CPU/2人対戦両対応）
+  const perfectResult = (typeof checkPerfectBonus === 'function')
     ? checkPerfectBonus(bTotal, wTotal, bCount, wCount)
     : null;
-  if (perfectKind) {
-    triggerPerfectBonus(perfectKind);  // 専用音と演出（通常勝利音はスキップ）
+  if (perfectResult) {
+    triggerPerfectBonus(perfectResult);  // 専用音と演出（通常勝利音はスキップ）
   } else {
     playSound(soundType);
   }
