@@ -43,7 +43,10 @@ function pickDominantMessage(winnerColor) {
  */
 function checkPerfectBonus(bTotal, wTotal, bCount, wCount) {
   if (!moveQualityEnabled) return null;            // 称賛メッセージ OFF と連動
-  if (reverseMatch) return null;                    // RM は通常勝負と扱いが違うので除外
+  // v71: リバースマッチでも局単位で判定する。
+  //   - 各局の bTotal/wTotal は当局のみの合計 (captured は initGame で reset)
+  //   - 1局目で盤面制覇 → 中間モーダル前に祝う / 2局目で達成 → 結果モーダル前に祝う
+  //   - パーフェクト🎉も局単位で達成可（その局で敵=0 + 盤面全制覇）
   if (isTutorial || tutorialMiniGame) return null;
 
   // モード別判定

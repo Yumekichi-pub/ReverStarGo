@@ -115,6 +115,10 @@ function endGame() {
     // Reverse Match 1局目終了時の中間処理（v41〜）
     // ============================================
     if (reverseMatch && reverseMatch.round === 1) {
+      // v71: 1局目終了時に局単位で盤面制覇判定（humanColor 入れ替え前）
+      const perfectResult1 = (typeof checkPerfectBonus === 'function')
+        ? checkPerfectBonus(bTotal, wTotal, bCount, wCount)
+        : null;
       // 1局目の結果を保存
       const humanPointsR1 = humanColor === 'black' ? bTotal : wTotal;
       const cpuPointsR1 = humanColor === 'black' ? wTotal : bTotal;
@@ -140,8 +144,13 @@ function endGame() {
             `次は色を入れ替えて 2局目へ\n` +
             `あなた：${humanColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}\n` +
             `CPU：${cpuColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}`;
-      soundType = 'draw'; // 中間なので中性的な音
-      playSound(soundType);
+      // v71: 盤面制覇なら専用音＋演出（通常の中間音はスキップ）
+      if (perfectResult1) {
+        triggerPerfectBonus(perfectResult1);
+      } else {
+        soundType = 'draw'; // 中間なので中性的な音
+        playSound(soundType);
+      }
       document.getElementById('result-text').textContent = msg;
       const playAgainBtn1 = document.getElementById('play-again-btn');
       playAgainBtn1.textContent = '2局目へ ▶';
