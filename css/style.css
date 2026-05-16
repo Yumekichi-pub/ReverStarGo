@@ -588,7 +588,8 @@
       color: #1a0a0a;
     }
 
-    #undo-btn:disabled {
+    /* v77: restart-btn の disabled 状態にも適用（RM 1局目終了モーダル表示中） */
+    #controls button:disabled {
       opacity: 0.38;
       cursor: default;
       pointer-events: none;

@@ -159,6 +159,8 @@ function endGame() {
       document.getElementById('kifu-btn-row').style.display = 'none';
       document.getElementById('goto-kifu-btn').style.display = 'none';
       document.getElementById('result-modal').style.display = 'flex';
+      // v77: RM 進行中なので「ゲーム設定に戻る」を無効化（戻れば負け確定の罠を防ぐ）
+      updateRestartBtnState();
       return; // 戦績・昇格試験の記録はまだしない
     }
 
@@ -329,5 +331,7 @@ function endGame() {
   document.getElementById('save-game-btn').disabled = false;
   document.getElementById('goto-kifu-btn').style.display = 'none';
   document.getElementById('result-modal').style.display = 'flex';
+  // v77: 試合終了で「ゲーム設定に戻る」を再有効化（通常終局は戻ってOK）
+  updateRestartBtnState();
   if (!tutorialMiniGame) updateSessionScore();
 }

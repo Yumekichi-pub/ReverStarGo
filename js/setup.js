@@ -398,6 +398,9 @@ async function executeMove(q, r, s, gpColor) {
       flipped: flipped.length,
       captured: groups.length > 0 ? groups.flat().filter(([cq,cr,cs]) => !(cq === 0 && cr === 0 && cs === 0 && gpWasAlreadySurrounded)).length : 0
     });
+    // v77: 着手記録後に「ゲーム設定に戻る」の状態を再評価
+    // （CPU の手だけなら enabled のまま、人間が打ったら disabled になる）
+    if (typeof updateRestartBtnState === 'function') updateRestartBtnState();
 
     current = opp(current);
     await updateGame(true);

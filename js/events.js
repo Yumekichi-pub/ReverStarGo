@@ -173,6 +173,8 @@ function initGame() {
   document.getElementById('turn-modal').style.display = 'none';
   document.getElementById('gp-modal').style.display = 'none';
   document.getElementById('controls').style.display = '';
+  // v77: ゲーム状態に応じて「ゲーム設定に戻る」の有効/無効を更新
+  updateRestartBtnState();
   updateTodayRecordDisplay();
   updatePromotionGameStatus();
   updateGame();
@@ -377,7 +379,36 @@ document.getElementById('promo-announce-help-toggle').addEventListener('click', 
   helpEl.style.display = helpEl.style.display === 'none' ? '' : 'none';
 });
 
-document.getElementById('restart-btn').addEventListener('click', () => {
+// v77: 「ゲーム設定に戻る」の有効/無効状態を更新する。
+// 試合中（戻ると負け確定）は disabled、それ以外は enabled。
+// 西口さん設計: 「1手戻る」と同じく構造的に押せなくすることで、戻る罠を根絶。
+function updateRestartBtnState() {
+  const btn = document.getElementById('restart-btn');
+  if (!btn) return;
+  const resultModalOpen = document.getElementById('result-modal').style.display !== 'none';
+  // 結果モーダル表示中：RM 進行中なら disable（1局目終了モーダル等）、それ以外（完全終局）は enable
+  if (resultModalOpen) {
+    btn.disabled = !!reverseMatch;
+    return;
+  }
+  // RM 進行中（結果モーダル非表示も含む）→ PENDING_KEY 残存で戻れば必ず負け → disable
+  if (reverseMatch) { btn.disabled = true; return; }
+  // ゲーム未開始 → enable
+  if (!gameStarted) { btn.disabled = false; return; }
+  // _xm モード・チュートリアル中 → 影響なし → enable
+  if (_xmOn || isTutorial || tutorialMiniGame) { btn.disabled = false; return; }
+  // CPU対戦で人間がまだ1手も打ってない（v62 ルール: 白番で CPU が先に打った状態など）→ enable
+  if (battleMode === 'cpu') {
+    const playerNotMoved = !moveHistory.some(m => m.player === humanColor);
+    if (playerNotMoved) { btn.disabled = false; return; }
+  }
+  // 試合中（戻れば負け or 中断扱い）→ disable
+  btn.disabled = true;
+}
+
+document.getElementById('restart-btn').addEventListener('click', (ev) => {
+  // v77: disabled 状態でのクリックは無視（保険、通常はブラウザが防ぐ）
+  if (ev.currentTarget.disabled) return;
   // ゲーム終了後（結果表示中）はそのまま戻る
   if (document.getElementById('result-modal').style.display !== 'none') {
     backToSetupPage();
