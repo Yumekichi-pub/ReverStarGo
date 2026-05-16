@@ -28,9 +28,12 @@ function updateScore() {
   if (blackR1El && whiteR1El) {
     if (reverseMatch && reverseMatch.round === 2 && reverseMatch.round1Result) {
       const r1 = reverseMatch.round1Result;
-      // r1.humanColor は1局目での「あなた」の色
-      const blackPtsR1 = r1.humanColor === 'black' ? r1.humanPoints : r1.cpuPoints;
-      const whitePtsR1 = r1.humanColor === 'black' ? r1.cpuPoints : r1.humanPoints;
+      // v72: プレイヤー基準で表示する（色基準だと色入れ替え後に「あなた」側に
+      // CPU の1局目得点が表示されてしまうバグを修正）。
+      // 現在の humanColor が示す側＝「あなた」、反対側＝「CPU」として、
+      // それぞれの 1局目得点を表示する。
+      const blackPtsR1 = humanColor === 'black' ? r1.humanPoints : r1.cpuPoints;
+      const whitePtsR1 = humanColor === 'white' ? r1.humanPoints : r1.cpuPoints;
       blackR1El.textContent = `🏆 1局目 ${blackPtsR1}点`;
       whiteR1El.textContent = `🏆 1局目 ${whitePtsR1}点`;
       blackR1El.style.display = '';
