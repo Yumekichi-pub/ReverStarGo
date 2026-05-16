@@ -28,11 +28,11 @@ function calculateRank() {
     return sum;
   };
 
-  // devMode: ランクオーバーライド
-  if (devMode && devOverrideRank !== null) return devOverrideRank;
+  // _xmOn: ランクオーバーライド
+  if (_xmOn && _xmOvr !== null) return _xmOvr;
 
-  // devMode: どのレベルでも1勝でクリア
-  if (devMode) {
+  // _xmOn: どのレベルでも1勝でクリア
+  if (_xmOn) {
     const tw = totalWins();
     const passed = (r) => hasPassedPromotion(r);
     if (passed(29)) return 29;
@@ -304,7 +304,7 @@ function getAvailablePromotion() {
   const examRanks = [3, 6, 9, 13, 18, 23, 24, 28, 29];
   for (const targetRank of examRanks) {
     if (hasPassedPromotion(targetRank)) continue; // 合格済み
-    // 受験資格: 一つ手前のランクに到達している（devMode も同じ条件）
+    // 受験資格: 一つ手前のランクに到達している（_xmOn も同じ条件）
     if (rank >= targetRank - 1) return { targetRank, ...PROMOTION_EXAMS[targetRank] };
   }
   return null;
@@ -319,8 +319,8 @@ function getAvailablePromotion() {
 function startPromotionExam() {
   const promo = getAvailablePromotion();
   if (!promo) return;
-  // devMode: 現在選択中のレベルで試験を受けられる
-  const examLevel = devMode ? cpuLevel : promo.level;
+  // _xmOn: 現在選択中のレベルで試験を受けられる
+  const examLevel = _xmOn ? cpuLevel : promo.level;
   // 進行中の試験があり、同じ対象ランクなら継続（勝敗数を保持）
   const existing = loadPromotionExam();
   if (existing && existing.targetRank === promo.targetRank) {
@@ -417,7 +417,7 @@ const LEVEL_UNLOCK_RANK = [0, 0, 3, 6, 9, 13, 18, 24]; // index 0 unused, levels
  * @returns {boolean} 解放済みなら true
  */
 function isLevelUnlocked(level) {
-  if (devMode) return true; // devMode: 全レベル解放
+  if (_xmOn) return true; // _xmOn: 全レベル解放
   return calculateRank() >= LEVEL_UNLOCK_RANK[level];
 }
 

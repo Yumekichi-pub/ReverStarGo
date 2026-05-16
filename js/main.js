@@ -3,7 +3,7 @@
    - PWA Service Worker の登録
    - ページロード時の初期化（loadSettings, ランク表示更新等）
    - スマホ戻るボタン検知（popstate）
-   - プレイヤー名入力の即時保存 + 開発者モード起動キー
+   - プレイヤー名入力の即時保存 + メンテナンスモード起動キー
    依存：他すべてのモジュール（最後に読み込み）。
    ============================================================ */
 
@@ -48,9 +48,9 @@ window.addEventListener('popstate', function(event) {
 document.getElementById('player-name-input').addEventListener('input', function() {
   playerName = this.value.trim().slice(0, 7);
   saveSettings();
-  // 開発者モード起動
-  if (this.value === 'devstarG') {
-    activateDevMode();
+  // メンテナンスモード起動（トリガー文字列は v74 で変更、details: events.js 上部コメント参照）
+  if (this.value === 'RevstarG') {
+    _xmActivate();
     this.value = '';
     playerName = '';
     saveSettings();

@@ -1,11 +1,15 @@
 /* ============================================================
-   events.js — クリック処理 + 初期化 + イベント + 開発者メニュー
+   events.js — クリック処理 + 初期化 + イベント
    - クリック処理: pixelToCell, handleBoardClick, handleGPModalClick
    - 初期化: initGame, initBoard, resetSession
    - 各種イベントリスナー登録
-   - 開発者メニュー: 隠しコマンド（タイトル長押し等）、各種テスト機能
    依存：state.js、board.js、render.js、ai.js、records.js、
           settings.js、setup.js、tutorial.js、effects.js 等。
+   ============================================================
+   📌 命名メモ（次の担当者へ）:
+   `_xm` プレフィックスの識別子群は、命名規則統一のため作成。
+   機能追加時は同じプレフィックスを継承すること。
+   詳細仕様は RSG_控/_xm_命名規則メモ.md を参照（リポジトリ外）。
    ============================================================ */
 
 // ===== クリック処理 =====
@@ -202,38 +206,38 @@ document.getElementById('rankup-ok-btn').addEventListener('click', () => {
 });
 
 // ===== 開発者メニュー =====
-let devMode = false;
-let devOverrideRank = null;
-function activateDevMode() {
-  document.getElementById('dev-menu').style.display = 'flex';
-  if (!devMode) {
+let _xmOn = false;
+let _xmOvr = null;
+function _xmActivate() {
+  document.getElementById('xm-menu').style.display = 'flex';
+  if (!_xmOn) {
     const currentRank = calculateRank();
-    devMode = true;
-    devOverrideRank = currentRank;
+    _xmOn = true;
+    _xmOvr = currentRank;
   }
-  document.getElementById('dev-mode-toggle-btn').textContent = '🟢 開発者モード ON';
-  document.getElementById('dev-mode-indicator').style.display = '';
+  document.getElementById('xm-toggle').textContent = '🟢 オン';
+  document.getElementById('xm-indicator').style.display = '';
 }
 
-function toggleDevMode() {
-  if (!devMode) {
+function _xmToggle() {
+  if (!_xmOn) {
     // ON にする前に通常ランクを取得
     const currentRank = calculateRank();
-    devMode = true;
-    devOverrideRank = currentRank;
+    _xmOn = true;
+    _xmOvr = currentRank;
   } else {
-    devMode = false;
-    devOverrideRank = null;
+    _xmOn = false;
+    _xmOvr = null;
   }
-  const btn = document.getElementById('dev-mode-toggle-btn');
-  btn.textContent = devMode ? '🟢 開発者モード ON' : '🔴 開発者モード OFF';
-  document.getElementById('dev-mode-indicator').style.display = devMode ? '' : 'none';
+  const btn = document.getElementById('xm-toggle');
+  btn.textContent = _xmOn ? '🟢 オン' : '🔴 オフ';
+  document.getElementById('xm-indicator').style.display = _xmOn ? '' : 'none';
   updateRankDisplay();
   updateLevelButtons();
 }
 
-function devSetRank(rankIdx) {
-  devOverrideRank = rankIdx;
+function _xmSetRk(rankIdx) {
+  _xmOvr = rankIdx;
   // 設定ランク以下の昇格試験を自動的に合格済みにする
   const examRanks = [3, 6, 9, 13, 18, 23, 24, 28, 29];
   for (const er of examRanks) {
@@ -247,15 +251,15 @@ function devSetRank(rankIdx) {
   updateAccountRankDisplay();
   if (typeof updatePromotionSection === 'function') updatePromotionSection();
   closeRankList();
-  closeDevMenu();
+  _xmClose();
   alert(`ランク${rankIdx + 1}：${RANKS[rankIdx].name} に変更しました`);
 }
 
-function closeDevMenu() {
-  document.getElementById('dev-menu').style.display = 'none';
+function _xmClose() {
+  document.getElementById('xm-menu').style.display = 'none';
 }
 
-function devResetAll() {
+function _xmRstAll() {
   if (confirm('全データをリセットしますか？')) {
     localStorage.removeItem(BATTLE_RECORD_KEY);
     localStorage.removeItem(DAILY_RECORD_KEY);
@@ -263,11 +267,11 @@ function devResetAll() {
     localStorage.removeItem(PROMOTION_EXAM_KEY);
     localStorage.removeItem(PROMOTION_CAREER_KEY);
     localStorage.removeItem(DAILY_KEY);
-    // devOverrideRank と進行中の試験もリセット
+    // _xmOvr と進行中の試験もリセット
     promotionExam = null;
     sessionWins = { black: 0, white: 0, draw: 0 };
-    if (devMode) devOverrideRank = 0;
-    closeDevMenu();
+    if (_xmOn) _xmOvr = 0;
+    _xmClose();
     updateRankDisplay();
     updateLevelButtons();
     updateTodayRecordDisplay();
@@ -276,13 +280,13 @@ function devResetAll() {
   }
 }
 
-function devResetBattle() {
+function _xmRstBat() {
   if (confirm('戦績をリセットしますか？')) {
     localStorage.removeItem(BATTLE_RECORD_KEY);
     localStorage.removeItem(DAILY_RECORD_KEY);
     sessionWins = { black: 0, white: 0, draw: 0 };
-    if (devMode) devOverrideRank = 0;
-    closeDevMenu();
+    if (_xmOn) _xmOvr = 0;
+    _xmClose();
     updateRankDisplay();
     updateLevelButtons();
     updateTodayRecordDisplay();
@@ -290,13 +294,13 @@ function devResetBattle() {
   }
 }
 
-function devResetPromotions() {
+function _xmRstPro() {
   if (confirm('ランクアップマッチの記録をリセットしますか？')) {
     localStorage.removeItem(PROMOTION_KEY);
     localStorage.removeItem(PROMOTION_EXAM_KEY);
     localStorage.removeItem(PROMOTION_CAREER_KEY);
     promotionExam = null;
-    closeDevMenu();
+    _xmClose();
     updateRankDisplay();
     updateLevelButtons();
     if (typeof updatePromotionSection === 'function') updatePromotionSection();
@@ -304,7 +308,7 @@ function devResetPromotions() {
   }
 }
 
-function devToggleDaily(dateStr, setComplete) {
+function _xmTgDly(dateStr, setComplete) {
   const data = loadDailyData();
   if (setComplete) {
     data[dateStr] = true;
@@ -316,10 +320,10 @@ function devToggleDaily(dateStr, setComplete) {
   renderTrophies();
 }
 
-function devResetDaily() {
+function _xmRstDly() {
   if (confirm('デイリー記録をリセットしますか？')) {
     localStorage.removeItem(DAILY_KEY);
-    closeDevMenu();
+    _xmClose();
     alert('デイリー記録をリセットしました');
   }
 }
@@ -381,7 +385,7 @@ document.getElementById('restart-btn').addEventListener('click', () => {
     return;
   }
   // 開発者モード中は警告なしでそのまま戻る（負け記録もしない）
-  if (devMode) {
+  if (_xmOn) {
     backToSetupPage();
     return;
   }
@@ -411,7 +415,7 @@ function confirmQuit() {
   clearReverseMatchPending();
   reverseMatch = null;
   // 負けとして記録（CPU対戦・チュートリアル以外、開発者モード以外）
-  if (battleMode === 'cpu' && !isTutorial && !tutorialMiniGame && !devMode) {
+  if (battleMode === 'cpu' && !isTutorial && !tutorialMiniGame && !_xmOn) {
     const record = loadBattleRecord();
     const lvKey = String(cpuLevel);
     record[lvKey].lose++;

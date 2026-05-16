@@ -239,14 +239,14 @@ function endGame() {
         markDailyComplete(dateToMark);
         dailyChallengeDate = null;
       }
-      // devMode: 通常勝利でランク+1（昇格試験中は除く）
+      // _xmOn: 通常勝利でランク+1（昇格試験中は除く）
       // 次の昇格試験ランクの1つ手前まで進める（昇格試験は別途挑戦）
-      if (devMode && devOverrideRank !== null && soundType === 'win' && !promotionExam) {
+      if (_xmOn && _xmOvr !== null && soundType === 'win' && !promotionExam) {
         const examRanks = [3, 6, 9, 13, 18, 23, 24, 28, 29];
-        const cap = examRanks.find(r => r > devOverrideRank && !hasPassedPromotion(r));
+        const cap = examRanks.find(r => r > _xmOvr && !hasPassedPromotion(r));
         const maxRank = cap !== undefined ? cap - 1 : 29;
-        if (devOverrideRank < maxRank) {
-          devOverrideRank++;
+        if (_xmOvr < maxRank) {
+          _xmOvr++;
         }
       }
       // 昇格試験の結果記録
@@ -257,10 +257,10 @@ function endGame() {
         if (promoResult) {
           if (promoResult.passed) {
             promotionPassed = true;
-            // devMode: 昇格試験合格でランクを試験ランクへ
-            if (devMode && devOverrideRank !== null) {
-              devOverrideRank = promoResult.exam.targetRank;
-              if (devOverrideRank > 29) devOverrideRank = 29;
+            // _xmOn: 昇格試験合格でランクを試験ランクへ
+            if (_xmOn && _xmOvr !== null) {
+              _xmOvr = promoResult.exam.targetRank;
+              if (_xmOvr > 29) _xmOvr = 29;
             }
             if (promoResult.careerPass) {
               msg += `\n\n🎉 通算${promoResult.career.wins}勝達成！\nランクアップマッチ 合格！`;

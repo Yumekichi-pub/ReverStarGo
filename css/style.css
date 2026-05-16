@@ -1287,8 +1287,8 @@
       font-size: 0.9rem;
     }
 
-    /* ===== 開発者メニュー ===== */
-    #dev-menu {
+    /* ===== メンテナンスメニュー（v74 で命名変更、詳細は events.js 上部コメント） ===== */
+    #xm-menu {
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.8);
@@ -1298,7 +1298,7 @@
       z-index: 2000;
     }
 
-    .dev-menu-content {
+    .xm-content {
       background: #1a1a2e;
       border: 2px solid #e94560;
       border-radius: 16px;
@@ -1308,14 +1308,14 @@
       text-align: center;
     }
 
-    .dev-menu-title {
+    .xm-title {
       color: #e94560;
       font-size: 1.1rem;
       font-weight: bold;
       margin-bottom: 16px;
     }
 
-    .dev-menu-btn {
+    .xm-btn {
       display: block;
       width: 100%;
       padding: 12px;
@@ -1328,11 +1328,11 @@
       cursor: pointer;
     }
 
-    .dev-menu-btn:hover {
+    .xm-btn:hover {
       background: #e94560;
     }
 
-    .dev-menu-btn.dev-close {
+    .xm-btn.xm-close {
       background: #333;
       border-color: #666;
       margin-top: 12px;
@@ -1577,7 +1577,7 @@
     }
 
     /* ===== トップページ メニューグリッド ===== */
-    .dev-mode-indicator {
+    .xm-indicator {
       margin-top: 12px;
       font-size: 0.75rem;
       color: #ffd700;

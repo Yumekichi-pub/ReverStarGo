@@ -95,20 +95,20 @@ function renderCalendar() {
         if (data[dateStr]) {
           span.classList.add('completed');
           completedCount++;
-          // devMode: タップで未クリアに戻す
-          if (devMode) {
+          // _xmOn: タップで未クリアに戻す
+          if (_xmOn) {
             span.onclick = (() => {
               const ds = dateStr;
-              return () => { devToggleDaily(ds, false); };
+              return () => { _xmTgDly(ds, false); };
             })();
           }
         } else if (isFuture) {
           span.classList.add('future');
-          // devMode: 未来の日付もタップでクリア済みにできる
-          if (devMode) {
+          // _xmOn: 未来の日付もタップでクリア済みにできる
+          if (_xmOn) {
             span.onclick = (() => {
               const ds = dateStr;
-              return () => { devToggleDaily(ds, true); };
+              return () => { _xmTgDly(ds, true); };
             })();
           }
         } else {
@@ -117,7 +117,7 @@ function renderCalendar() {
           span.onclick = (() => {
             const ds = dateStr;
             return () => {
-              if (devMode) { devToggleDaily(ds, true); }
+              if (_xmOn) { _xmTgDly(ds, true); }
               else { startDailyChallenge(ds); }
             };
           })();

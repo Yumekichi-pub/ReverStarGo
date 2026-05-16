@@ -78,8 +78,8 @@
         <span class="menu-tile-label">ランク</span>
       </div>
     </div>
-    <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">RSG-v73</p>
+    <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🔧</p>
+    <p class="app-version">RSG-v74</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -676,15 +676,15 @@
     </div>
   </div>
 
-  <div id="dev-menu" style="display:none;">
-    <div class="dev-menu-content">
-      <p class="dev-menu-title">🔧 開発者メニュー</p>
-      <button class="dev-menu-btn" onclick="toggleDevMode()" id="dev-mode-toggle-btn">🟢 開発者モード ON</button>
-      <button class="dev-menu-btn" onclick="devResetAll()">全データリセット</button>
-      <button class="dev-menu-btn" onclick="devResetBattle()">戦績リセット</button>
-      <button class="dev-menu-btn" onclick="devResetPromotions()">ランクアップマッチ リセット</button>
-      <button class="dev-menu-btn" onclick="devResetDaily()">デイリー記録リセット</button>
-      <button class="dev-menu-btn dev-close" onclick="closeDevMenu()">閉じる</button>
+  <div id="xm-menu" style="display:none;">
+    <div class="xm-content">
+      <p class="xm-title">🔧 メンテナンス</p>
+      <button class="xm-btn" onclick="_xmToggle()" id="xm-toggle">🟢 オン</button>
+      <button class="xm-btn" onclick="_xmRstAll()">全データリセット</button>
+      <button class="xm-btn" onclick="_xmRstBat()">戦績リセット</button>
+      <button class="xm-btn" onclick="_xmRstPro()">ランクアップマッチ リセット</button>
+      <button class="xm-btn" onclick="_xmRstDly()">デイリー記録リセット</button>
+      <button class="xm-btn xm-close" onclick="_xmClose()">閉じる</button>
     </div>
   </div>
 

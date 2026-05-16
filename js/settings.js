@@ -48,7 +48,7 @@ function showRankList() {
   const currentRank = calculateRank();
   let html = '<div class="rank-list-modal-overlay" onclick="closeRankList()">';
   html += '<div class="rank-list-modal" onclick="event.stopPropagation()">';
-  html += `<div class="rank-list-title">📊 ランク一覧${devMode ? '<br><span style="font-size:0.7rem;color:#ff8060;">※ タップでランク変更</span>' : ''}</div>`;
+  html += `<div class="rank-list-title">📊 ランク一覧${_xmOn ? '<br><span style="font-size:0.7rem;color:#ff8060;">※ タップでランク変更</span>' : ''}</div>`;
   html += '<div class="rank-list-scroll">';
   html += '<table class="rank-list-table">';
   html += '<thead><tr><th></th><th>ランク</th><th>条件</th><th>解放</th></tr></thead>';
@@ -64,8 +64,8 @@ function showRankList() {
         unlockLabel = lv >= 6 ? `🔓${LEVEL_NAMES[lv-1]}` : `🔓Lv.${lv}`;
       }
     }
-    const clickAttr = devMode ? ` onclick="devSetRank(${i})"` : '';
-    const cursorStyle = devMode ? ' style="cursor:pointer; -webkit-tap-highlight-color:rgba(255,128,96,0.3);"' : '';
+    const clickAttr = _xmOn ? ` onclick="_xmSetRk(${i})"` : '';
+    const cursorStyle = _xmOn ? ' style="cursor:pointer; -webkit-tap-highlight-color:rgba(255,128,96,0.3);"' : '';
     html += `<tr${cls}${clickAttr}${cursorStyle}>`;
     html += `<td>${rankIcon(i, 24)}</td>`;
     html += `<td>${i + 1}. ${RANKS[i].name}</td>`;
