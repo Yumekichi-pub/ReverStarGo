@@ -1,3 +1,18 @@
 node_modules/
 desktop.ini
 .claude/
+
+# 開発・調査用フォルダ（デプロイ対象外）
+_bisect/
+_dev/
+_preview/
+チェック/
+
+# 将来用アセット（今は使わない）
+cosmo/
+
+# CPU開発・実験版（過去版含む）
+cpu/
+
+# 内部資料（万が一戻ってきた場合の保険、本来は RSG_控/ に置く）
+important/
