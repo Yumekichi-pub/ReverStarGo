@@ -39,6 +39,10 @@ function pixelToCell(px, py) {
 async function onCellClick(q, r, s) {
   if (replayMode) return; // リプレイ中はクリック無効
   if (isAnimating) return;
+  // v75: CPコール待ち中（gp-modal表示中）は盤面クリック無効化
+  // バグ修正: pendingMove が残ったままセルクリックすると別の場所に石が
+  // 置けてしまい、事実上「待った」になっていた問題への対策。
+  if (pendingMove !== null) return;
   if (isTutorial) { handleTutorialClick(q, r, s); return; }
   if (isCpuTurn()) return;
   if (!isOnBoard(q,r,s)) return;
