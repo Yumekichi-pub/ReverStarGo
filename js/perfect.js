@@ -7,7 +7,9 @@
    - moveQualityEnabled === false の時は完全に黙る（称賛メッセージ OFF と連動）
    - CPU対戦: プレイヤー (humanColor) が勝者の時のみ
    - 2人対戦: moveQualityTwoPlayerEnabled === true の時、勝者のどちらでも発動
-   - 盤面の全 37 マスが勝者の色で埋まっている（空白なし、敗者の盤面駒なし）
+   - CP セル(中央)を除く 36 マスが勝者の色で埋まっている（v78〜）
+     ※ CP は CP コール経由でしか埋まらない特殊マスなので、空のままでも判定対象
+     ※ CP が勝者の色で埋まっている場合は 37 マス全埋まり
 
    2段階:
    - perfect : 上記 + 敗者の合計石数 = 0 (取られた石も0)
@@ -71,9 +73,14 @@ function checkPerfectBonus(bTotal, wTotal, bCount, wCount) {
   const loserBoardCount = winner === 'black' ? wCount : bCount;
   if (loserBoardCount > 0) return null;
 
-  // 盤面の空白なし（勝者の駒で全マスが埋まっている）
+  // v78: CP セル（中央）は CP コール経由でしか埋まらない特殊マス。
+  //   - CP 空: CP を除く 36 マスが勝者色で全埋まりなら判定対象
+  //   - CP に勝者の駒: 37 マス全埋まり（さらに強い制覇状態）
+  // 敗者の駒は既に loserBoardCount=0 で除外済みなので、CP に敗者駒のケースは到達しない。
+  const cpFilled = board[K(0,0,0)] !== null;
+  const requiredCellCount = cpFilled ? ALL_CELLS.length : ALL_CELLS.length - 1;
   const winnerBoardCount = winner === 'black' ? bCount : wCount;
-  if (winnerBoardCount < ALL_CELLS.length) return null;
+  if (winnerBoardCount < requiredCellCount) return null;
 
   // 敗者の合計石数（取られた石含む）
   const loserTotal = winner === 'black' ? wTotal : bTotal;
