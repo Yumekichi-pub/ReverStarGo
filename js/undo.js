@@ -90,6 +90,8 @@ function endGame() {
   }
   let bCount = 0, wCount = 0;
   for (const [q,r,s] of ALL_CELLS) {
+    // v79: CP セル [0,0,0] は盤面得点に含めない
+    if (q === 0 && r === 0 && s === 0) continue;
     const c = board[K(q,r,s)];
     if (c === 'black') bCount++;
     else if (c === 'white') wCount++;

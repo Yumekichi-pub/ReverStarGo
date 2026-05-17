@@ -10,7 +10,12 @@
 // ===== 描画 =====
 
 function countOnBoard(player) {
-  return ALL_CELLS.filter(([q,r,s]) => board[K(q,r,s)] === player).length;
+  // v79: CP セル [0,0,0] は盤面石数の得点に含めない（最大 36 マス固定）。
+  //   囲み取りで CP の石を取った場合は captured.* に反映されるが、
+  //   盤面に残っている CP の石は「合計」表示にはカウントしない。
+  return ALL_CELLS.filter(([q,r,s]) =>
+    !(q === 0 && r === 0 && s === 0) && board[K(q,r,s)] === player
+  ).length;
 }
 
 function updateScore() {
