@@ -784,6 +784,9 @@
       z-index: 9999;
       opacity: 0;
       transition: opacity 0.3s;
+      /* v80: 透明時もクリックを横取りしないように
+         （opacity:0 だけだとロゴ等のクリックを奪う透明オーバーレイ化していた問題の修正） */
+      pointer-events: none;
     }
     .copy-toast.show { opacity: 1; }
 
