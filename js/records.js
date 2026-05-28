@@ -6,6 +6,99 @@
           + humanColor / cpuLevel 等のグローバル状態。
    ============================================================ */
 
+/* ============================================================
+   v81: 戦績データの軽い改ざん対策（署名 + 難読化）
+   localStorage は平文なので開発者ツールで誰でも書き換えられる。
+   完全には防げない（ブラウザJSの原理的限界）が、「ちょっと覗いた程度」
+   では書き換えられないレベルにする。
+   - 保存時: データを base64 化し、秘密キー込みのハッシュ署名を付ける
+   - 読込時: 署名を再計算して照合。合わなければ改ざんとみなしリセット
+   - 旧データ（署名なし平文）は1回だけ「正規の既存データ」として受け入れ
+     → 既存テスターのランクは維持される（移行措置）
+   ============================================================ */
+// 秘密の合言葉（難読化のためあえて分かりにくい名前・値に）
+const _RSG_SALT = 'rSg♯2026★ykµ51zeus';
+
+// cyrb53 ベースの簡易ハッシュ（依存なし・同期・高速）
+function _rsgHash(str) {
+  str = String(str) + _RSG_SALT;
+  let h1 = 0xdeadbeef ^ str.length, h2 = 0x41c6ce57 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+
+// オブジェクト → 署名付き base64 文字列
+function _rsgPack(obj) {
+  const json = JSON.stringify(obj);
+  const payload = JSON.stringify({ d: json, s: _rsgHash(json) });
+  try {
+    return btoa(unescape(encodeURIComponent(payload)));
+  } catch (e) {
+    return payload; // btoa 失敗時のフォールバック
+  }
+}
+
+// localStorage の生文字列 → 結果
+//   署名OK: そのオブジェクト
+//   改ざん: '__TAMPERED__'
+//   旧平文: { __legacy__: オブジェクト }
+//   無効 : null
+function _rsgUnpack(raw) {
+  if (raw === null || raw === undefined || raw === '') return null;
+  // 1) 新形式（base64 + 署名）を試す
+  try {
+    const payload = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if (payload && typeof payload.d === 'string' && typeof payload.s === 'string') {
+      if (_rsgHash(payload.d) === payload.s) {
+        return JSON.parse(payload.d); // 署名一致 = 正規データ
+      }
+      return '__TAMPERED__'; // 署名不一致 = 改ざん
+    }
+  } catch (e) { /* base64/JSON でなければ旧平文として下へ */ }
+  // 2) 旧形式（署名なしの平文 JSON）→ 移行対象
+  try {
+    const legacy = JSON.parse(raw);
+    if (legacy && typeof legacy === 'object') return { __legacy__: legacy };
+  } catch (e) {}
+  return null;
+}
+
+// v81: 移行済みフラグ（難読化キー）。
+//   「署名なし旧データの受け入れ（移行）は初回1回だけ」を保証するため。
+//   初回起動で既存テスターのデータを署名付きに変換 → フラグを立てる。
+//   以降に署名なしデータが現れたら＝孫さんが直接書き込んだ＝改ざんとみなしリセット。
+const _RSG_INIT_KEY = '_rsg_v';
+function _rsgMigrated() {
+  const u = _rsgUnpack(localStorage.getItem(_RSG_INIT_KEY));
+  return !!(u && u !== '__TAMPERED__' && !u.__legacy__);
+}
+function _rsgMarkMigrated() {
+  try { localStorage.setItem(_RSG_INIT_KEY, _rsgPack({ t: Date.now() })); } catch(e) {}
+}
+// 旧平文データの扱いを一元判定:
+//   移行前  → 'accept'（受け入れて署名付与）
+//   移行後  → 'reject'（改ざんとみなしリセット）
+function _rsgLegacyAction() {
+  return _rsgMigrated() ? 'reject' : 'accept';
+}
+
+// v81: アプリ起動時に一度だけ呼ぶ。既存データを署名付きに移行し、フラグを立てる。
+function _rsgInit() {
+  if (_rsgMigrated()) return; // 既に移行済みなら何もしない
+  // 各 load を呼ぶと、移行前なので __legacy__ が 'accept' 扱いで署名付与される
+  try { loadBattleRecord(); } catch(e) {}
+  try { loadDailyRecord(); } catch(e) {}
+  try { loadPromotions(); } catch(e) {}
+  try { loadPromotionCareer(); } catch(e) {}
+  _rsgMarkMigrated();
+}
+
 function rankIcon(idx, size) {
   size = size || 20;
   return `<img src="${RANKS[idx].icon}" alt="${RANKS[idx].name}" style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;">`;
@@ -166,16 +259,29 @@ const PROMOTION_EXAMS = {
 
 // 合格済みの昇格試験を読み込み/保存
 function loadPromotions() {
-  try {
-    const data = JSON.parse(localStorage.getItem(PROMOTION_KEY));
-    if (data) return data;
-  } catch(e) {}
+  // v81: 昇格試験合格データはゼウス到達の最重要キー。改ざん検知を厳重に。
+  const unpacked = _rsgUnpack(localStorage.getItem(PROMOTION_KEY));
+  if (unpacked === '__TAMPERED__') {
+    try { localStorage.setItem(PROMOTION_KEY, _rsgPack({})); } catch(e) {}
+    return {}; // 改ざん → 合格記録を全消去
+  }
+  const isLegacy = !!(unpacked && unpacked.__legacy__);
+  // v81: 移行後に署名なしデータ = 改ざん → 合格記録を全消去
+  if (isLegacy && _rsgLegacyAction() === 'reject') {
+    try { localStorage.setItem(PROMOTION_KEY, _rsgPack({})); } catch(e) {}
+    return {};
+  }
+  const data = isLegacy ? unpacked.__legacy__ : unpacked;
+  if (data && typeof data === 'object') {
+    if (isLegacy) { try { localStorage.setItem(PROMOTION_KEY, _rsgPack(data)); } catch(e) {} } // 初回移行
+    return data;
+  }
   return {};
 }
 function savePromotion(rankIndex) {
   const data = loadPromotions();
   data[String(rankIndex)] = true;
-  try { localStorage.setItem(PROMOTION_KEY, JSON.stringify(data)); } catch(e) {}
+  try { localStorage.setItem(PROMOTION_KEY, _rsgPack(data)); } catch(e) {}
 }
 function hasPassedPromotion(rankIndex) {
   return !!loadPromotions()[String(rankIndex)];
@@ -183,16 +289,27 @@ function hasPassedPromotion(rankIndex) {
 
 // 昇格試験の通算成績を読み込み/保存
 function loadPromotionCareer() {
-  try {
-    const data = JSON.parse(localStorage.getItem(PROMOTION_CAREER_KEY));
-    if (data) return data;
-  } catch(e) {}
+  const unpacked = _rsgUnpack(localStorage.getItem(PROMOTION_CAREER_KEY));
+  if (unpacked === '__TAMPERED__') {
+    try { localStorage.setItem(PROMOTION_CAREER_KEY, _rsgPack({})); } catch(e) {}
+    return {};
+  }
+  const isLegacy = !!(unpacked && unpacked.__legacy__);
+  if (isLegacy && _rsgLegacyAction() === 'reject') {
+    try { localStorage.setItem(PROMOTION_CAREER_KEY, _rsgPack({})); } catch(e) {}
+    return {};
+  }
+  const data = isLegacy ? unpacked.__legacy__ : unpacked;
+  if (data && typeof data === 'object') {
+    if (isLegacy) { try { localStorage.setItem(PROMOTION_CAREER_KEY, _rsgPack(data)); } catch(e) {} } // 初回移行
+    return data;
+  }
   return {};
 }
 function savePromotionCareer(rankIndex, wins, losses) {
   const data = loadPromotionCareer();
   data[String(rankIndex)] = { wins, losses };
-  try { localStorage.setItem(PROMOTION_CAREER_KEY, JSON.stringify(data)); } catch(e) {}
+  try { localStorage.setItem(PROMOTION_CAREER_KEY, _rsgPack(data)); } catch(e) {}
 }
 function getPromotionCareer(rankIndex) {
   const data = loadPromotionCareer();
@@ -427,31 +544,47 @@ function getLevelUnlockHint(level) {
 }
 
 function loadBattleRecord() {
-  try {
-    const data = JSON.parse(localStorage.getItem(BATTLE_RECORD_KEY));
-    if (data && data['1']) {
-      // 旧5段階データを6段階に移行
-      if (!data['6']) {
-        // 旧Lv.2→新Lv.3, 旧Lv.3→新Lv.4, 旧Lv.4→新Lv.5, 旧Lv.5→新Lv.6
-        const migrated = {
-          '1': data['1'],
-          '2': {win:0,lose:0,draw:0},
-          '3': data['2'] || {win:0,lose:0,draw:0},
-          '4': data['3'] || {win:0,lose:0,draw:0},
-          '5': data['4'] || {win:0,lose:0,draw:0},
-          '6': data['5'] || {win:0,lose:0,draw:0}
-        };
-        saveBattleRecord(migrated);
-        return migrated;
-      }
-      return data;
+  const DEFAULT = () => ({ '1':{win:0,lose:0,draw:0}, '2':{win:0,lose:0,draw:0}, '3':{win:0,lose:0,draw:0}, '4':{win:0,lose:0,draw:0}, '5':{win:0,lose:0,draw:0}, '6':{win:0,lose:0,draw:0}, '7':{win:0,lose:0,draw:0} });
+  const unpacked = _rsgUnpack(localStorage.getItem(BATTLE_RECORD_KEY));
+  // v81: 署名不一致 = 改ざん → リセット
+  if (unpacked === '__TAMPERED__') {
+    const def = DEFAULT();
+    saveBattleRecord(def);
+    return def;
+  }
+  const isLegacy = !!(unpacked && unpacked.__legacy__);
+  // v81: 移行後に署名なしデータが現れた = 直接書き込みによる改ざん → リセット
+  if (isLegacy && _rsgLegacyAction() === 'reject') {
+    const def = DEFAULT();
+    saveBattleRecord(def);
+    return def;
+  }
+  const data = isLegacy ? unpacked.__legacy__ : unpacked;
+  if (data && data['1']) {
+    // 旧5段階データを6段階に移行
+    if (!data['6']) {
+      // 旧Lv.2→新Lv.3, 旧Lv.3→新Lv.4, 旧Lv.4→新Lv.5, 旧Lv.5→新Lv.6
+      const migrated = {
+        '1': data['1'],
+        '2': {win:0,lose:0,draw:0},
+        '3': data['2'] || {win:0,lose:0,draw:0},
+        '4': data['3'] || {win:0,lose:0,draw:0},
+        '5': data['4'] || {win:0,lose:0,draw:0},
+        '6': data['5'] || {win:0,lose:0,draw:0}
+      };
+      saveBattleRecord(migrated);
+      return migrated;
     }
-  } catch(e) {}
-  return { '1':{win:0,lose:0,draw:0}, '2':{win:0,lose:0,draw:0}, '3':{win:0,lose:0,draw:0}, '4':{win:0,lose:0,draw:0}, '5':{win:0,lose:0,draw:0}, '6':{win:0,lose:0,draw:0}, '7':{win:0,lose:0,draw:0} };
+    // v81: 旧平文だった場合は署名付きで保存し直す（移行措置＝既存テスターのランク維持）
+    if (isLegacy) saveBattleRecord(data);
+    return data;
+  }
+  return DEFAULT();
 }
 
 function saveBattleRecord(record) {
-  try { localStorage.setItem(BATTLE_RECORD_KEY, JSON.stringify(record)); } catch(e) {}
+  // v81: 署名付き + base64 難読化で保存
+  try { localStorage.setItem(BATTLE_RECORD_KEY, _rsgPack(record)); } catch(e) {}
 }
 
 // ===== 当日成績（localStorage） =====
@@ -463,16 +596,23 @@ function getTodayDateStr() {
 }
 
 function loadDailyRecord() {
-  try {
-    const data = JSON.parse(localStorage.getItem(DAILY_RECORD_KEY));
-    if (data && data.date === getTodayDateStr() && data.record) return data.record;
-  } catch(e) {}
-  return { '1':{win:0,lose:0,draw:0}, '2':{win:0,lose:0,draw:0}, '3':{win:0,lose:0,draw:0}, '4':{win:0,lose:0,draw:0}, '5':{win:0,lose:0,draw:0}, '6':{win:0,lose:0,draw:0}, '7':{win:0,lose:0,draw:0} };
+  const DEFAULT = () => ({ '1':{win:0,lose:0,draw:0}, '2':{win:0,lose:0,draw:0}, '3':{win:0,lose:0,draw:0}, '4':{win:0,lose:0,draw:0}, '5':{win:0,lose:0,draw:0}, '6':{win:0,lose:0,draw:0}, '7':{win:0,lose:0,draw:0} });
+  const unpacked = _rsgUnpack(localStorage.getItem(DAILY_RECORD_KEY));
+  if (unpacked === '__TAMPERED__') return DEFAULT(); // v81: 改ざん → 当日成績は空に
+  const isLegacy = !!(unpacked && unpacked.__legacy__);
+  if (isLegacy && _rsgLegacyAction() === 'reject') return DEFAULT(); // v81: 移行後の署名なし = 改ざん
+  const data = isLegacy ? unpacked.__legacy__ : unpacked;
+  if (data && data.date === getTodayDateStr() && data.record) {
+    if (isLegacy) saveDailyRecord(data.record); // 初回移行で署名付与
+    return data.record;
+  }
+  return DEFAULT();
 }
 
 function saveDailyRecord(record) {
+  // v81: 署名付き + base64 難読化で保存
   try {
-    localStorage.setItem(DAILY_RECORD_KEY, JSON.stringify({ date: getTodayDateStr(), record: record }));
+    localStorage.setItem(DAILY_RECORD_KEY, _rsgPack({ date: getTodayDateStr(), record: record }));
   } catch(e) {}
 }
 

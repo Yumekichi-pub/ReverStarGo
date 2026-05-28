@@ -13,6 +13,8 @@ if ('serviceWorker' in navigator) {
 }
 
 // ===== スタート =====
+// v81: 戦績データの署名移行（初回のみ。既存テスターのランク維持 + 以降の改ざん検知を有効化）
+if (typeof _rsgInit === 'function') _rsgInit();
 // セットアップ画面が表示されるのでゲームは startGame() から開始
 loadSettings();
 promotionExam = loadPromotionExam(); // 昇格試験の復元
