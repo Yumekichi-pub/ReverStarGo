@@ -81,6 +81,7 @@ function endGame() {
   // 診断ログ（endGame 呼び出し検出用）
   console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
   let _dailyCelebrateKind = null; // v83: デイリー達成お祝いの種類 ('day'|'month'|null)
+  let _dailyCelebrateMonth = null; // v83: 月コンプ時の月番号（トロフィー登場用）
   // ゲーム終了時は「1手戻る」を完全に無効化（勝利2重カウント防止）
   undoUsed = true;
   undoSnapshot = null;
@@ -249,6 +250,7 @@ function endGame() {
           if (dailyCompletion.monthCompleted) {
             msg += `\n\n🏆 ${dailyCompletion.month}月コンプリート！\n全${dailyCompletion.progress.total}日達成 — トロフィー獲得！`;
             _dailyCelebrateKind = 'month';
+            _dailyCelebrateMonth = dailyCompletion.month;
           } else {
             msg += `\n\n📅 本日のデイリー達成！（${dailyCompletion.month}月 ${dailyCompletion.progress.completed}/${dailyCompletion.progress.total}日）`;
             _dailyCelebrateKind = 'day';
@@ -345,6 +347,20 @@ function endGame() {
   document.getElementById('save-game-btn').disabled = false;
   document.getElementById('goto-kifu-btn').style.display = 'none';
   document.getElementById('result-modal').style.display = 'flex';
+  // v83: 月コンプ時は結果画面にトロフィー画像を「登場」させる（それ以外は隠す）
+  const _resultTrophy = document.getElementById('result-trophy');
+  if (_resultTrophy) {
+    if (_dailyCelebrateKind === 'month' && _dailyCelebrateMonth) {
+      _resultTrophy.src = `trophy/${_dailyCelebrateMonth}.jpg`;
+      _resultTrophy.style.display = '';
+      _resultTrophy.classList.remove('trophy-appear');
+      void _resultTrophy.offsetWidth; // リフローでアニメ再生
+      _resultTrophy.classList.add('trophy-appear');
+    } else {
+      _resultTrophy.style.display = 'none';
+      _resultTrophy.classList.remove('trophy-appear');
+    }
+  }
   // v83: デイリー達成のお祝い演出（パーフェクト演出と重複しないときのみ）
   if (_dailyCelebrateKind && !perfectResult) {
     if (_dailyCelebrateKind === 'month') {
