@@ -80,6 +80,7 @@ function hideKoHelp() {
 function endGame() {
   // 診断ログ（endGame 呼び出し検出用）
   console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
+  let _dailyCelebrateKind = null; // v83: デイリー達成お祝いの種類 ('day'|'month'|null)
   // ゲーム終了時は「1手戻る」を完全に無効化（勝利2重カウント防止）
   undoUsed = true;
   undoSnapshot = null;
@@ -237,11 +238,22 @@ function endGame() {
       else dailyRec[lvKey].draw++;
       saveDailyRecord(dailyRec);
       updateTodayRecordDisplay();
-      // デイリーチャレンジ記録
+      // デイリーチャレンジ記録（v83: 新規達成時はお祝い演出を仕込む）
       if (soundType === 'win') {
         const dateToMark = dailyChallengeDate || getTodayStr();
-        markDailyComplete(dateToMark);
+        const dailyCompletion = (typeof registerDailyCompletion === 'function')
+          ? registerDailyCompletion(dateToMark)
+          : (markDailyComplete(dateToMark), null);
         dailyChallengeDate = null;
+        if (dailyCompletion) {
+          if (dailyCompletion.monthCompleted) {
+            msg += `\n\n🏆 ${dailyCompletion.month}月コンプリート！\n全${dailyCompletion.progress.total}日達成 — トロフィー獲得！`;
+            _dailyCelebrateKind = 'month';
+          } else {
+            msg += `\n\n📅 本日のデイリー達成！（${dailyCompletion.month}月 ${dailyCompletion.progress.completed}/${dailyCompletion.progress.total}日）`;
+            _dailyCelebrateKind = 'day';
+          }
+        }
       }
       // _xmOn: 通常勝利でランク+1（昇格試験中は除く）
       // 次の昇格試験ランクの1つ手前まで進める（昇格試験は別途挑戦）
@@ -333,6 +345,16 @@ function endGame() {
   document.getElementById('save-game-btn').disabled = false;
   document.getElementById('goto-kifu-btn').style.display = 'none';
   document.getElementById('result-modal').style.display = 'flex';
+  // v83: デイリー達成のお祝い演出（パーフェクト演出と重複しないときのみ）
+  if (_dailyCelebrateKind && !perfectResult) {
+    if (_dailyCelebrateKind === 'month') {
+      try { playSound('fanfare'); } catch (e) {}
+      if (typeof showFireworks === 'function') showFireworks(4000);
+    } else {
+      try { playSound('capture-praise'); } catch (e) {}
+      if (typeof showConfetti === 'function') showConfetti(2500);
+    }
+  }
   // v77: 試合終了で「ゲーム設定に戻る」を再有効化（通常終局は戻ってOK）
   updateRestartBtnState();
   if (!tutorialMiniGame) updateSessionScore();

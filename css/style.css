@@ -1542,6 +1542,41 @@
       font-weight: normal;
     }
 
+    /* ===== v83: デイリー達成演出 ===== */
+    /* カレンダーの達成日が「ポンッ」と緑に出現＋グローリング */
+    @keyframes calDayPop {
+      0%   { transform: scale(0.2); }
+      45%  { transform: scale(1.4); }
+      70%  { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
+    @keyframes calDayGlow {
+      0%   { box-shadow: 0 0 0 0 rgba(76,175,80,0.85); }
+      100% { box-shadow: 0 0 0 16px rgba(76,175,80,0); }
+    }
+    .cal-day.just-completed {
+      animation: calDayPop 0.6s cubic-bezier(.34,1.56,.64,1) both,
+                 calDayGlow 0.9s ease-out 0.1s 1;
+    }
+    /* 月コンプ時：トロフィーがグレー→カラーへ「出現」 */
+    @keyframes trophyReveal {
+      0%   { filter: grayscale(100%) opacity(0.35); transform: scale(0.8); }
+      40%  { filter: grayscale(0%)   opacity(1);    transform: scale(1.18); }
+      70%  { transform: scale(0.95); }
+      100% { filter: grayscale(0%)   opacity(1);    transform: scale(1); }
+    }
+    #monthly-trophy-container.just-revealed img {
+      animation: trophyReveal 1.2s ease-out both;
+    }
+    @keyframes trophyLabelPop {
+      0%   { transform: scale(0.6); opacity: 0; }
+      60%  { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    #monthly-trophy-container.just-revealed .trophy-label {
+      animation: trophyLabelPop 0.8s ease-out 0.4s both;
+    }
+
     .daily-bottom-buttons {
       display: flex;
       flex-direction: column;

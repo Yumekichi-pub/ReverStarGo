@@ -32,6 +32,37 @@ function markDailyComplete(dateStr) {
   saveDailyData(data);
 }
 
+// v83: デイリー達成お祝い用の状態（メモリのみ・揮発性）
+let justCompletedDailyDate = null;   // 直近に新規達成した日付（カレンダーのポップ演出用）
+let justCompletedMonthKey = null;    // 直近に月コンプした 'YYYY-M'（トロフィー出現演出用）
+
+// v83: 指定月の達成日数を返す { completed, total }
+function getMonthProgress(year, month) {
+  const data = loadDailyData();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  let completed = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if (data[ds]) completed++;
+  }
+  return { completed, total: daysInMonth };
+}
+
+// v83: デイリー達成を記録し、お祝い用の情報を返す。
+// すでに達成済みの日付なら null（＝お祝い不要）を返す。
+function registerDailyCompletion(dateStr) {
+  const data = loadDailyData();
+  if (data[dateStr]) return null;          // 既に達成済み → お祝いしない
+  data[dateStr] = true;
+  saveDailyData(data);
+  const [y, m] = dateStr.split('-').map(Number);
+  justCompletedDailyDate = dateStr;
+  const progress = getMonthProgress(y, m);
+  const monthCompleted = isMonthComplete(y, m);
+  if (monthCompleted) justCompletedMonthKey = `${y}-${m}`;
+  return { dateStr, year: y, month: m, monthCompleted, progress };
+}
+
 function getTodayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -94,6 +125,8 @@ function renderCalendar() {
 
         if (data[dateStr]) {
           span.classList.add('completed');
+          // v83: 直近に新規達成した日はポップ＆グロー演出
+          if (dateStr === justCompletedDailyDate) span.classList.add('just-completed');
           completedCount++;
           // _xmOn: タップで未クリアに戻す
           if (_xmOn) {
@@ -134,6 +167,9 @@ function renderCalendar() {
   // Stats
   document.getElementById('calendar-stats').textContent =
     `${calMonth}月: ${completedCount} / ${daysInMonth} 日クリア`;
+
+  // v83: ポップ演出は一度きり（描画後にフラグを消費）
+  justCompletedDailyDate = null;
 }
 
 function isMonthComplete(year, month) {
@@ -164,7 +200,10 @@ function renderTrophies() {
   const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   const container = document.getElementById('monthly-trophy-container');
   const complete = isMonthComplete(year, month);
-  container.className = 'custom-section' + (complete ? '' : ' locked');
+  // v83: 直近に月コンプしたトロフィーは「出現（グレー→カラー）」演出を付ける
+  const justRevealed = complete && justCompletedMonthKey === `${year}-${month}`;
+  justCompletedMonthKey = null; // 一度きり
+  container.className = 'custom-section' + (complete ? '' : ' locked') + (justRevealed ? ' just-revealed' : '');
   container.innerHTML = '';
 
   const img = document.createElement('img');
