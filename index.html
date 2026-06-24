@@ -24,11 +24,29 @@
   <meta name="apple-mobile-web-app-title" content="ReverStarGo">
   <meta name="theme-color" content="#f5edd8">
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    // v88: 言語の記憶＋自動切替（日本語版/英語版は同一ドメインで localStorage 共有）
+    (function(){
+      try {
+        var pref = localStorage.getItem('rsg-lang');
+        var onEn = /^\/en(\/|$)/.test(location.pathname);
+        if (pref === 'en' && !onEn) { location.replace('/en/'); return; }
+        if (pref === 'ja' && onEn) { location.replace('/'); return; }
+      } catch(e){}
+    })();
+    function switchLang(lang){
+      try { localStorage.setItem('rsg-lang', lang); } catch(e){}
+      var onEn = /^\/en(\/|$)/.test(location.pathname);
+      if (lang === 'en' && !onEn) location.href = '/en/';
+      else if (lang === 'ja' && onEn) location.href = '/';
+    }
+  </script>
 </head>
 <body>
 
   <!-- メインページ（トップ） -->
   <div id="setup-main" class="setup-page dark-theme bg-image">
+    <button class="lang-switch" onclick="switchLang('en')">🌐 English</button>
     <div class="setup-section name-section">
       <div id="player-name-display" onclick="showPage('account')"></div>
       <div id="player-rank-display"></div>
@@ -79,7 +97,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v87</p>
+    <p class="app-version">RSG-v88</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -126,6 +144,14 @@
   <div id="setup-custom" class="setup-page dark-theme" style="display:none;">
     <h1 class="page-title">⚙ カスタム設定</h1>
     <div class="custom-section">
+
+      <div class="custom-row">
+        <h3>言語 / Language</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn selected" onclick="switchLang('ja')">日本語</button>
+          <button class="custom-btn" onclick="switchLang('en')">English</button>
+        </div>
+      </div>
 
       <div class="custom-row">
         <h3>CPUの反応速度</h3>
