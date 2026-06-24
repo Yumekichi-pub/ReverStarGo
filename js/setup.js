@@ -524,18 +524,16 @@ async function cpuPlay() {
   }
 }
 
-// 保険②: CPUの手が二重に失敗したときの「ノーゲーム（無効）→ 再試合」処理。
+// 保険②: CPUの手が二重に失敗したときの「ノーゲーム（無効）→ やり直し」処理。
 // 不具合による中断なので、勝敗・昇格試験・リバースマッチには一切記録しない。
+// リバースマッチ中は「いまの局だけ」やり直す（2局目で起きても1局目の結果は保持）。
 function cpuFatalNoGame() {
   isAnimating = false;
-  // リバースマッチ中なら、同じ設定でセットを最初（1局目）からやり直す
-  if (reverseMatch) {
-    humanColor = reverseMatch.initialHumanColor;
-    cpuColor = opp(humanColor);
-    reverseMatch.round = 1;
-    reverseMatch.round1Result = null;
+  let extra = '';
+  if (reverseMatch && reverseMatch.round === 2) {
+    extra = '\n（リバースマッチ2局目のやり直しです。1局目の結果はそのまま残ります）';
   }
-  alert('⚠ うまく対局を続けられませんでした。\nこの対局は「ノーゲーム（無効）」とし、もう一度はじめから対局します。');
+  alert('⚠ うまく対局を続けられませんでした。\nこの対局は「ノーゲーム（無効）」とし、もう一度この局を最初からやり直します。' + extra);
   initGame();
 }
 
