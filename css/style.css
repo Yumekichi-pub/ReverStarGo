@@ -1604,13 +1604,10 @@
                  trophyGlowPulse 1.0s ease-out 0.5s 1;
     }
 
-    /* v88: 言語切替チップ（メイン右上） */
-    #setup-main { position: relative; }
+    /* v89: 言語切替チップ（ランクカードの下・右端揃え） */
     .lang-switch {
-      position: absolute;
-      top: 10px;
-      right: 12px;
-      z-index: 20;
+      align-self: flex-end;
+      margin: -6px 2px 0 0;
       padding: 5px 12px;
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.55);
