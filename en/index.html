@@ -50,7 +50,9 @@
       <div id="player-name-display" onclick="showPage('account')"></div>
       <div id="player-rank-display"></div>
     </div>
-    <button class="lang-switch" onclick="switchLang('ja')">🌐 日本語</button>
+    <div class="lang-switch-row">
+      <button class="lang-switch" onclick="switchLang('ja')">🌐 日本語</button>
+    </div>
     <div class="menu-grid">
       <div class="menu-tile" onclick="isDailySetup=false; dailyChallengeDate=null; showPage('game-setup')">
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
@@ -97,7 +99,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v89-en</p>
+    <p class="app-version">RSG-v90-en</p>
   </div>
 
   <!-- Game Setup Page -->

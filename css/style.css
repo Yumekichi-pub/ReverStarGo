@@ -1604,10 +1604,15 @@
                  trophyGlowPulse 1.0s ease-out 0.5s 1;
     }
 
-    /* v89: 言語切替チップ（ランクカードの下・右端揃え） */
+    /* v90: 言語切替チップ（ランクカード下・メニュー幅340pxの右端に固定） */
+    .lang-switch-row {
+      width: 100%;
+      max-width: 340px;
+      margin: -6px auto 0;
+      display: flex;
+      justify-content: flex-end;
+    }
     .lang-switch {
-      align-self: flex-end;
-      margin: -6px 2px 0 0;
       padding: 5px 12px;
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.55);
