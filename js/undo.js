@@ -180,21 +180,32 @@ function endGame() {
       const cpuTotal = r1.cpuPoints + cpuPointsR2;
       const humanName = getPlayerName();
       let smWinner; // 'human' | 'cpu' | 'draw'
+      // v85: 合計同点時のタイブレーク表示用（1局目+2局目の囲み合計）
+      let smCapTiebreak = false, smHumanCapTotal = 0, smCpuCapTotal = 0;
       if (humanTotal > cpuTotal) { smWinner = 'human'; soundType = 'win'; sessionWins.black++; }
       else if (cpuTotal > humanTotal) { smWinner = 'cpu'; soundType = 'lose'; sessionWins.white++; }
       else {
-        // 合計同点: 2局目の取った石の数で判定
-        if (tiebreakWinner) {
-          const tbHuman = (tiebreakWinner === humanColor);
-          if (tbHuman) { smWinner = 'human'; soundType = 'win'; sessionWins.black++; }
-          else         { smWinner = 'cpu';   soundType = 'lose'; sessionWins.white++; }
-        } else { smWinner = 'draw'; soundType = 'draw'; sessionWins.draw++; }
+        // v85: 合計同点 → 1局目+2局目の「囲んで取った石」の合計（あなた vs CPU）で判定。
+        // 旧実装は2局目の囲みのみ＆2局目盤面が同点のときしか働かず、ほぼ引き分けになっていた。
+        const humanCapR1 = r1.humanColor === 'black' ? r1.capturedBlack : r1.capturedWhite;
+        const cpuCapR1   = r1.humanColor === 'black' ? r1.capturedWhite : r1.capturedBlack;
+        const humanCapR2 = humanColor === 'black' ? captured.black : captured.white;
+        const cpuCapR2   = humanColor === 'black' ? captured.white : captured.black;
+        smHumanCapTotal = humanCapR1 + humanCapR2;
+        smCpuCapTotal   = cpuCapR1 + cpuCapR2;
+        smCapTiebreak = true;
+        if (smHumanCapTotal > smCpuCapTotal)      { smWinner = 'human'; soundType = 'win';  sessionWins.black++; }
+        else if (smCpuCapTotal > smHumanCapTotal) { smWinner = 'cpu';   soundType = 'lose'; sessionWins.white++; }
+        else                                      { smWinner = 'draw';  soundType = 'draw'; sessionWins.draw++; }
       }
       smFinalMsg = `🏆 リバースマッチ 結果\n` +
                    `1局目（あなた${r1.humanColor === 'black' ? '⚫' : '⚪'}）: ${r1.humanPoints} — ${r1.cpuPoints}\n` +
                    `2局目（あなた${humanColor === 'black' ? '⚫' : '⚪'}）: ${humanPointsR2} — ${cpuPointsR2}\n` +
                    `───────────────\n` +
                    `合計：あなた ${humanTotal} — CPU ${cpuTotal}\n\n`;
+      if (smCapTiebreak) {
+        smFinalMsg += `※合計同点 → 囲んだ石の合計で判定（あなた ${smHumanCapTotal} — CPU ${smCpuCapTotal}）\n\n`;
+      }
       if (smWinner === 'human') smFinalMsg += `🎉 ${humanName} の勝利！`;
       else if (smWinner === 'cpu') smFinalMsg += `😢 CPU の勝利`;
       else smFinalMsg += `引き分け`;

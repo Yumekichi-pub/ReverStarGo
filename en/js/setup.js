@@ -445,13 +445,10 @@ function showTurnModal() {
  * 安全弁（moveHistory > SAFETY_MAX_MOVES）と診断ログも内蔵。
  */
 async function cpuPlay() {
-  window.__lastCpuPath = 'enter';
-  window.__cpuPathCount = (window.__cpuPathCount || 0) + 1;
   // 安全弁①（cpuPlay 冒頭） — moveHistory ベース
   // boardHistory は pass を含まない & executeMove 内でしかチェックしないため、
   // パス混じりのコウループで閾値に届きにくい。moveHistory は pass も含むので堅い。
   if (moveHistory.length > SAFETY_MAX_MOVES) {
-    window.__lastCpuPath = 'safety';
     console.warn(`[SAFETY] cpuPlay: moveHistory=${moveHistory.length} > 80 — 強制終局`);
     isAnimating = false;
     endGame();
@@ -472,7 +469,6 @@ async function cpuPlay() {
   // ルール④: 連続コウ例外を検出して終局
   // showPassModal を呼ばない（自動テストで詰まる原因を回避）
   if (needsKoException && prevKoException) {
-    window.__lastCpuPath = 'rule4';
     console.log('[KO-RULE-④] 連続コウ例外で終局 (cpuPlay)');
     endGame();
     return;
@@ -484,12 +480,9 @@ async function cpuPlay() {
   const validMoves = koException ? allValid : nonKo;
   // 有効手なし → updateGameのパス処理に委ねる
   if (validMoves.length === 0) {
-    window.__lastCpuPath = 'validMoves0';
-    window.__lastCpuExtra = `nKE=${needsKoException},pKE=${prevKoException},allV=${allValid.length},nonKo=${nonKo.length}`;
     console.log(`[DIAG cpuPlay] validMoves=0, delegating to updateGame: cur=${current}, mv=${moveHistory.length}, prevKoEx=${prevKoException}`);
     // パス時に prevKoException をリセットしない（ルール④ の連鎖検知のため）
     await updateGame();
-    window.__lastCpuPath = 'after-validMoves0-updateGame';
     console.log(`[DIAG cpuPlay] updateGame returned (from validMoves=0 branch): cur=${current}, mv=${moveHistory.length}`);
     return;
   }
@@ -509,32 +502,19 @@ async function cpuPlay() {
 
   // 今回の手がコウ例外だったかを executeMove の前に記録（両者連続検知用）
   // （executeMove 内で updateGame → 次ターン cpuPlay が起動するため、先に設定しないと内部で古い値を見る）
-  window.__lastCpuPath = 'before-pKE-set';
   prevKoException = koException;
-  window.__lastCpuPath = 'before-execute';
 
   try {
     const chosen = cpuChooseMove(validMoves, current);
     const [q, r, s] = chosen || validMoves[0]; // フォールバック
     const gp = pickNonKoGPColor(q, r, s, current);
     await executeMove(q, r, s, gp);
-    window.__lastCpuPath = 'after-execute-success';
   } catch(e) {
-    window.__lastCpuPath = 'main-catch';
-    window.__lastCpuExtra = (e && e.message) || String(e);
     console.error('CPU手選択エラー:', e);
     // エラー時はランダムな有効手でフォールバック
-    try {
-      const [q, r, s] = validMoves[Math.floor(nextRandom() * validMoves.length)];
-      const gp = pickNonKoGPColor(q, r, s, current);
-      await executeMove(q, r, s, gp);
-      window.__lastCpuPath = 'fallback-success';
-    } catch (e2) {
-      window.__lastCpuPath = 'fatal';
-      console.error('[CPU FATAL] フォールバックも失敗、強制終局:', e2);
-      isAnimating = false;
-      endGame();
-    }
+    const [q, r, s] = validMoves[Math.floor(nextRandom() * validMoves.length)];
+    const gp = pickNonKoGPColor(q, r, s, current);
+    await executeMove(q, r, s, gp);
   }
 }
 
