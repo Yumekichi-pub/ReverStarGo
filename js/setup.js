@@ -511,11 +511,32 @@ async function cpuPlay() {
     await executeMove(q, r, s, gp);
   } catch(e) {
     console.error('CPU手選択エラー:', e);
-    // エラー時はランダムな有効手でフォールバック
-    const [q, r, s] = validMoves[Math.floor(nextRandom() * validMoves.length)];
-    const gp = pickNonKoGPColor(q, r, s, current);
-    await executeMove(q, r, s, gp);
+    // 保険①: エラー時はランダムな有効手でフォールバック
+    try {
+      const [q, r, s] = validMoves[Math.floor(nextRandom() * validMoves.length)];
+      const gp = pickNonKoGPColor(q, r, s, current);
+      await executeMove(q, r, s, gp);
+    } catch (e2) {
+      // 保険②: フォールバックも失敗 → ノーゲーム扱いで最初から再試合（戦績は記録しない）
+      console.error('[CPU FATAL] フォールバックも失敗、ノーゲーム再試合:', e2);
+      cpuFatalNoGame();
+    }
   }
+}
+
+// 保険②: CPUの手が二重に失敗したときの「ノーゲーム（無効）→ 再試合」処理。
+// 不具合による中断なので、勝敗・昇格試験・リバースマッチには一切記録しない。
+function cpuFatalNoGame() {
+  isAnimating = false;
+  // リバースマッチ中なら、同じ設定でセットを最初（1局目）からやり直す
+  if (reverseMatch) {
+    humanColor = reverseMatch.initialHumanColor;
+    cpuColor = opp(humanColor);
+    reverseMatch.round = 1;
+    reverseMatch.round1Result = null;
+  }
+  alert('⚠ うまく対局を続けられませんでした。\nこの対局は「ノーゲーム（無効）」とし、もう一度はじめから対局します。');
+  initGame();
 }
 
 // CPUのCPコール色選択（コウにならない色を優先）
