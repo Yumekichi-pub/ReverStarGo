@@ -1738,6 +1738,37 @@
       position: relative;
       z-index: 1;
     }
+    /* デイリータイルの日めくりカレンダーアイコン */
+    .menu-tile-icon.cal-icon {
+      width: 46px;
+      height: 48px;
+      display: flex;
+      flex-direction: column;
+      border-radius: 9px;
+      overflow: hidden;
+      background: #fdfaf2;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+    .cal-icon-month {
+      background: #d03c3c;
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: bold;
+      line-height: 1;
+      padding: 3px 0 2px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+    .cal-icon-day {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-size: 1.3rem;
+      font-weight: bold;
+      line-height: 1;
+    }
     /* ===== ルール説明書 ===== */
     .rules-section p {
       text-align: left;

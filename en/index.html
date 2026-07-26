@@ -63,7 +63,10 @@
       <div class="menu-tile" onclick="showPage('daily')">
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
-        <span class="menu-tile-icon">📅</span>
+        <span class="menu-tile-icon cal-icon">
+          <span class="cal-icon-month" id="daily-cal-month"></span>
+          <span class="cal-icon-day" id="daily-cal-day"></span>
+        </span>
         <span class="menu-tile-label">Daily</span>
       </div>
       <div class="menu-tile" onclick="showPage('account')">
@@ -99,7 +102,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v92-en</p>
+    <p class="app-version">RSG-v93-en</p>
   </div>
 
   <!-- Game Setup Page -->

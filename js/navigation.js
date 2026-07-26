@@ -6,6 +6,18 @@
           / updateBattleRecordDisplay 等の描画関数。
    ============================================================ */
 
+// ===== デイリータイルの日付表示 =====
+// メインメニューのデイリータイルに今日の「月・日」をカレンダー風に表示する。
+// showPage('main') のたびに呼ぶことで、日付が変わった後も表示が追従する。
+function updateDailyTileDate() {
+  const monthEl = document.getElementById('daily-cal-month');
+  const dayEl = document.getElementById('daily-cal-day');
+  if (!monthEl || !dayEl) return;
+  const now = new Date();
+  monthEl.textContent = `${now.getMonth() + 1}月`;
+  dayEl.textContent = now.getDate();
+}
+
 // ===== ページナビゲーション =====
 /**
  * 画面（ページ）の切り替えを行う。各ページの表示/非表示を一括管理。
@@ -26,6 +38,7 @@ function showPage(page) {
     document.getElementById('setup-main').style.display = 'flex';
     updatePlayerNameDisplay();
     updateRankDisplay();
+    updateDailyTileDate();
   } else if (page === 'game-setup') {
     document.getElementById('setup-game').style.display = 'flex';
     updateLevelButtons();
