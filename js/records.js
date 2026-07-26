@@ -646,3 +646,46 @@ function updateBattleRecordDisplay() {
     tbody.appendChild(tr);
   }
 }
+
+// ===== 戦績シェア =====
+function generateBattleRecordShareText() {
+  const record = loadBattleRecord();
+  const rankIdx = calculateRank();
+  const rankName = RANKS[rankIdx].name;
+  const pName = getPlayerName();
+
+  let text = `【ReverStarGo 戦績】\n`;
+  text += `${pName}（ランク${rankIdx + 1}：${rankName}）\n`;
+  text += `────────────────\n`;
+  for (let lv = 1; lv <= 7; lv++) {
+    const r = record[String(lv)] || { win: 0, lose: 0, draw: 0 };
+    const total = r.win + r.lose + r.draw;
+    if (total === 0) continue;
+    const rate = Math.round(r.win / total * 100);
+    const lvLabel = lv >= 6 ? LEVEL_NAMES[lv - 1] : `Lv.${lv} ${LEVEL_NAMES[lv - 1]}`;
+    text += `${lvLabel}：${r.win}勝${r.lose}敗${r.draw}分（勝率${rate}%）\n`;
+  }
+  text += `────────────────\n`;
+  text += `あなたはFINALを攻略できるか？\n`;
+  text += `${location.origin}/`;
+  return text;
+}
+
+function shareBattleRecord() {
+  const text = generateBattleRecordShareText();
+  if (navigator.share) {
+    navigator.share({ text: text }).catch(() => {});
+    return;
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('コピーしました！SNSに貼り付けてシェアしよう');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('コピーしました！SNSに貼り付けてシェアしよう');
+  });
+}
