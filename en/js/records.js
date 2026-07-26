@@ -668,8 +668,8 @@ function generateBattleRecordShareText() {
   return text;
 }
 
-function shareBattleRecord() {
-  const text = generateBattleRecordShareText();
+// シェア共通処理：Web Share API → クリップボードの順にフォールバック
+function _rsgShareText(text) {
   if (navigator.share) {
     navigator.share({ text: text }).catch(() => {});
     return;
@@ -685,4 +685,14 @@ function shareBattleRecord() {
     document.body.removeChild(ta);
     showToast('Copied! Paste it to share on social media');
   });
+}
+
+function shareBattleRecord() {
+  _rsgShareText(generateBattleRecordShareText());
+}
+
+// 対局結果のシェア（結果画面から。テキストは undo.js の終局処理で組み立て）
+function shareGameResult() {
+  if (typeof lastResultShareText === 'undefined' || !lastResultShareText) return;
+  _rsgShareText(lastResultShareText);
 }

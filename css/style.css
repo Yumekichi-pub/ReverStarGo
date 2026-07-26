@@ -738,7 +738,8 @@
       background: #a07818;
     }
 
-    #back-to-daily-btn {
+    #back-to-daily-btn,
+    #share-result-btn {
       padding: 10px 28px;
       background: transparent;
       color: #c09020;
@@ -748,7 +749,8 @@
       font-weight: bold;
       cursor: pointer;
     }
-    #back-to-daily-btn:hover {
+    #back-to-daily-btn:hover,
+    #share-result-btn:hover {
       background: rgba(192,144,32,0.1);
     }
 

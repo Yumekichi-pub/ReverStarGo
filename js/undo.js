@@ -11,6 +11,7 @@
 let undoSnapshot = null;       // 1手戻る用スナップショット
 let undoUsed = false;          // 1ゲームに1回のみ
 let gameStarted = false;       // 最初の一手が打たれたか
+let lastResultShareText = null; // 結果画面のシェア用テキスト（CPU対戦の終局時に組み立て）
 
 // ===== 1手戻る（Undo） =====
 function saveUndoState() {
@@ -158,10 +159,12 @@ function endGame() {
       document.getElementById('result-text').textContent = msg;
       const playAgainBtn1 = document.getElementById('play-again-btn');
       playAgainBtn1.textContent = '2局目へ ▶';
-      // 棋譜ボタン・デイリーボタン非表示
+      // 棋譜ボタン・デイリーボタン・シェアボタン非表示（1局目は中間結果のため）
       document.getElementById('back-to-daily-btn').style.display = 'none';
       document.getElementById('kifu-btn-row').style.display = 'none';
       document.getElementById('goto-kifu-btn').style.display = 'none';
+      const shareBtnR1 = document.getElementById('share-result-btn');
+      if (shareBtnR1) shareBtnR1.style.display = 'none';
       document.getElementById('result-modal').style.display = 'flex';
       // v77: RM 進行中なので「ゲーム設定に戻る」を無効化（戻れば負け確定の罠を防ぐ）
       updateRestartBtnState();
@@ -335,6 +338,18 @@ function endGame() {
     playSound(soundType);
   }
   document.getElementById('result-text').textContent = msg;
+  // 結果シェア用テキストを組み立て（CPU対戦のみ。チュートリアルは除外）
+  if (battleMode === 'cpu' && !tutorialMiniGame) {
+    const shareLv = cpuLevel >= 6 ? LEVEL_NAMES[cpuLevel - 1] : `Lv.${cpuLevel} ${LEVEL_NAMES[cpuLevel - 1]}`;
+    lastResultShareText = `【ReverStarGo】vs ${shareLv}\n` +
+      `${msg}\n\n` +
+      `あなたはFINALを攻略できるか？\n` +
+      `${location.origin}/`;
+  } else {
+    lastResultShareText = null;
+  }
+  const shareResultBtn = document.getElementById('share-result-btn');
+  if (shareResultBtn) shareResultBtn.style.display = lastResultShareText ? '' : 'none';
   // もう一度ボタンのラベル（ランクアップマッチ中は「次の試合へ」）
   const playAgainBtn = document.getElementById('play-again-btn');
   if (promotionExam) {
