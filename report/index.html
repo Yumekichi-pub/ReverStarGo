@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RSG 独立研究レポート v5.1 やさしい解説</title>
+<style>
+:root{
+  --rsg:#c0392b; --rev8:#2980b9; --rev6:#27ae60;
+  --ink:#2c3e50; --paper:#fdfdfa; --soft:#f6f4ee;
+  --line:#dcd8cc; --accent:#d97a3a;
+}
+*{box-sizing:border-box}
+body{
+  font-family:'Yu Gothic','游ゴシック',YuGothic,'Hiragino Kaku Gothic Pro','メイリオ',Meiryo,sans-serif;
+  font-size:11pt; line-height:1.9;
+  max-width:760px; margin:0 auto;
+  padding:24px 22px 60px; color:var(--ink); background:var(--paper);
+}
+.header{
+  text-align:center; padding:28px 16px 22px;
+  background:linear-gradient(135deg,#fff7e8 0%,#fce4d6 100%);
+  border-radius:14px; margin-bottom:28px;
+  border:1px solid #f0d4b5;
+}
+.header .badge{
+  display:inline-block; background:var(--accent); color:#fff;
+  padding:4px 14px; border-radius:18px; font-size:9.5pt; letter-spacing:0.05em;
+  margin-bottom:14px;
+}
+.header h1{
+  font-size:18pt; margin:0 0 10px; line-height:1.45; color:#5a3a1a;
+}
+.header h1 .small{ font-size:13pt; display:block; margin-top:6px; color:#7a5a3a; font-weight:normal;}
+.header .lead{ font-size:10.5pt; color:#5a4a3a; margin:8px 16px 0; line-height:1.8;}
+.header .meta{ font-size:9.5pt; color:#8a6a4a; margin-top:14px;}
+
+h2{
+  font-size:14pt; margin:42px 0 16px; padding:10px 14px;
+  background:var(--soft); border-left:6px solid var(--accent);
+  border-radius:4px; color:#3a2a1a;
+}
+h3{ font-size:12pt; margin:24px 0 10px; color:#3a2a1a; }
+p{ margin:10px 0; }
+strong{ color:#3a2a1a; }
+em{ color:#6a5a3a; font-style:normal; background:#fff3d8; padding:0 4px; border-radius:3px;}
+
+.callout{
+  background:#fff7e8; border:1px solid #f0d4b5; border-radius:10px;
+  padding:14px 18px; margin:18px 0;
+}
+.callout .label{
+  display:inline-block; background:var(--accent); color:#fff;
+  padding:2px 10px; border-radius:14px; font-size:9pt; margin-bottom:8px; font-weight:bold;
+}
+.callout p:last-child{ margin-bottom:0; }
+.callout p:first-of-type{ margin-top:0; }
+
+.formula{
+  background:#fffbe6; border:1px dashed #d4b878; padding:12px 18px;
+  margin:14px 0; border-radius:8px; text-align:center;
+  font-size:12pt; color:#6a4a1a;
+}
+
+.game-card{
+  border:1px solid var(--line); border-radius:10px;
+  padding:14px 18px; margin:14px 0; background:#fff;
+}
+.game-card.rsg{ border-left:8px solid var(--rsg); }
+.game-card.rev8{ border-left:8px solid var(--rev8); }
+.game-card.rev6{ border-left:8px solid var(--rev6); }
+.game-card h3{ margin:0 0 6px; }
+.game-card.rsg h3{ color:var(--rsg); }
+.game-card.rev8 h3{ color:var(--rev8); }
+.game-card.rev6 h3{ color:var(--rev6); }
+.game-card .meta{ font-size:9.5pt; color:#7a6a5a; margin-bottom:6px; }
+.game-card p{ margin:6px 0; font-size:10.5pt; }
+
+table{
+  border-collapse:collapse; margin:18px auto; font-size:10.5pt;
+  background:#fff; width:100%; max-width:560px;
+}
+th,td{ border:1px solid #cfc8b8; padding:7px 10px; text-align:center;}
+th{ background:#f0e8d8; }
+td.lab{ text-align:left; font-weight:bold; }
+tbody tr:nth-child(even){ background:#fbf8f0; }
+
+.j-chart{
+  display:block; margin:18px auto; max-width:100%;
+  background:#fff; border:1px solid var(--line); border-radius:8px;
+}
+
+.takeaway{
+  background:linear-gradient(135deg,#fff7e8 0%,#ffe8d8 100%);
+  border:2px solid var(--accent); border-radius:12px;
+  padding:18px 22px; margin:24px 0;
+}
+.takeaway .label{
+  font-size:10pt; color:var(--accent); font-weight:bold; margin-bottom:6px;
+}
+.takeaway p{ margin:6px 0; font-size:11pt; line-height:1.85;}
+.takeaway strong{ color:#8a3a1a; }
+
+.faq{
+  background:#f6f4ee; border-radius:10px; padding:14px 18px; margin:14px 0;
+}
+.faq .q{ font-weight:bold; color:#5a3a1a; margin-bottom:6px;}
+.faq .a{ margin:0; }
+
+.links{
+  background:#f6f4ee; border-radius:10px; padding:18px 22px; margin:30px 0 14px;
+  border:1px solid var(--line);
+}
+.links h3{ margin-top:0; }
+.links ul{ list-style:none; padding-left:0; margin:8px 0 0; }
+.links li{ margin:8px 0; padding-left:1.4em; position:relative; }
+.links li:before{ content:'\2192'; position:absolute; left:0; color:var(--accent); font-weight:bold;}
+.links a{ color:var(--rev8); text-decoration:none; border-bottom:1px dotted var(--rev8); }
+.links a:hover{ background:#eaf3fb; }
+
+.footer{
+  text-align:center; font-size:9.5pt; color:#8a7a6a;
+  margin-top:40px; padding-top:18px; border-top:1px solid var(--line);
+}
+
+.story{
+  font-size:10.5pt; color:#5a4a3a; line-height:1.95;
+  background:#fcf8ee; border-left:4px solid #d4b878;
+  padding:10px 16px; margin:14px 0; border-radius:0 6px 6px 0;
+}
+
+.tidbit{
+  font-size:10pt; color:#5a4a3a; line-height:1.85;
+  background:#fff3d8; border-radius:8px;
+  padding:10px 16px; margin:14px 0;
+}
+.tidbit .lab{ display:inline-block; font-weight:bold; color:var(--accent); margin-right:6px; }
+
+@media (max-width:600px){
+  body{ padding:14px 12px 40px;}
+  .header h1{ font-size:15pt;}
+  h2{ font-size:13pt;}
+  table{ font-size:9.5pt;}
+  th,td{ padding:5px 6px;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="badge">やさしい解説 v5.1</span>
+  <h1>ReverStarGo（RSG）独立研究レポート
+    <span class="small">― 新しいボードゲームの深さを測る</span>
+  </h1>
+  <p class="lead">37 マスの六角形ボードゲーム「RSG」を、リバーシと比べてどれくらい奥深いか、データで調べてみました。<br>
+  本論文の<strong>やさしい解説版</strong>です。10 分くらいで読めます。</p>
+  <p class="meta">著者：独立研究家（西口 猛）／ 2026 年 4 月 ／ v5.1</p>
+</div>
+
+
+<h2>🎮 はじめに ― このゲームと研究の経緯</h2>
+
+<p>40 年前、私は新しいボードゲームの構想を温めていました。
+当時は、駒と盤を作るところから始めなければならず、形にすることができずにいました。</p>
+
+<p>時代が流れ、AI でアプリを作れる時代になり、ようやく形にできるようになりました。
+「いま作るならどうするか」と考え直し、昔の構想（一回り大きな 73 マス）から、
+時代に合わせて<strong>一回り小さな 37 マスの星型盤</strong>に縮小しました。</p>
+
+<p>ところがここで、ひとつの不安が浮かびました。</p>
+
+<div class="callout">
+  <span class="label">不安</span>
+  <p>「この小ささでは、コンピューターで先を読むうちに最善手が決まってしまい、
+  結局<strong>底の浅いゲーム</strong>になってしまうのではないか？」</p>
+</div>
+
+<p>そこで、3 つのリバーシ系ゲームで AI 同士に対決させ、
+RSG が本当は深いのか、浅いのかを、データで確かめてみることにしました。
+本ページは、その分析の結果を、なるべくやさしい言葉で紹介する解説版です。</p>
+
+
+<h2>1. RSG ってどんなゲーム？</h2>
+
+<p>RSG（リバースターゴ）は、リバーシと囲碁の要素に独自のルールを組み合わせたボードゲームです。次のような特徴があります。</p>
+
+<ul>
+<li><strong>盤面</strong>：六角形のマスを 37 個並べた星型の盤</li>
+<li><strong>基本ルール</strong>：相手の石を挟むと裏返る（リバーシと同じ）</li>
+<li><strong>独自ルール①「キャプチャ」</strong>：囲碁のように、相手を完全に囲むと取れる</li>
+<li><strong>独自ルール②「コール」</strong>：盤の中央 CP に石を置くとき、黒・白どちらの色で置くか選べる</li>
+<li><strong>独自ルール③「コウ禁則」</strong>：過去に出た盤面に戻る手は禁止（無限ループ防止）</li>
+<li><strong>勝敗</strong>：終局時の<em>盤上の石数 ＋ 取った石（捕獲数）</em>の合計で決める</li>
+</ul>
+
+<p>つまり、<strong>リバーシ ＋ 囲碁の「囲んで取る」 ＋ 独自の戦略要素</strong>を組み合わせたゲームです。</p>
+
+<div class="callout">
+  <span class="label">補足</span>
+  <p>RSG は <strong>無料のブラウザアプリ</strong>として公開されています（リンクはページ下部）。
+  ルールの詳細は、本論文の第 1 章に図入りで丁寧に説明されています。</p>
+</div>
+
+
+<h2>2. 「ゲームの深さ」って何だろう？</h2>
+
+<p>「このゲームは奥が深い／浅い」って、よく言いますよね。でも、それを<strong>数字で表す</strong>って、どうすればいいでしょうか？</p>
+
+<h3>2-1. 「同じゲームを何回やっても、毎回違う？」</h3>
+
+<p>本研究では、こういう問いを立てました。</p>
+
+<div class="callout">
+  <span class="label">問い</span>
+  <p><strong>「同じゲームを 1 万回やったとき、それぞれの対局が、どれくらい違う展開になるか？」</strong></p>
+  <p>毎回まったく違う展開になるなら、戦略の幅が広い＝奥深いと言えそうです。<br>
+  逆に、すぐ同じ展開ばかりになるなら、戦略の幅は狭いといえます。</p>
+</div>
+
+<h3>2-2. β（ベータ）値という指標</h3>
+
+<p>これを測るのに使うのが、<strong>Heaps' law（ヒープスの法則）</strong>という昔から知られている法則です。
+もともとは「文章を読んでいくと、新しい単語がどれくらいの速さで増えていくか？」を表す式として、言語学で使われていました。</p>
+
+<div class="formula">
+  V(n) = K × n<sup>β</sup>
+</div>
+
+<p>細かい式は気にしなくて大丈夫。<strong>大事なのは β（ベータ）</strong>という数字です。</p>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 200" class="j-chart">
+<rect x="0" y="0" width="660" height="200" fill="white"/>
+<text x="330.0" y="26" text-anchor="middle" font-size="13" font-weight="bold" fill="#3a2a1a">β 値の直感：「同じゲームを 1 万回やったら、何通り違う展開になる？」</text>
+<circle cx="110" cy="100" r="42" fill="#27ae60" opacity="0.18" stroke="#27ae60" stroke-width="2"/>
+<text x="110" y="95" text-anchor="middle" font-size="14" font-weight="bold" fill="#27ae60">β = 1.0</text>
+<text x="110" y="112" text-anchor="middle" font-size="9.5" fill="#3a2a1a">毎回違う展開</text>
+<text x="110" y="170" text-anchor="middle" font-size="10" fill="#5a4a3a">戦略の幅が広い</text>
+<circle cx="330" cy="100" r="42" fill="#d97a3a" opacity="0.18" stroke="#d97a3a" stroke-width="2"/>
+<text x="330" y="95" text-anchor="middle" font-size="14" font-weight="bold" fill="#d97a3a">β = 0.5</text>
+<text x="330" y="112" text-anchor="middle" font-size="9.5" fill="#3a2a1a">だんだんダブる</text>
+<text x="330" y="170" text-anchor="middle" font-size="10" fill="#5a4a3a">ある程度収束する</text>
+<circle cx="550" cy="100" r="42" fill="#999" opacity="0.18" stroke="#999" stroke-width="2"/>
+<text x="550" y="95" text-anchor="middle" font-size="14" font-weight="bold" fill="#999">β = 0.0</text>
+<text x="550" y="112" text-anchor="middle" font-size="9.5" fill="#3a2a1a">すぐ同じ展開</text>
+<text x="550" y="170" text-anchor="middle" font-size="10" fill="#5a4a3a">戦略の幅が狭い</text>
+<line x1="60" y1="100" x2="600" y2="100" stroke="#bbb" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+</svg>
+
+<p>つまり β 値は、<strong>「戦略の幅がどれだけ尽きにくいか」</strong>を表す指標と言えます。</p>
+
+<h3>2-3. ところが、β 値だけでは「深さ」は測れない</h3>
+
+<p>ここがちょっと不思議なところです。</p>
+
+<p>たとえば、まったくランダムに手を打つ AI 同士を戦わせると、毎回違う棋譜が出てくるので β は 1.0 に近くなります。
+でもそれは「戦略があるから」ではなく、「戦略がないから何でもアリ」だっただけです。
+（実際、本研究で最も弱い AI レベル（ランダムに近いレベル）では、3 ゲームすべて β ≈ 1.0 になりました。）</p>
+
+<div class="callout">
+  <span class="label">大事なポイント</span>
+  <p><strong>β 値の絶対値だけ見ても、ゲームが深いかどうかは分かりません。</strong>
+  値が高くても「戦略がないだけ」かもしれず、値が低くても「定石がすぐ固まっただけ」かもしれないからです。</p>
+</div>
+
+<p>では、どうすればゲームの「本当の深さ」を測れるのでしょうか？</p>
+
+<h3>2-4. 大事なのは「先読みを深くしたときの β の動き」</h3>
+
+<p>そこで本研究では、こう考えました。</p>
+
+<div class="callout">
+  <span class="label">本研究の発想</span>
+  <p>同じゲームで、AI の先読みの深さを <strong>浅く（D1）から深く（D5）まで</strong>変えていって、
+  β 値が <strong>どう動くか</strong> を見てみよう。</p>
+</div>
+
+<ul>
+<li>深く読むほど β が <strong>どんどん下がる</strong> → 戦略空間が狭く、すぐ尽きる → <strong>浅いゲーム</strong></li>
+<li>深く読んでも β が <strong>あまり下がらない、あるいは再び上がる</strong> → 戦略空間がまだ広い → <strong>深いゲーム</strong></li>
+</ul>
+
+<p>つまり、本研究で「ゲームの深さ」と呼ぶのは、β 値の絶対値ではなく、
+<strong>先読みの深さを変えたときの β の変化パターン</strong>です。
+そして、この変化パターンこそが、第4章で出てくる「<strong>J字型挙動</strong>」につながっていきます。</p>
+
+<div class="story">
+  たとえば本を読んでいるとき、最初は知らない言葉ばかり出てきますが、しばらく読むと「またこの単語か」と感じるようになりますよね。
+  あの「新しい言葉が出てくる速さ」と同じ考え方を、ゲームの「新しい展開が出てくる速さ」に応用しているわけです。
+</div>
+
+
+<h2>3.　3 つのゲーム兄弟で実験してみた</h2>
+
+<p>RSG だけ調べても「これって本当に奥深いの？」がわかりません。そこで、<strong>リバーシ系の 3 つのゲーム</strong>を同じ条件で戦わせて比べてみました。</p>
+
+<div class="game-card rev6">
+  <h3>① 6×6 リバーシ</h3>
+  <p class="meta">36 マス・約 32 手・正方形・純粋なリバーシ</p>
+  <p>RSG と<strong>ほぼ同じ大きさ（マス数）</strong>のリバーシ。ただし<strong>盤面の形（正方形）もルール</strong>も違います。
+  「サイズが似ているから RSG と比べやすい」対照群です。</p>
+</div>
+
+<div class="game-card rsg">
+  <h3>② RSG（本研究の主役）</h3>
+  <p class="meta">37 マス・約 33 手・六角の星型・キャプチャ＋コール＋コウ</p>
+  <p>本研究の主役。<strong>マス数は 6×6 リバーシとほぼ同じ</strong>ですが、形は六角の星型、ルールも独自です。</p>
+</div>
+
+<div class="game-card rev8">
+  <h3>③ 8×8 リバーシ</h3>
+  <p class="meta">64 マス・約 60 手・正方形・標準的なオセロ</p>
+  <p>みんな知ってる<strong>普通のオセロ</strong>。RSG より約 1.7 倍大きく、手数も 2 倍。</p>
+</div>
+
+<h3>3-1. 同じ AI で戦わせる</h3>
+
+<p>ここがポイントです。3 つのゲームすべてで、<strong>同じ仕組みの AI</strong>を実装しました。
+<strong>10 段階のレベル</strong>（Lv.1〜Lv.7 と D1〜D5。ただし Lv.6 = D2、Lv.7 = D5 で重複するので 10 段階）を用意し、各レベルで<strong>同じレベル同士</strong>を 10,000 局ずつ対戦させました。3 ゲーム合計で 30 万局のデータです。</p>
+
+<div class="callout">
+  <span class="label">なぜ「同レベル対戦」？</span>
+  <p>強さの違うAI同士だと、強い方ばかり勝って結果が偏ります。「同じ強さどうしの戦い」だけを見ることで、<strong>そのレベルでのゲームの本質的な戦略の幅</strong>を観察できます。</p>
+</div>
+
+
+<h2>4. 結果 ― J字型の「大きさ」で 3 つに分かれた</h2>
+
+<p>先読みの深さ（D1〜D5）を変えながら β 値を測ると、3 ゲームに<strong>共通の不思議なパターン</strong>が現れました。</p>
+
+<h3>4-1. D2 で底、D3 で再上昇 ―「J字型挙動」</h3>
+
+<p>3 ゲームともに、<strong>先読みの深さを変えていくと、β 値が「下がってから上がる」特徴的なパターン</strong>が見られました。本研究ではこの動きを <strong>「J字型挙動」</strong> と呼んでいます（経済学などで使われる呼び方です）。</p>
+
+<p>下のグラフ（図1）が、その全体像です。</p>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" class="j-chart">
+<rect x="0" y="0" width="820" height="440" fill="white" stroke="#ddd"/>
+<text x="410.0" y="25" text-anchor="middle" font-size="14" font-weight="bold" fill="#3a2a1a">図1　Lv 系列＋D 系列 合成 β 値グラフ（3 ゲーム比較）</text>
+<line x1="65" y1="50" x2="65" y2="365" stroke="#333"/>
+<line x1="65" y1="365" x2="645" y2="365" stroke="#333"/>
+<line x1="65" y1="365.0" x2="645" y2="365.0" stroke="#eee"/>
+<text x="57" y="369.0" text-anchor="end" font-size="11">0.00</text>
+<line x1="65" y1="302.0" x2="645" y2="302.0" stroke="#eee"/>
+<text x="57" y="306.0" text-anchor="end" font-size="11">0.20</text>
+<line x1="65" y1="239.0" x2="645" y2="239.0" stroke="#eee"/>
+<text x="57" y="243.0" text-anchor="end" font-size="11">0.40</text>
+<line x1="65" y1="176.0" x2="645" y2="176.0" stroke="#eee"/>
+<text x="57" y="180.0" text-anchor="end" font-size="11">0.60</text>
+<line x1="65" y1="112.99999999999999" x2="645" y2="112.99999999999999" stroke="#eee"/>
+<text x="57" y="116.99999999999999" text-anchor="end" font-size="11">0.80</text>
+<line x1="65" y1="50.0" x2="645" y2="50.0" stroke="#eee"/>
+<text x="57" y="54.0" text-anchor="end" font-size="11">1.00</text>
+<line x1="65.0" y1="365" x2="65.0" y2="370" stroke="#333"/>
+<text x="65.0" y="383" text-anchor="middle" font-size="11">Lv.1</text>
+<line x1="129.44444444444446" y1="365" x2="129.44444444444446" y2="370" stroke="#333"/>
+<text x="129.44444444444446" y="383" text-anchor="middle" font-size="11">Lv.2</text>
+<line x1="193.88888888888889" y1="365" x2="193.88888888888889" y2="370" stroke="#333"/>
+<text x="193.88888888888889" y="383" text-anchor="middle" font-size="11">Lv.3</text>
+<line x1="258.33333333333337" y1="365" x2="258.33333333333337" y2="370" stroke="#333"/>
+<text x="258.33333333333337" y="383" text-anchor="middle" font-size="11">Lv.4</text>
+<line x1="322.77777777777777" y1="365" x2="322.77777777777777" y2="370" stroke="#333"/>
+<text x="322.77777777777777" y="383" text-anchor="middle" font-size="11">Lv.5</text>
+<line x1="387.22222222222223" y1="365" x2="387.22222222222223" y2="370" stroke="#333"/>
+<text x="387.22222222222223" y="383" text-anchor="middle" font-size="11">D1</text>
+<line x1="451.6666666666667" y1="365" x2="451.6666666666667" y2="370" stroke="#333"/>
+<text x="451.6666666666667" y="383" text-anchor="middle" font-size="10">Lv.6</text>
+<text x="451.6666666666667" y="397" text-anchor="middle" font-size="9" fill="#888">(=D2)</text>
+<line x1="516.1111111111111" y1="365" x2="516.1111111111111" y2="370" stroke="#333"/>
+<text x="516.1111111111111" y="383" text-anchor="middle" font-size="11">D3</text>
+<line x1="580.5555555555555" y1="365" x2="580.5555555555555" y2="370" stroke="#333"/>
+<text x="580.5555555555555" y="383" text-anchor="middle" font-size="11">D4</text>
+<line x1="645.0" y1="365" x2="645.0" y2="370" stroke="#333"/>
+<text x="645.0" y="383" text-anchor="middle" font-size="10">Lv.7</text>
+<text x="645.0" y="397" text-anchor="middle" font-size="9" fill="#888">(=D5)</text>
+<line x1="355.0" y1="50" x2="355.0" y2="373" stroke="#bbb" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="210.0" y="42" text-anchor="middle" font-size="9" fill="#888">評価関数バリエーション</text>
+<text x="500.0" y="42" text-anchor="middle" font-size="9" fill="#888">Negamax 探索深度</text>
+<polyline points="65.0,50.0 129.44444444444446,50.0 193.88888888888889,50.0 258.33333333333337,50.0 322.77777777777777,57.245000000000005 387.22222222222223,224.825 451.6666666666667,245.3 516.1111111111111,155.83999999999997 580.5555555555555,156.15499999999997 645.0,149.855" fill="none" stroke="#2980b9" stroke-width="2.5" opacity="0.9"/>
+<circle cx="65.0" cy="50.0" r="5" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<circle cx="129.44444444444446" cy="50.0" r="5" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<circle cx="193.88888888888889" cy="50.0" r="5" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<circle cx="258.33333333333337" cy="50.0" r="5" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<circle cx="322.77777777777777" cy="57.245000000000005" r="5" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<polygon points="387.22222222222223,218.825 393.22222222222223,224.825 387.22222222222223,230.825 381.22222222222223,224.825" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<circle cx="451.6666666666667" cy="245.3" r="5" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<polygon points="516.1111111111111,149.83999999999997 522.1111111111111,155.83999999999997 516.1111111111111,161.83999999999997 510.1111111111111,155.83999999999997" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<polygon points="580.5555555555555,150.15499999999997 586.5555555555555,156.15499999999997 580.5555555555555,162.15499999999997 574.5555555555555,156.15499999999997" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<circle cx="645.0" cy="149.855" r="5" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<line x1="655" y1="80" x2="679" y2="80" stroke="#2980b9" stroke-width="2.5"/>
+<circle cx="667" cy="80" r="4" fill="#2980b9" stroke="white" stroke-width="1.5"/>
+<text x="685" y="84" font-size="11">8×8 リバーシ</text>
+<polyline points="65.0,50.0 129.44444444444446,50.0 193.88888888888889,50.0 258.33333333333337,50.945 322.77777777777777,129.38 387.22222222222223,248.76500000000001 451.6666666666667,248.45 516.1111111111111,219.47 580.5555555555555,231.44000000000003 645.0,195.21499999999997" fill="none" stroke="#c0392b" stroke-width="2.5" opacity="0.9"/>
+<circle cx="65.0" cy="50.0" r="5" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<circle cx="129.44444444444446" cy="50.0" r="5" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<circle cx="193.88888888888889" cy="50.0" r="5" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<circle cx="258.33333333333337" cy="50.945" r="5" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<circle cx="322.77777777777777" cy="129.38" r="5" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<polygon points="387.22222222222223,242.76500000000001 393.22222222222223,248.76500000000001 387.22222222222223,254.76500000000001 381.22222222222223,248.76500000000001" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<circle cx="451.6666666666667" cy="248.45" r="5" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<polygon points="516.1111111111111,213.47 522.1111111111111,219.47 516.1111111111111,225.47 510.1111111111111,219.47" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<polygon points="580.5555555555555,225.44000000000003 586.5555555555555,231.44000000000003 580.5555555555555,237.44000000000003 574.5555555555555,231.44000000000003" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<circle cx="645.0" cy="195.21499999999997" r="5" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<line x1="655" y1="104" x2="679" y2="104" stroke="#c0392b" stroke-width="2.5"/>
+<circle cx="667" cy="104" r="4" fill="#c0392b" stroke="white" stroke-width="1.5"/>
+<text x="685" y="108" font-size="11">RSG</text>
+<polyline points="65.0,50.0 129.44444444444446,50.0 193.88888888888889,50.0 258.33333333333337,50.63 322.77777777777777,135.68 387.22222222222223,365.0 451.6666666666667,361.85 516.1111111111111,346.72999999999996 580.5555555555555,358.385 645.0,334.445" fill="none" stroke="#27ae60" stroke-width="2.5" opacity="0.9"/>
+<circle cx="65.0" cy="50.0" r="5" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<circle cx="129.44444444444446" cy="50.0" r="5" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<circle cx="193.88888888888889" cy="50.0" r="5" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<circle cx="258.33333333333337" cy="50.63" r="5" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<circle cx="322.77777777777777" cy="135.68" r="5" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<polygon points="387.22222222222223,359.0 393.22222222222223,365.0 387.22222222222223,371.0 381.22222222222223,365.0" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<circle cx="451.6666666666667" cy="361.85" r="5" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<polygon points="516.1111111111111,340.72999999999996 522.1111111111111,346.72999999999996 516.1111111111111,352.72999999999996 510.1111111111111,346.72999999999996" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<polygon points="580.5555555555555,352.385 586.5555555555555,358.385 580.5555555555555,364.385 574.5555555555555,358.385" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<circle cx="645.0" cy="334.445" r="5" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<line x1="655" y1="128" x2="679" y2="128" stroke="#27ae60" stroke-width="2.5"/>
+<circle cx="667" cy="128" r="4" fill="#27ae60" stroke="white" stroke-width="1.5"/>
+<text x="685" y="132" font-size="11">6×6 リバーシ</text>
+<text x="655" y="168" font-size="10" fill="#555" font-weight="bold">マーカー：</text>
+<circle cx="665" cy="186" r="4" fill="#666" stroke="white" stroke-width="1.5"/>
+<text x="677" y="190" font-size="10" fill="#444">Lv 系列</text>
+<polygon points="665,201 670,206 665,211 660,206" fill="#666" stroke="white" stroke-width="1.5"/>
+<text x="677" y="210" font-size="10" fill="#444">D 系列の追加点</text>
+<text x="355.0" y="425" text-anchor="middle" font-size="12">レベル / 探索深度</text>
+<text x="20" y="207.5" text-anchor="middle" font-size="12" transform="rotate(-90 20 207.5)">β 値</text>
+</svg>
+
+<p>図1 では、横軸の左半分が <strong>「評価関数バリエーション」</strong>（Lv.1〜Lv.5、先読みなしの AI）、
+右半分が <strong>「Negamax 探索深度」</strong>（D1〜D5、先読みする AI）です。
+3 ゲームとも、<strong>Lv.5 から D1 へかけて β 値が一気に下がり</strong>、
+D2 で底をついたあと、<strong>D3 以降で再び上昇していく</strong> 流れが見えます。</p>
+
+<p>この「下がってから上がる」流れこそが <strong>J字型挙動の正体</strong> です。3 ゲームすべてに、この共通の形が現れています。</p>
+
+<h3>4-2. J字型の「大きさ」が 3 ゲームを分ける</h3>
+
+<p>面白いのは、<strong>3 ゲームともJ字型を示すけれど、その「大きさ」が違う</strong>こと。
+図1 でも、青（8×8）の戻り幅が一番大きく、緑（6×6）の戻り幅が一番小さいのが見て取れます。
+具体的に、<strong>D2 から D3 への上昇幅</strong>を表で比較してみましょう。</p>
+
+
+<table>
+<thead>
+<tr><th>ゲーム</th><th>D2 の β</th><th>D3 の β</th><th>上昇幅</th><th>分類</th></tr>
+</thead>
+<tbody>
+<tr><td class="lab" style="color:var(--rev8)">8×8 リバーシ</td><td>0.380</td><td>0.664</td><td><strong>+0.284</strong></td><td><strong>大きなJ字型</strong></td></tr>
+<tr><td class="lab" style="color:var(--rsg)">RSG</td><td>0.370</td><td>0.462</td><td><strong>+0.092</strong></td><td><strong>中程度のJ字型</strong></td></tr>
+<tr><td class="lab" style="color:var(--rev6)">6×6 リバーシ</td><td>0.010</td><td>0.058</td><td><strong>+0.048</strong></td><td><strong>小さなJ字型</strong></td></tr>
+</tbody>
+</table>
+
+<p>つまり、<strong>深く読んだときに新しい戦略がどれだけ広がるか</strong>が、3 ゲームで大きく違うのです。
+8×8 リバーシでは深く読むと戦略が大きく広がる（大きなJ字型）。RSG はそこそこ広がる（中程度）。
+6×6 リバーシは深く読んでもあまり広がらない（小さなJ字型）。</p>
+
+<h3>4-3. RSG はどのグループ？</h3>
+
+<div class="game-card rev8">
+  <h3>🔵 8×8 リバーシ（大きなJ字型、β = 0.38〜0.68）</h3>
+  <p>標準的なオセロ。盤面が大きく、戦略の幅も広い。</p>
+</div>
+
+<div class="game-card rsg">
+  <h3>🔴 RSG（中程度のJ字型、β = 0.37〜0.54）</h3>
+  <p>盤面は 8×8 リバーシの<strong>約 58%</strong>、手数は<strong>約 55%</strong>しかないのに、
+  <strong>J字型挙動</strong>という質的特徴は 8×8 と同じ。β 値範囲も 8×8 リバーシに準ずる水準にあります。
+  さらに、ほぼ同サイズの 6×6 リバーシ（36 マス・約 32 手）と比べても、
+  RSG（37 マス・約 33 手）は<strong>サイズも手数もほぼ同じ</strong>なのに、明確に深い水準にあります。</p>
+</div>
+
+<div class="game-card rev6">
+  <h3>🟢 6×6 リバーシ（小さなJ字型、β = 0.00〜0.10）</h3>
+  <p>RSG とほぼ同じ 36 マス、しかも同じ正方形の親戚なのに、J字型がぐっと小さい。
+  深く読んでも戦略空間が大きく広がりません。</p>
+</div>
+
+
+<h2>5. これって何が面白いの？</h2>
+
+<h3>5-1. ポイントは「サイズが似ているのに別世界」</h3>
+
+<p>もし「<strong>盤面が大きいゲームほど深い</strong>」という単純な話なら、RSG（37 マス）と 6×6 リバーシ（36 マス）はほぼ同じ深さになるはずです。</p>
+
+<p>でも実際には、両者は β 値で<strong>0.36 以上</strong>の差をもって、明確に離れた水準にあり、<strong>J字型の大きさも別グループ</strong>です。</p>
+
+<div class="takeaway">
+  <div class="label">この研究が示したこと</div>
+  <p><strong>ゲームの奥深さは、盤面のサイズだけでは決まらない。</strong></p>
+  <p>盤面の<strong>形</strong>（六角の星型）と、<strong>ルール</strong>（キャプチャ・コール・コウ）が、戦略空間を大きく広げている。
+  RSG は、ずっと小さな盤面で <strong>8×8 リバーシと同じ「J字型」グループ</strong>（中程度のJ字型）に入っていました。</p>
+</div>
+
+<h3>5-2. 「底の浅いゲーム」ではなかった</h3>
+
+<div class="story">
+  40 年前から温めていた構想を、AI 時代になってようやく形にできました。
+  ただし、73 マスから 37 マスに小さくしたことで、「底の浅いゲームになってしまうのではないか」という不安が残っていました。<br>
+  本研究で 3 つのリバーシ系ゲームを比較したところ、データはこう答えてくれました。<br>
+  <strong>RSG は、同サイズの 6×6 リバーシより明確に深く、より大きな 8×8 リバーシに準ずる水準にある</strong> ―― つまり、<strong>「小さくしても、底の浅いゲームにはならなかった」</strong>というのが、本研究で得られた答えです。
+</div>
+
+<h3>5-3. 著者からの正直なコメント</h3>
+
+<p>本研究には限界もあります。</p>
+
+<ul>
+<li>調べた先読みの深さは <strong>D5 まで</strong>（理由は次節）。D6 以降ではまた違うかもしれません</li>
+<li>調べたのは <strong>3 ゲームだけ</strong>。囲碁・将棋・チェスなどの他のゲームに当てはまるかは別の話</li>
+<li>β 値は「戦略の幅」を測る指標であって、「<strong>ゲームの面白さ</strong>」を直接測るものではない</li>
+<li>ボードゲームの「深さ」を完璧に測る方法は存在しない。本研究は<strong>一つの切り口</strong>を提案したものです</li>
+</ul>
+
+<h3>5-4. なぜ D5 で止めたの？</h3>
+
+<p>本研究は、独立研究家が個人の PC（Intel Core i5、メモリ 16GB と 8GB）で実施しました。
+Negamax 探索という方法で先を読むのですが、<strong>1 手深く読むだけで計算時間が指数的に増える</strong>のです。</p>
+
+<p>たとえば <strong>8×8 リバーシ D5（5 手先読み）の 10,000 局取得には、約 56 時間（約 2.3 日）</strong>もかかりました。
+D6 以降は数日〜十数日 PC をつけっぱなしにしないといけないので、現実的に難しく、<strong>D5 までで一区切り</strong>としています。</p>
+
+
+<h2>❓ よくある質問</h2>
+
+<div class="faq">
+<p class="q">Q1. β 値が「1 に近い」と何がいいの？</p>
+<p class="a">「毎回違う展開になりやすい」＝<strong>飽きにくい・戦略の引き出しが多い</strong>と言えます。ただし、β 値が高いから即「面白いゲーム」とは限らないので、あくまで「戦略の幅」の指標です。</p>
+</div>
+
+<div class="faq">
+<p class="q">Q2. 6×6 リバーシの β 値が低いのは「弱いゲーム」だから？</p>
+<p class="a">そうではありません。<strong>盤面が小さいぶん戦略空間が狭く、AI が少し先を読むだけで「これが良さそう」と判断するルートが限られてしまい、いつも似たような展開に収束してしまう</strong>から、というのが本研究で観察された現象です。<br>
+なお、6×6 リバーシは完全解析（Feinstein ら）により<strong>「白が必ず勝つ」</strong>ことが知られているゲームでもあります。本研究の AI は D5 までの先読みなので、まだ完全解析の結論までは届いていませんが、深く読めば読むほどその方向に近づくと考えられます。</p>
+</div>
+
+<div class="faq">
+<p class="q">Q3. 「8×8 リバーシに準ずる水準」って、つまり同じくらい？</p>
+<p class="a">いいえ、<strong>絶対値では 8×8 リバーシのほうが上</strong>です。とくに先を 3 手以上読む（D3〜D5）と、8×8 リバーシの β 値はもっと高くなります。「準ずる水準」とは、<strong>6×6 リバーシのような小さなJ字型ではなく、8×8 リバーシ（大きなJ字型）に近い『中程度のJ字型』グループに位置する</strong>という意味です。盤面が約 58%、手数が約半分しかないのに、その範囲に収まっていること自体が、本研究の主張のポイントです。</p>
+</div>
+
+<div class="faq">
+<p class="q">Q4. AI で測ったら、人間の戦略とは違うのでは？</p>
+<p class="a">そのとおりです。本研究で測っているのは「<strong>同じ AI 枠組みで戦わせたときの戦略空間</strong>」です。人間が遊んだときの感覚や面白さは、また別の問いです。とはいえ、人間の対局データを大量に集めるのは難しいので、AI を使うのは現実的な妥協点でもあります。</p>
+</div>
+
+<div class="faq">
+<p class="q">Q5. なぜ D5 までしか調べていないの？</p>
+<p class="a">著者の個人 PC では、<strong>D5 の 1 万局取得に約 56 時間（約 2.3 日）</strong>かかりました。D6 以降は計算時間がさらに指数的に増えて、現実的に厳しいのです。<strong>もっと高性能な計算環境が使えるようになったら、改訂版で扱う予定</strong>です。とくに 6×6 リバーシは深く読めばJ字型がもっと立ち上がる可能性があり、興味深い課題として残されています。</p>
+</div>
+
+<div class="faq">
+<p class="q">Q6. なぜ「J」字型？ ひらがなの「し」の方が似てない？</p>
+<p class="a">するどいご指摘です😊 グラフの形を素直に見ると、確かに<strong>ひらがな「し」</strong>の方が似ています。でも「J カーブ」「J 字型」は経済学・社会学・医学などで「<strong>初期に下がって後で上昇する</strong>」パターンを表す呼び名として、世界中で広く使われています。本研究もその慣習にならって「J字型」と呼んでいますが、視覚的に「し」の字を思い浮かべて読んでいただいても、ほぼ同じ意味です。</p>
+</div>
+
+<div class="faq">
+<p class="q">Q7. J字型が「大きい」と何がいいの？</p>
+<p class="a">J字型が大きいということは、<strong>「先読みを深くすると、新しい戦略がたくさん現れる」</strong>ということです。プレイヤー視点で言うと、「<strong>深く考えれば考えるほど、新しい発見がある</strong>」ゲームです。逆にJ字型が小さいと、「ある程度のところで最善手が決まってしまい、深く考えても新しい展開が出にくい」ゲームになります。つまり、J字型の大きさは「<strong>プレイヤーが深く読み込んで楽しむ余地</strong>」の大きさを反映していると言えます（ただし、「J字型が大きい＝面白い」とは限らないので、あくまで戦略の引き出しの広さの指標です）。</p>
+</div>
+
+
+<div class="links">
+<h3>🔗 もっと知りたい方へ</h3>
+<ul>
+<li><strong>本論文（学術的な詳細版）</strong>：<a href="paper.html">RSG 独立研究レポート v5.1（HTML）</a></li>
+<li><strong>RSG を遊ぶ</strong>：<a href="https://play.reverstargo.com/" target="_blank" rel="noopener">play.reverstargo.com</a>（ブラウザで無料プレイ）</li>
+<li><strong>RSG 公式サイト</strong>：<a href="https://reverstargo.com" target="_blank" rel="noopener">reverstargo.com</a></li>
+<li><strong>フィードバック・感想</strong>：X（旧 Twitter）でお寄せください</li>
+</ul>
+<p style="margin-top:14px; font-size:10pt; color:#7a6a5a;">本研究のデータ（30 万局分の CSV）はすべて検証可能な形で保管されています。
+査読・指摘・反論を歓迎します。</p>
+<p style="margin-top:8px; font-size:10pt; color:#7a6a5a;">なお、本レポートの分析対象は条件を統一した<strong>同レベル対戦の 30 万局</strong>です。
+異なるレベル同士の対戦実験を含む総対局数は<strong>約 200 万局</strong>にのぼりますが、本研究では比較条件を揃えるため同レベル対戦のみを扱っています。</p>
+</div>
+
+
+<div class="footer">
+著者：独立研究家（西口 猛）／ ReverStarGo ©︎ 2026<br>
+やさしい解説 v5.1 ／ 2026 年 4 月 公開
+</div>
+
+</body>
+</html>
