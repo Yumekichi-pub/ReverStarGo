@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reverstargo-v94';
+const CACHE_NAME = 'reverstargo-v95';
 const ASSETS = [
   '/',
   '/index.html',
@@ -53,7 +53,12 @@ const ASSETS = [
   '/icon/27.png',
   '/icon/28.png',
   '/icon/29.png',
-  '/icon/30.png'
+  '/icon/30.png',
+  '/icon/game.png',
+  '/icon/account.png',
+  '/icon/setting.png',
+  '/icon/rules.png',
+  '/icon/rank.png'
 ];
 
 self.addEventListener('install', event => {

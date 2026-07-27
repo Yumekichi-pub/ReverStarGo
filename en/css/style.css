@@ -1771,6 +1771,18 @@
       font-weight: bold;
       line-height: 1;
     }
+    /* メニュータイルの画像アイコン（絵文字の代わり） */
+    .menu-tile-icon.img-icon {
+      height: 52px;
+      width: auto;
+      max-width: 60px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+    }
+    .menu-tile.small .menu-tile-icon.img-icon {
+      height: 40px;
+      max-width: 48px;
+    }
     /* ===== ルール説明書 ===== */
     .rules-section p {
       text-align: left;
