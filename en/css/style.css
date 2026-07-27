@@ -1740,7 +1740,7 @@
       position: relative;
       z-index: 1;
     }
-    /* デイリータイルの日めくりカレンダーアイコン */
+    /* デイリータイルの日めくりカレンダーアイコン（アンティーク調） */
     .menu-tile-icon.cal-icon {
       width: 46px;
       height: 48px;
@@ -1748,28 +1748,32 @@
       flex-direction: column;
       border-radius: 9px;
       overflow: hidden;
-      background: #fdfaf2;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      background: linear-gradient(170deg, #f5e9c8 0%, #e8d5a8 100%);
+      border: 2px solid #b08d4a;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4);
     }
     .cal-icon-month {
-      background: #d03c3c;
-      color: #fff;
+      background: linear-gradient(180deg, #8a3230 0%, #6b2422 100%);
+      color: #f0dfae;
       font-size: 0.68rem;
       font-weight: bold;
       line-height: 1;
       padding: 3px 0 2px;
       text-align: center;
       letter-spacing: 0.05em;
+      border-bottom: 1px solid #b08d4a;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.4);
     }
     .cal-icon-day {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #333;
+      color: #4a3520;
       font-size: 1.3rem;
       font-weight: bold;
       line-height: 1;
+      font-family: Georgia, 'Times New Roman', serif;
     }
     /* メニュータイルの画像アイコン（絵文字の代わり） */
     .menu-tile-icon.img-icon {
