@@ -31,6 +31,7 @@ let hintEnabled   = true;      // 置けるヒント ON/OFF
 let soundEnabled  = true;      // 効果音 ON/OFF
 let moveQualityEnabled = true; // 「いい手」「キャプチャ称賛」メッセージ表示 ON/OFF (v67)
 let moveQualityTwoPlayerEnabled = false; // 2人対戦時の称賛メッセージ表示 ON/OFF (v68、デフォルト OFF)
+let menuIconStyle = 'original'; // メニューアイコン 'original'=オリジナル画像, 'simple'=絵文字 (v98)
 let battleMode    = 'cpu';     // 'cpu'=CPU対戦, 'two'=2人対戦
 let prevBoardSnapshot = null;  // コウ判定用：直前の手を打つ前のボード状態
 let boardHistory = [];         // スーパーコウ判定用：全局面の履歴

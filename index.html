@@ -58,6 +58,7 @@
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/game.png" alt="">
+        <span class="menu-tile-icon emoji-icon">🎮</span>
         <span class="menu-tile-label">ゲーム開始</span>
       </div>
       <div class="menu-tile" onclick="showPage('daily')">
@@ -73,18 +74,21 @@
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/account.png" alt="">
+        <span class="menu-tile-icon emoji-icon">👤</span>
         <span class="menu-tile-label">アカウント</span>
       </div>
       <div class="menu-tile" onclick="showPage('custom')">
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/setting.png" alt="">
+        <span class="menu-tile-icon emoji-icon">⚙️</span>
         <span class="menu-tile-label">設定</span>
       </div>
       <div class="menu-tile small" onclick="showTutorialChoice()">
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/rules.png" alt="">
+        <span class="menu-tile-icon emoji-icon">📖</span>
         <span class="menu-tile-label">ルール</span>
       </div>
       <!-- 棋譜タイル（プレミアム機能として将来復活予定） -->
@@ -98,11 +102,12 @@
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/rank.png" alt="">
+        <span class="menu-tile-icon emoji-icon">🏅</span>
         <span class="menu-tile-label">ランク</span>
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v97</p>
+    <p class="app-version">RSG-v98</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -204,6 +209,14 @@
         <div class="btn-grid-2">
           <button class="custom-btn" data-mq2="on" onclick="selectMoveQualityTwo(true)">ON</button>
           <button class="custom-btn selected" data-mq2="off" onclick="selectMoveQualityTwo(false)">OFF</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>メニューのアイコン</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn selected" data-menuicon="original" onclick="selectMenuIcon('original')">オリジナル</button>
+          <button class="custom-btn" data-menuicon="simple" onclick="selectMenuIcon('simple')">シンプル</button>
         </div>
       </div>
 

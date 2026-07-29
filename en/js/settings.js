@@ -142,6 +142,7 @@ function saveSettings() {
     sound: soundEnabled,
     moveQuality: moveQualityEnabled,
     moveQualityTwo: moveQualityTwoPlayerEnabled,
+    menuIcon: menuIconStyle,
     theme: currentThemeKey,
     bg: currentBgKey,
     name: playerName,
@@ -167,6 +168,7 @@ function loadSettings() {
       if (data.sound !== undefined) selectSound(data.sound);
       if (data.moveQuality !== undefined) selectMoveQuality(data.moveQuality);
       if (data.moveQualityTwo !== undefined) selectMoveQualityTwo(data.moveQualityTwo);
+      if (data.menuIcon) selectMenuIcon(data.menuIcon);
       if (data.theme) selectTheme(data.theme);
       if (data.bg) selectBgColor(data.bg);
       if (data.name) {

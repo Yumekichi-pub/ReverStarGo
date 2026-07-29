@@ -117,6 +117,14 @@ function selectMoveQualityTwo(enabled) {
   document.querySelectorAll('[data-mq2]').forEach(b => b.classList.remove('selected'));
   document.querySelector(`[data-mq2="${enabled ? 'on' : 'off'}"]`).classList.add('selected');
 }
+// v98: メニューアイコンの見た目を切り替える（オリジナル画像 / 絵文字）
+function selectMenuIcon(style) {
+  menuIconStyle = (style === 'simple') ? 'simple' : 'original';
+  document.querySelectorAll('[data-menuicon]').forEach(b => b.classList.remove('selected'));
+  const btn = document.querySelector(`[data-menuicon="${menuIconStyle}"]`);
+  if (btn) btn.classList.add('selected');
+  document.body.classList.toggle('simple-menu-icons', menuIconStyle === 'simple');
+}
 
 // セットアップ画面の選択
 function selectColor(color) {

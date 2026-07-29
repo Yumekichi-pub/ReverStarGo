@@ -58,6 +58,7 @@
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/game.png" alt="">
+        <span class="menu-tile-icon emoji-icon">🎮</span>
         <span class="menu-tile-label">Start Game</span>
       </div>
       <div class="menu-tile" onclick="showPage('daily')">
@@ -73,18 +74,21 @@
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/account.png" alt="">
+        <span class="menu-tile-icon emoji-icon">👤</span>
         <span class="menu-tile-label">Account</span>
       </div>
       <div class="menu-tile" onclick="showPage('custom')">
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/setting.png" alt="">
+        <span class="menu-tile-icon emoji-icon">⚙️</span>
         <span class="menu-tile-label">Settings</span>
       </div>
       <div class="menu-tile small" onclick="showTutorialChoice()">
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/rules.png" alt="">
+        <span class="menu-tile-icon emoji-icon">📖</span>
         <span class="menu-tile-label">Rules</span>
       </div>
       <!-- Records tile (planned to reappear as premium feature) -->
@@ -98,11 +102,12 @@
         <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
         <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
         <img class="menu-tile-icon img-icon" src="icon/rank.png" alt="">
+        <span class="menu-tile-icon emoji-icon">🏅</span>
         <span class="menu-tile-label">Rank</span>
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v97-en</p>
+    <p class="app-version">RSG-v98-en</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -204,6 +209,14 @@
         <div class="btn-grid-2">
           <button class="custom-btn" data-mq2="on" onclick="selectMoveQualityTwo(true)">ON</button>
           <button class="custom-btn selected" data-mq2="off" onclick="selectMoveQualityTwo(false)">OFF</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>Menu Icons</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn selected" data-menuicon="original" onclick="selectMenuIcon('original')">Original</button>
+          <button class="custom-btn" data-menuicon="simple" onclick="selectMenuIcon('simple')">Simple</button>
         </div>
       </div>
 
