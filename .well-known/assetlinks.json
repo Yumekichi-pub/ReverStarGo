@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "com.yumekichi.reverstargo",
       "sha256_cert_fingerprints": [
-        "59:24:87:D6:FE:60:25:82:05:7E:DE:80:DF:92:5C:B7:22:AD:14:BE:E1:AA:C0:14:3E:48:48:3A:FC:68:AE:3F"
+        "59:24:87:D6:FE:60:25:82:05:7E:DE:80:DF:92:5C:B7:22:AD:14:BE:E1:AA:C0:14:3E:48:48:3A:FC:68:AE:3F",
+        "ED:1F:1F:F8:C6:A2:8E:0C:B0:2F:4B:43:60:DE:DE:5D:6D:EC:35:8F:78:B9:B0:CA:42:77:CB:D2:10:5F:19:78"
       ]
     }
   }
