@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.yumekichi.reverstargo",
+      "sha256_cert_fingerprints": [
+        "59:24:87:D6:FE:60:25:82:05:7E:DE:80:DF:92:5C:B7:22:AD:14:BE:E1:AA:C0:14:3E:48:48:3A:FC:68:AE:3F"
+      ]
+    }
+  }
+]
