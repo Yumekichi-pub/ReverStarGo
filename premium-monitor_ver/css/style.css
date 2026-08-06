@@ -1845,8 +1845,9 @@
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
     }
     .menu-tile.small .menu-tile-icon.img-icon {
-      height: 40px;
-      max-width: 48px;
+      /* Premium: 小タイルも大タイルと同じアイコンサイズに（下段4つが小さく見えるため） */
+      height: 52px;
+      max-width: 60px;
     }
     /* v98: メニューアイコンの切り替え（オリジナル画像 / 絵文字） */
     .menu-tile-icon.emoji-icon { display: none; }
@@ -1883,7 +1884,7 @@
     }
 
     .menu-tile.small {
-      padding: 16px 12px;
+      padding: 12px 12px;
     }
     .menu-tile.small .menu-tile-icon {
       font-size: 1.8rem;
