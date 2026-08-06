@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReverStarGo Premium | リバースターゴ・プレミアム</title>
+  <meta name="description" content="リバーシ×囲碁×星型ボードの新感覚ボードゲーム ReverStarGo（リバースターゴ）">
+  <meta property="og:title" content="ReverStarGo | リバースターゴ">
+  <meta property="og:description" content="リバーシ×囲碁×星型ボードの新感覚ボードゲーム。コンピューターと対局しよう！">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://play.reverstargo.com">
+  <meta property="og:image" content="https://play.reverstargo.com/ogp.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://play.reverstargo.com/ogp.jpg">
+  <meta name="twitter:title" content="ReverStarGo | リバースターゴ">
+  <meta name="twitter:description" content="リバーシ×囲碁×星型ボードの新感覚ボードゲーム。コンピューターと対局しよう！">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ReverStarGo">
+  <meta name="theme-color" content="#f5edd8">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Premium: 言語自動切替なし（プレミアム版は日本語のみ） -->
+</head>
+<body>
+
+  <!-- メインページ（トップ） -->
+  <div id="setup-main" class="setup-page dark-theme bg-image">
+    <div class="setup-section name-section">
+      <div id="player-name-display" onclick="showPage('account')"></div>
+      <div id="player-rank-display"></div>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-tile" onclick="isDailySetup=false; dailyChallengeDate=null; showPage('game-setup')">
+        <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
+        <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
+        <img class="menu-tile-icon img-icon" src="/icon/game.png" alt="">
+        <span class="menu-tile-icon emoji-icon">🎮</span>
+        <span class="menu-tile-label">ゲーム開始</span>
+      </div>
+      <div class="menu-tile" onclick="showPage('daily')">
+        <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
+        <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
+        <span class="menu-tile-icon cal-icon">
+          <span class="cal-icon-month" id="daily-cal-month"></span>
+          <span class="cal-icon-day" id="daily-cal-day"></span>
+        </span>
+        <span class="menu-tile-label">デイリー</span>
+      </div>
+      <div class="menu-tile" onclick="showPage('account')">
+        <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
+        <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
+        <img class="menu-tile-icon img-icon" src="/icon/account.png" alt="">
+        <span class="menu-tile-icon emoji-icon">👤</span>
+        <span class="menu-tile-label">アカウント</span>
+      </div>
+      <div class="menu-tile" onclick="showPage('custom')">
+        <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
+        <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
+        <img class="menu-tile-icon img-icon" src="/icon/setting.png" alt="">
+        <span class="menu-tile-icon emoji-icon">⚙️</span>
+        <span class="menu-tile-label">設定</span>
+      </div>
+      <div class="menu-tile small" onclick="showTutorialChoice()">
+        <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
+        <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
+        <img class="menu-tile-icon img-icon" src="/icon/rules.png" alt="">
+        <span class="menu-tile-icon emoji-icon">📖</span>
+        <span class="menu-tile-label">ルール</span>
+      </div>
+      <div class="menu-tile small" onclick="showRankList()">
+        <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
+        <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
+        <img class="menu-tile-icon img-icon" src="/icon/rank.png" alt="">
+        <span class="menu-tile-icon emoji-icon">🏅</span>
+        <span class="menu-tile-label">ランク</span>
+      </div>
+      <!-- 棋譜タイル（Premium版で表示、無料版では display:none） -->
+      <div class="menu-tile small" onclick="showPage('kifu')">
+        <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
+        <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
+        <span class="menu-tile-icon">📋</span>
+        <span class="menu-tile-label">棋譜</span>
+      </div>
+      <!-- 修行コースタイル（Premium限定、大宇宙の修行部屋） -->
+      <div class="menu-tile small" onclick="showPage('training')">
+        <span class="menu-tile-corner tl"></span><span class="menu-tile-corner tr"></span>
+        <span class="menu-tile-corner bl"></span><span class="menu-tile-corner br"></span>
+        <span class="menu-tile-icon">🪐</span>
+        <span class="menu-tile-label">修行コース</span>
+      </div>
+    </div>
+    <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
+    <p class="app-version">Premium-v55</p>
+  </div>
+
+  <!-- ゲーム設定ページ（新規） -->
+  <div id="setup-game" class="setup-page dark-theme" style="display:none;">
+    <h1 class="page-title" id="game-setup-title">🎮 ゲーム設定</h1>
+    <div class="setup-section">
+      <h2>あなたの色を選んでください</h2>
+      <div class="setup-buttons-row">
+        <button class="setup-btn selected" data-color="black" onclick="selectColor('black')">● 黒（先手）</button>
+        <button class="setup-btn" data-color="white" onclick="selectColor('white')">○ 白（後手）</button>
+      </div>
+    </div>
+    <div class="setup-section" id="battle-mode-section">
+      <h2>対戦モード</h2>
+      <div class="setup-buttons-row">
+        <button class="setup-btn selected" data-battle="cpu" onclick="selectBattleMode('cpu')">CPUと対戦</button>
+        <button class="setup-btn" data-battle="two" onclick="selectBattleMode('two')">2人で対戦</button>
+      </div>
+    </div>
+    <div class="setup-section" id="cpu-level-section">
+      <h2>コンピューターのレベル</h2>
+      <div class="setup-buttons">
+        <button class="setup-btn" data-level="1" onclick="selectLevel(1)">Lv.1 初級</button>
+        <button class="setup-btn selected" data-level="2" onclick="selectLevel(2)">Lv.2 中級</button>
+        <button class="setup-btn" data-level="3" onclick="selectLevel(3)">Lv.3 上級</button>
+        <button class="setup-btn" data-level="4" onclick="selectLevel(4)">Lv.4 強敵</button>
+        <button class="setup-btn" data-level="5" onclick="selectLevel(5)">Lv.5 達人</button>
+        <button class="setup-btn" data-level="6" onclick="selectLevel(6)">MAX</button>
+        <button class="setup-btn" data-level="7" onclick="selectLevel(7)">FINAL</button>
+      </div>
+    </div>
+    <div id="promotion-section" class="setup-section promotion-section" style="display:none;">
+      <h2 id="promotion-title">⚔ ランクアップマッチ</h2>
+      <p id="promotion-desc"></p>
+      <p id="promotion-progress" style="display:none;"></p>
+      <button class="promotion-start-btn" onclick="startPromotionExam()">⚔ 挑戦する</button>
+    </div>
+    <button id="start-game-btn" onclick="startGame()">ゲーム開始</button>
+    <button class="nav-link-btn" onclick="showPage('custom')">⚙ カスタム設定へ</button>
+    <button class="nav-back-btn" id="game-setup-back" onclick="showPage('main')">メインへ戻る</button>
+  </div>
+
+  <!-- 修行コース「大宇宙の修行部屋」ページ (Premium-v3 新規 / v20 で 2 段構成に分割) -->
+  <div id="setup-training" class="setup-page dark-theme" style="display:none;">
+    <h1 class="page-title">🪐 大宇宙の修行部屋</h1>
+
+    <!-- Premium-v20 (v28 でアイコン追加): モード選択（入口）-->
+    <div id="training-mode-select">
+      <!-- Premium-v43: 修行コースのアカウント表示（実戦モードのランク） -->
+      <div id="training-account-display" class="training-account"></div>
+      <!-- Premium-v48: 各モードの右上に「？」ヘルプボタン -->
+      <div class="setup-section training-mode-section">
+        <button class="training-mode-help-btn" onclick="showTrainingModeHelp('juku')" title="師匠と修行の説明">？</button>
+        <button class="setup-btn training-mode-btn" onclick="enterTrainingMode('juku')">
+          <img src="cosmo/sisyo.png" alt="師匠" class="training-mode-icon">
+          <span class="training-mode-label">師匠と修行をする</span>
+        </button>
+        <p class="training-mode-desc">ランクアップしませんが、師匠の評価を聞きながら何度でも「1手戻る」で学べます。</p>
+      </div>
+      <div class="setup-section training-mode-section">
+        <button class="training-mode-help-btn" onclick="showTrainingModeHelp('real')" title="実戦でランクアップの説明">？</button>
+        <button class="setup-btn training-mode-btn" onclick="enterTrainingMode('real')">
+          <img src="cosmo/jissen.png" alt="実戦" class="training-mode-icon">
+          <span class="training-mode-label">実戦でランクアップを目指す</span>
+        </button>
+        <p class="training-mode-desc">師匠の助けはなく「1手戻る」は1回まで。戦績がつき、ランクアップを目指せます。</p>
+      </div>
+      <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
+    </div>
+
+    <!-- Premium-v20: 詳細画面（モード選択後）-->
+    <div id="training-detail-area" style="display:none;">
+      <h2 id="training-detail-title" class="training-detail-title"></h2>
+      <div class="setup-section">
+        <h2>あなたの色を選んでください</h2>
+        <div class="setup-buttons-row">
+          <button class="setup-btn selected" data-tcolor="black" onclick="selectTrainingColor('black')">● 黒（先手）</button>
+          <button class="setup-btn" data-tcolor="white" onclick="selectTrainingColor('white')">○ 白（後手）</button>
+        </div>
+      </div>
+      <div class="setup-section" data-course="sun">
+        <h2>☀ 太陽系コース</h2>
+        <div class="setup-buttons">
+          <button class="setup-btn selected" data-tlevel="6" onclick="selectTrainingLevel(6)">Lv.6</button>
+          <button class="setup-btn" data-tlevel="7" onclick="selectTrainingLevel(7)">Lv.7</button>
+        </div>
+      </div>
+      <div class="setup-section" data-course="galaxy">
+        <h2>🌌 銀河系コース</h2>
+        <div class="setup-buttons">
+          <button class="setup-btn" data-tlevel="9" onclick="selectTrainingLevel(9)">Lv.9</button>
+          <button class="setup-btn" data-tlevel="10" onclick="selectTrainingLevel(10)">Lv.10</button>
+        </div>
+      </div>
+      <div class="setup-section">
+        <div class="setup-buttons-row">
+          <button class="setup-btn" onclick="showTrainingRanks()">📊 ランク一覧</button>
+          <button class="setup-btn" id="training-records-btn" onclick="showTrainingRecords()">📈 戦績</button>
+        </div>
+      </div>
+      <button id="start-training-btn" onclick="startTrainingGame()">ゲーム開始</button>
+      <button class="nav-link-btn" onclick="showPage('custom')">⚙ カスタム設定へ</button>
+      <button class="nav-back-btn" onclick="backToTrainingEntry()">修行部屋トップへ戻る</button>
+    </div>
+  </div>
+
+  <!-- Premium-v48: 修行モード説明モーダル（師匠と修行 / 実戦でランクアップ 共通）-->
+  <div id="training-mode-help-modal" style="display:none;" onclick="closeTrainingModeHelp()">
+    <div class="training-mode-help-inner" onclick="event.stopPropagation()">
+      <h2 id="training-mode-help-title"></h2>
+      <div id="training-mode-help-body"></div>
+      <button class="training-mode-help-close" onclick="closeTrainingModeHelp()">閉じる</button>
+    </div>
+  </div>
+
+  <!-- カスタム設定ページ -->
+  <div id="setup-custom" class="setup-page dark-theme" style="display:none;">
+    <h1 class="page-title">⚙ カスタム設定</h1>
+    <div class="custom-section">
+
+      <div class="custom-row">
+        <h3>CPUの反応速度</h3>
+        <div class="btn-grid-3">
+          <button class="custom-btn" data-speed="1" onclick="selectSpeed(1)">遅め</button>
+          <button class="custom-btn selected" data-speed="2" onclick="selectSpeed(2)">普通</button>
+          <button class="custom-btn" data-speed="3" onclick="selectSpeed(3)">速め</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>石のアクション</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn selected" data-anim="1" onclick="selectAnim(true)">ON</button>
+          <button class="custom-btn" data-anim="0" onclick="selectAnim(false)">OFF</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>ヒント（黄色い点）</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn selected" data-hint="on" onclick="selectHint(true)">ON</button>
+          <button class="custom-btn" data-hint="off" onclick="selectHint(false)">OFF</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>効果音</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn selected" data-sound="on" onclick="selectSound(true)">ON</button>
+          <button class="custom-btn" data-sound="off" onclick="selectSound(false)">OFF</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>称賛メッセージ（いい手・取り石数）</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn selected" data-mq="on" onclick="selectMoveQuality(true)">ON</button>
+          <button class="custom-btn" data-mq="off" onclick="selectMoveQuality(false)">OFF</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>2人対戦でも称賛メッセージを表示</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn" data-mq2="on" onclick="selectMoveQualityTwo(true)">ON</button>
+          <button class="custom-btn selected" data-mq2="off" onclick="selectMoveQualityTwo(false)">OFF</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>メニューのアイコン</h3>
+        <div class="btn-grid-2">
+          <button class="custom-btn selected" data-menuicon="original" onclick="selectMenuIcon('original')">オリジナル</button>
+          <button class="custom-btn" data-menuicon="simple" onclick="selectMenuIcon('simple')">シンプル</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>ノーテーション（座標表記）</h3>
+        <div class="btn-grid-3">
+          <button class="custom-btn" data-notation="0" onclick="selectNotation(0)">オフ</button>
+          <button class="custom-btn selected" data-notation="1" onclick="selectNotation(1)">4箇所</button>
+          <button class="custom-btn" data-notation="2" onclick="selectNotation(2)">全表示</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>テーマカラー（盤面）</h3>
+        <div class="btn-grid-3">
+          <button class="custom-btn selected" data-theme="green" onclick="selectTheme('green')">グリーン</button>
+          <button class="custom-btn" data-theme="blue" onclick="selectTheme('blue')">ブルー</button>
+          <button class="custom-btn" data-theme="brown" onclick="selectTheme('brown')">ブラウン</button>
+          <button class="custom-btn" data-theme="night" onclick="selectTheme('night')">ナイト</button>
+          <button class="custom-btn" data-theme="pink" onclick="selectTheme('pink')">ピンク</button>
+          <button class="custom-btn" data-theme="orange" onclick="selectTheme('orange')">オレンジ</button>
+          <button class="custom-btn" data-theme="red" onclick="selectTheme('red')">レッド</button>
+          <button class="custom-btn" data-theme="gray" onclick="selectTheme('gray')">グレー</button>
+          <button class="custom-btn" data-theme="dark" onclick="selectTheme('dark')">ダーク</button>
+        </div>
+      </div>
+
+      <div class="custom-row">
+        <h3>背景色</h3>
+        <div class="btn-grid-3">
+          <button class="custom-btn selected" data-bg="cream" onclick="selectBgColor('cream')">クリーム</button>
+          <button class="custom-btn" data-bg="ivory" onclick="selectBgColor('ivory')">アイボリー</button>
+          <button class="custom-btn" data-bg="lime" onclick="selectBgColor('lime')">ライム</button>
+          <button class="custom-btn" data-bg="sky" onclick="selectBgColor('sky')">スカイ</button>
+          <button class="custom-btn" data-bg="lavender" onclick="selectBgColor('lavender')">ラベンダー</button>
+          <button class="custom-btn" data-bg="peach" onclick="selectBgColor('peach')">ピーチ</button>
+          <button class="custom-btn" data-bg="yellow" onclick="selectBgColor('yellow')">イエロー</button>
+          <button class="custom-btn" data-bg="orange" onclick="selectBgColor('orange')">オレンジ</button>
+          <button class="custom-btn" data-bg="darkbg" onclick="selectBgColor('darkbg')">ダーク</button>
+        </div>
+      </div>
+    </div>
+    <button class="nav-link-btn" onclick="saveSettingsAndGoToGame()">🎮 ゲーム設定に進む</button>
+    <button class="nav-back-btn" onclick="saveSettingsAndBack()">保存してメインへ戻る</button>
+  </div>
+
+  <!-- アカウントページ -->
+  <div id="setup-account" class="setup-page dark-theme" style="display:none;">
+    <h1 class="page-title">👤 アカウント</h1>
+    <div class="setup-section name-section">
+      <h2>プレイヤー名</h2>
+      <input type="text" id="player-name-input" maxlength="8" placeholder="名前（7文字以内）" autocomplete="off">
+      <div id="account-rank-display"></div>
+    </div>
+    <div class="setup-section">
+      <h2>📊 戦績</h2>
+      <table id="battle-record-table">
+        <thead>
+          <tr><th>レベル</th><th>勝</th><th>負</th><th>分</th><th>勝率</th></tr>
+        </thead>
+        <tbody id="battle-record-body"></tbody>
+      </table>
+      <button class="nav-link-btn" onclick="shareBattleRecord()">📤 戦績をシェア</button>
+    </div>
+    <button class="nav-link-btn" onclick="window.open('https://forms.gle/tNdF9em345JM5Ahw5','_blank')">💬 フィードバック</button>
+    <button class="nav-link-btn" onclick="window.open('https://reverstargo.com/privacy.html','_blank')">🔒 プライバシーポリシー</button>
+    <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
+  </div>
+
+  <!-- ルール説明書ページ -->
+  <div id="setup-rules" class="setup-page dark-theme" style="display:none;">
+    <h1 class="page-title">📖 ルール説明書</h1>
+
+    <div class="setup-section rules-section">
+      <h2>🎯 ゲームの目的</h2>
+      <p>盤上の自分の石の数と、囲んで取った石の数の合計（ポイント）が相手より多ければ勝利です。</p>
+    </div>
+
+    <div class="setup-section rules-section">
+      <h2>⬡ 盤面について</h2>
+      <p>星型の形をした盤面で、マス目は全部で<strong>37個</strong>あります。中央の紫色のマスが<strong>コアポイント（CP）</strong>と呼ばれる特別なマスです。</p>
+    </div>
+
+    <div class="setup-section rules-section">
+      <h2>📌 石の置き方</h2>
+      <p>石は必ず<strong>相手の石を挟める場所</strong>にしか置けません。挟める方向は6方向です。相手の石を挟むと、その石をひっくり返して自分の色にできます。</p>
+    </div>
+
+    <div class="setup-section rules-section">
+      <h2>⭕ 囲んで取る</h2>
+      <p>リバーシにはない特別なルールです。自分の石で相手の石を<strong>完全に囲む</strong>と、その石を盤面から取り除けます。取った石の数がポイントに加算されます。取り除かれたマスには再び石を置けます。</p>
+      <p>ただし、<strong>すでに前から囲まれていた相手の石</strong>は、その囲みと関係のない別の手では取れません。あくまで<strong>自分のその手によって新しく完成した囲み</strong>だけが、相手の石を取る対象になります。</p>
+    </div>
+
+    <div class="setup-section rules-section">
+      <h2>💠 コアポイント（CP）</h2>
+      <p>盤面中央の紫色のマスです。CPは<strong>どちらの色にもなれる</strong>特別なマスです。CPを使って石を挟む時は、石を置いた直後に「黒」か「白」をコールする必要があります。コールした色によって、ひっくり返る結果が変わります。</p>
+    </div>
+
+    <div class="setup-section rules-section">
+      <h2>🏁 ゲーム終了</h2>
+      <p>以下のいずれかでゲーム終了です。</p>
+      <p>① 全37マスが石で埋まった時<br>② 両者とも置く場所がなくなった時<br>③ コウ（同じ局面の繰り返し）が続きゲームが進行できなくなった時</p>
+    </div>
+
+    <div class="setup-section rules-section">
+      <h2>🏆 勝敗の決め方</h2>
+      <p><strong>盤上の自分の石の数</strong> ＋ <strong>囲んで取った石の数</strong> ＝ 合計ポイント<br>合計ポイントが多い方が勝利です。</p>
+    </div>
+
+    <div class="setup-section rules-section">
+      <h2>🔄 リバースマッチ</h2>
+      <p>Lv.5 以上の対戦では、先手後手の有利不利を解消するため、自動的に「リバースマッチ」になります。白黒を入れ替えて 2 局対戦し、合計得点で勝敗を決めます。</p>
+      <p>複数セット行う場合は、セット間も色が交互になります（1 セット目：黒→白、2 セット目：白→黒、…）。</p>
+    </div>
+
+    <div class="setup-section rules-section" style="text-align:center;">
+      <p style="margin-bottom:10px;">もっと詳しいルール（CP参加条件、コウの詳細、昇格試験など）</p>
+      <button class="tutorial-choice-btn" onclick="document.getElementById('rules-modal').style.display='flex';">📖 詳細ルール説明書はこちら</button>
+    </div>
+
+    <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
+  </div>
+
+  <!-- デイリーチャレンジページ -->
+  <div id="setup-daily" class="setup-page" style="display:none;">
+    <h1 class="page-title">📅 デイリーチャレンジ <button class="daily-help-btn" onclick="showDailyHelp()">？</button></h1>
+
+    <!-- デイリーチャレンジ説明ポップアップ -->
+    <div id="daily-help-popup" style="display:none;">
+      <div class="daily-help-inner">
+        <h2>📅 デイリーチャレンジとは？</h2>
+        <p>カレンダーの日付をタップしてゲームを開始します。</p>
+        <p>CPUに<strong>勝利</strong>するとその日がクリアになり、カレンダーに緑のマークが付きます。</p>
+        <p>過去の日付もチャレンジできるので、やり残した日があっても大丈夫！さかのぼって挑戦しましょう。</p>
+        <p>1ヶ月すべてクリアすると<strong>トロフィー</strong>を獲得できます。🏆</p>
+        <p>CPUレベルなどの設定は、日付を選んだ後のゲーム設定画面で変更できます。</p>
+        <button class="daily-help-close-btn" onclick="hideDailyHelp()">閉じる</button>
+      </div>
+    </div>
+    <div class="custom-section">
+      <div class="calendar-nav">
+        <button class="calendar-nav-btn" id="cal-prev" onclick="calendarPrev()">◀</button>
+        <span id="cal-month-label">2026年4月</span>
+        <button class="calendar-nav-btn" id="cal-next" onclick="calendarNext()">▶</button>
+      </div>
+      <table id="calendar-table">
+        <thead>
+          <tr>
+            <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
+          </tr>
+        </thead>
+        <tbody id="calendar-body"></tbody>
+      </table>
+      <div id="calendar-stats"></div>
+    </div>
+    <div id="monthly-trophy-container" class="custom-section"></div>
+    <div class="daily-bottom-buttons">
+      <button class="nav-back-btn" onclick="showPage('trophies')">🏆 トロフィー一覧</button>
+      <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
+    </div>
+  </div>
+
+  <!-- トロフィー一覧ページ -->
+  <div id="setup-trophies" class="setup-page" style="display:none;">
+    <h1 class="page-title">🏆 トロフィー一覧</h1>
+    <div id="trophy-list-container"></div>
+    <button class="nav-back-btn" onclick="showPage('daily')">📅 デイリーチャレンジへ戻る</button>
+  </div>
+
+  <!-- 棋譜一覧ページ -->
+  <div id="setup-kifu" class="setup-page dark-theme" style="display:none;">
+    <h1 class="page-title">📋 棋譜一覧 <button class="daily-help-btn" onclick="showKifuHelp()">？</button></h1>
+    <div id="kifu-list-container" class="kifu-list"></div>
+    <button class="nav-back-btn" onclick="showPage('game-setup')">対戦へ戻る</button>
+    <button class="nav-back-btn" onclick="showPage('main')">メインへ戻る</button>
+  </div>
+
+  <!-- Premium-v49→v50: 棋譜の説明モーダル -->
+  <div id="kifu-help-popup" style="display:none;" onclick="closeKifuHelp()">
+    <div class="kifu-help-inner" onclick="event.stopPropagation()">
+      <h2>📋 棋譜って何？</h2>
+      <p>その日のあなたの試合を「録画」のように残しておけます。</p>
+      <div class="help-section-title">⭐ 保存のしかた</div>
+      <ul>
+        <li>ゲーム終了の結果画面に出る「⭐ 棋譜の保存」ボタンを押す</li>
+        <li>メモ欄に短い言葉を入れておくと、後で見つけやすい</li>
+        <li>リバースマッチは1局目の終了時にも保存できます</li>
+      </ul>
+      <div class="help-section-title">▶ 見かえし方</div>
+      <ul>
+        <li>一覧の「棋譜」ボタンで、その試合を最初から再生します</li>
+        <li>一手ずつ進めたり戻したりして、自分の手を振り返れます</li>
+      </ul>
+      <div class="help-section-title">🗑 整理のしかた</div>
+      <ul>
+        <li>いらなくなった棋譜は「削除」ボタンで個別に消せます</li>
+        <li>最大30件まで保存。古いものから自動的に消えていきます</li>
+      </ul>
+      <!-- Premium-v53: 詳細な表記法マップへ飛ぶボタン -->
+      <button class="kifu-help-link-btn" onclick="closeKifuHelp(); showNotationMap();">📊 棋譜の表記法（マスのラベル）を見る</button>
+      <!-- 旧 v50「棋譜の読み方」セクションは削除（既存マップに集約）-->
+      <button class="training-mode-help-close" onclick="closeKifuHelp()">閉じる</button>
+    </div>
+  </div>
+
+  <!-- チュートリアル2択画面 -->
+  <div id="tutorial-choice" style="display:none;">
+    <div id="tutorial-choice-inner">
+      <h2>ルールを学ぶ</h2>
+      <button class="tutorial-choice-btn" onclick="hideTutorialChoice(); showPage('rules');">📖 ルール説明書を読む</button>
+      <button class="tutorial-choice-btn" onclick="startTutorial('play')">🎮 体験しながら学ぶ</button>
+      <button class="tutorial-choice-btn" onclick="startTutorial('watch')">👀 見て学ぶ</button>
+      <button id="tutorial-choice-cancel" onclick="hideTutorialChoice()">戻る</button>
+    </div>
+  </div>
+
+  <!-- チュートリアルバー（画面下部固定） -->
+  <div id="tutorial-bar" style="display:none;">
+    <div id="tutorial-step-info">Step 1 / 7</div>
+    <div id="tutorial-message"></div>
+    <div id="tutorial-feedback"></div>
+    <div id="tutorial-nav">
+      <button class="tutorial-nav-btn" id="tutorial-prev-btn" onclick="tutorialPrev()">戻る</button>
+      <button class="tutorial-nav-btn primary" id="tutorial-next-btn" onclick="tutorialNext()">次へ</button>
+      <button id="tutorial-skip-btn" onclick="exitTutorial()">スキップ</button>
+    </div>
+  </div>
+
+  <!-- ヘッダー：タイトル -->
+  <header id="header">
+    <div class="header-title-row">
+      <img src="/logo.png" alt="ReverStarGo リバースターゴ" class="logo-img" id="header-logo">
+      <button id="help-btn" title="ルール説明">？</button>
+    </div>
+  </header>
+
+  <!-- ターン＆レベル表示 -->
+  <div id="game-status-row">
+    <div id="turn-info">黒のターンです</div>
+    <div id="level-badge">Lv.2</div>
+  </div>
+
+  <!-- ゲームボード -->
+  <main id="board-container">
+    <!-- スコアパネル 左上（黒） -->
+    <div id="score-black" class="score-panel">
+      <div class="sp-row1">
+        <span class="sp-stone">● 黒</span>
+        <span id="black-role" class="sp-role"></span>
+      </div>
+      <div class="sp-row2">
+        <span id="black-score" class="sp-score">0</span>
+        <span id="black-detail" class="sp-detail">盤3+取0</span>
+      </div>
+      <!-- Reverse Match 2局目に1局目得点を表示（v42〜） -->
+      <div class="sp-round1" id="black-round1" style="display:none;"></div>
+    </div>
+    <!-- スコアパネル 右上（白） -->
+    <div id="score-white" class="score-panel">
+      <div class="sp-row1">
+        <span class="sp-stone">○ 白</span>
+        <span id="white-role" class="sp-role"></span>
+      </div>
+      <div class="sp-row2">
+        <span id="white-score" class="sp-score">0</span>
+        <span id="white-detail" class="sp-detail">盤3+取0</span>
+      </div>
+      <!-- Reverse Match 2局目に1局目得点を表示（v42〜） -->
+      <div class="sp-round1" id="white-round1" style="display:none;"></div>
+    </div>
+    <svg id="board" viewBox="-195 -220 390 440" style="width:100%;display:block;">
+    </svg>
+  </main>
+
+  <!-- ルール説明モーダル -->
+  <div id="rules-modal" style="display:none;">
+    <div id="rules-modal-inner">
+      <div class="rules-header">
+        <h2>📖 ルール説明書</h2>
+        <button id="rules-close">✕</button>
+      </div>
+      <div class="rules-body">
+
+        <div class="rules-section">
+          <h3>1. ゲームの概要</h3>
+          <p>ReverStarGoは、星型の盤面で2人が対戦するボードゲームです。リバーシの「挟んでひっくり返す」と囲碁の「囲んで取る」を組み合わせた、全く新しい戦略ゲームです。</p>
+        </div>
+
+        <div class="rules-section">
+          <h3>2. 盤面について</h3>
+          <ul>
+            <li>盤面は星型の形をしており、六角形のマス目が37マスあります</li>
+            <li>盤面の中央には特別なマス「コアポイント（CP）」があります</li>
+          </ul>
+        </div>
+
+        <div class="rules-section">
+          <h3>3. 準備</h3>
+          <ul>
+            <li>黒石を持つ人と白石を持つ人に分かれます</li>
+            <li>CPの周囲6マスに、黒石と白石を交互に3個ずつ置きます</li>
+            <li>黒石が先手でゲームを開始します</li>
+          </ul>
+        </div>
+
+        <div class="rules-section">
+          <h3>4. 基本ルール</h3>
+          <p><strong>① 石の置き方</strong><br>必ず相手の石を挟める場所にしか置くことができません。置く場所がない場合はパスとなります。</p>
+          <p><strong>② ひっくり返す</strong><br>挟んだ相手の石はすべてひっくり返し、自分の石にします。</p>
+          <p><strong>③ 囲んで取る</strong><br>自分の石で相手の石を完全に囲むと、その石を取り、取った数が自分のポイントになります。取られたマスには再び石を置くことができます。<br>ただし、囲碁とは異なり、盤面の端（壁）を使って囲んでも石を取ることはできません。必ず自分の石だけで完全に囲む必要があります。</p>
+          <p><strong>④ 既存の囲みは保護される</strong><br>すでに前から囲まれていた相手の石は、その囲みと関係のない別の手では取ることができません。あくまで「自分のその手によって新しく完成した囲み」だけが、相手の石を取る対象になります。</p>
+        </div>
+
+        <div class="rules-section">
+          <h3>5. コアポイント（CP）のルール</h3>
+          <p>CPは盤面中央にある特別なマスです。</p>
+          <p><strong>① コールが必要</strong><br>CPを使って石を挟む手を打つときは、石を置いた直後、石をひっくり返す前に「黒」または「白」とコールしなければなりません。</p>
+          <p><strong>② コールした色として扱う</strong><br>コールした色の石がCPにあると仮定してゲームを進めます。</p>
+          <p><strong>③ CPを囲んだ場合</strong><br>CPも通常の石と同様に、完全に囲むとポイントになります。CPのみを囲んだ場合もポイントになります。</p>
+        </div>
+
+        <div class="rules-section">
+          <h3>6. 勝敗</h3>
+          <p>以下のいずれかの条件でゲーム終了となります。</p>
+          <ul>
+            <li>CPを除く全36マスが石で埋まった時</li>
+            <li>両者とも置く場所がなくなった時</li>
+            <li>コウの状態が続きゲームが進行できなくなった時</li>
+          </ul>
+          <p>盤上に残っている自分の石の数と囲んで取った石の数を合計し、多い方が勝利です。</p>
+          <p>合計ポイントが同じ場合は、囲んで取った石の数が多い方を勝ちとします。<br>合計ポイントも取った石の数も同じ場合は引き分けとします。</p>
+        </div>
+
+        <div class="rules-section">
+          <h3>7. コウのルール</h3>
+          <p>同じ局面を繰り返すことを防ぐためのルールです。</p>
+          <p><strong>① 基本ルール</strong><br>1手前とまったく同じ盤面に戻してしまう手は打てません。<br>そして、一度現れた局面に戻る手も打てません。</p>
+          <p><strong>② 例外</strong><br>その手以外に置ける場所が全くない場合のみ、同じ盤面に戻る手でも打つことができます。</p>
+          <p><strong>③ 例外後のルール</strong><br>例外が適用された直後は、相手も同じ盤面を繰り返す手を打つことはできません。</p>
+          <p><strong>④ ゲーム終了</strong><br>両者とも同じ盤面を繰り返す手しか打てない状態が続く場合、ゲーム終了とし、その時点での合計ポイントで勝敗を決します。</p>
+          <p><strong>⑤ 盤面の表示</strong><br>
+            <span style="color:#c8b832;font-weight:bold;">● 黄色ドット</span> … 置ける場所の目印（どんな背景色の上でも表示）<br>
+            <span style="color:#f0a030;font-weight:bold;">● オレンジ背景＋白枠</span> … CPコールの片方の色がコウで制限。置けますが選べる色は1つです。<br>
+            <span style="color:#e30909;font-weight:bold;">● 赤背景＋白枠</span> … コウでブロックされた手。通常は置けません。<br>
+            <span style="color:#e30909;font-weight:bold;">● 赤背景＋白枠＋黄色ドット</span> … 赤しか選択肢がない例外時。置くことができます。</p>
+        </div>
+
+        <div class="rules-section">
+          <h3>8. リバースマッチ</h3>
+          <p>先手後手の有利不利を解消するため、Lv.5 以上の対戦では自動的に「リバースマッチ」形式で対戦します。</p>
+          <p><strong>① 2 局 1 セット</strong><br>1 局目と 2 局目で白黒を入れ替えて、同じ相手と 2 回対戦します。</p>
+          <p><strong>② 合計得点で勝敗決定</strong><br>2 局の合計得点が多い方が勝者です。1 局目で負けても、2 局目で大きく勝てば逆転できます。</p>
+          <p><strong>③ セット間も先手交代</strong><br>複数セット行う場合、セット間でも色が自然に交互になります。<br>・1 セット目：黒 → 白<br>・2 セット目：白 → 黒<br>・3 セット目：黒 → 白<br>（通常対戦でも、色を手動で変更しない限りこのパターンが続きます）</p>
+          <p><strong>④ 適用範囲</strong><br>Lv.5 以上のすべての対戦（通常対戦・ランクアップマッチ）<br>※ 2 人対戦モード・チュートリアルでは適用されません</p>
+        </div>
+
+        <div class="rules-section">
+          <h3>9. ランクアップマッチ</h3>
+          <p>⚔ 次のレベルのCPUを解放するための特別な連戦です。デイリーチャレンジとは別に挑戦できます。</p>
+          <p><strong>① 発生タイミング</strong><br>特定のランクに到達すると、次の昇格ランクへの挑戦権が自動的に発生します。</p>
+          <ul>
+            <li>ウッド → <strong>3番勝負</strong>（先に2勝）→ ストーンに昇格、<strong>Lv.2</strong>解放</li>
+            <li>スチール → <strong>5番勝負</strong>（先に3勝）→ ブロンズに昇格、<strong>Lv.3</strong>解放</li>
+            <li>ゴールド → <strong>7番勝負</strong>（先に4勝）→ プラチナに昇格、<strong>Lv.4</strong>解放</li>
+            <li>ガーネット → <strong>7番勝負</strong>（先に4勝）→ トパーズに昇格、<strong>Lv.5</strong>解放</li>
+            <li>エメラルド → <strong>RM 5番勝負</strong>（先に3勝）→ ダイヤモンドに昇格、<strong>MAX</strong>解放</li>
+            <li>マスター → <strong>RM 7番勝負</strong>（先に4勝）→ レジェンドに昇格</li>
+            <li>レジェンド → <strong>RM 15番勝負</strong>（先に8勝）→ グランドマスターに昇格、<strong>FINAL</strong>解放</li>
+            <li>デミゴッド → <strong>RM 11番勝負</strong>（先に6勝）→ ゴッドに昇格</li>
+            <li>ゴッド → <strong>RM 21番勝負</strong>（先に11勝）→ ゼウスに昇格</li>
+          </ul>
+          <p>※ RM ＝ リバースマッチ</p>
+          <p><strong>② 基本ルール</strong></p>
+          <ul>
+            <li>必ず連続で全試合を戦い抜く必要があります</li>
+            <li>途中で他の画面に移動すると不合格になります</li>
+            <li>白黒は1試合ごとに自動で交代します</li>
+            <li>プラチナからレジェンドまでの昇格試験は、通算20勝でも昇格できます（ダイヤモンド・レジェンドは RM 通算）</li>
+          </ul>
+          <p><strong>③ 不合格でも大丈夫</strong><br>不合格になっても何度でも再挑戦できます。納得できるまで挑戦してください。</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- コウ説明モーダル -->
+  <div id="ko-help-modal" style="display:none;">
+    <div class="ko-help-content">
+      <h2>コウとは？</h2>
+      <p>囲んで相手の石を取った直後、相手がすぐ同じ場所に置き返すと、同じ盤面が永遠に繰り返されてしまいます。</p>
+      <p>これを防ぐため、<strong>1手前とまったく同じ盤面に戻してしまう手は打てません。</strong></p>
+      <p>他の場所に一手置いてからなら、再び石を置くことができます。</p>
+      <p>💡 ヒント表示のしくみ：<br>
+        <span style="color:#c8b832;font-weight:bold;">● 黄色ドット</span> = 置ける場所（背景色問わず）
+        <span style="color:#f0a030;font-weight:bold;">● オレンジ背景＋白枠</span> = CPコール制限あり（置ける）<br>
+        <span style="color:#e30909;font-weight:bold;">● 赤背景＋白枠</span> = コウで禁止（黄色ドットがあれば例外で置ける）</p>
+      <button class="ko-help-close-btn" onclick="hideKoHelp()">閉じる</button>
+    </div>
+  </div>
+
+  <!-- C.P.コール選択（ゴールデンポイント） -->
+
+  <!-- 2人対戦ターン交代オーバーレイ -->
+  <div id="turn-modal" style="display:none;">
+    <p id="turn-modal-msg">次は⚫黒の番です。</p>
+    <p id="turn-modal-hint">画面をタップして続ける</p>
+  </div>
+
+  <!-- 操作ボタン -->
+  <!-- 昇格試験進捗 -->
+  <div id="promotion-game-status" style="display:none;"></div>
+
+  <div id="gp-modal" style="display:none;">
+    <p>C.P.をどちらにコールしますか？</p>
+    <div class="gp-btn-row">
+      <button id="gp-black">黒</button>
+      <button id="gp-white">白</button>
+    </div>
+    <p id="gp-ko-note" style="display:none;font-size:0.78rem;color:#b03020;margin-top:6px;"></p>
+  </div>
+  <div id="pass-modal" style="display:none;">
+    <p>置ける場所がありません</p>
+    <button id="pass-ok">パスする</button>
+  </div>
+  <footer id="controls">
+    <button id="restart-btn">ゲーム設定に戻る</button>
+    <button id="undo-btn" disabled>1手戻る</button>
+    <!-- Premium-v34: 「1手進む」(redo) — 師匠と修行モードのみ表示 -->
+    <button id="redo-btn" disabled>1手進む</button>
+    <!-- Premium-v34: 怒った師匠ポップアップ — 1手戻る/1手進むに重ねて表示 -->
+    <div id="juku-bad-confirm" style="display:none;">
+      <button id="juku-bad-undo-btn">戻って考え直す</button>
+      <button id="juku-bad-continue-btn">このまま進む</button>
+    </div>
+  </footer>
+
+  <!-- リプレイコントロール -->
+  <div id="replay-controls">
+    <button class="replay-nav-btn" id="replay-start" onclick="replayGoStart()">⏮</button>
+    <button class="replay-nav-btn" id="replay-back" onclick="replayBack()">◀</button>
+    <span id="replay-info">0 / 0</span>
+    <button class="replay-nav-btn" id="replay-fwd" onclick="replayForward()">▶</button>
+    <button class="replay-nav-btn" id="replay-end" onclick="replayGoEnd()">⏭</button>
+  </div>
+  <p id="replay-move-label"></p>
+  <button id="replay-exit-btn" style="display:none;" onclick="exitReplay()">棋譜一覧に戻る</button>
+
+  <!-- ゲーム結果（最初からボタンの下に表示） -->
+  <div id="result-modal" style="display:none;">
+    <img id="result-trophy" alt="トロフィー" style="display:none;">
+    <p id="result-text"></p>
+    <button id="play-again-btn">もう1局</button>
+    <button id="share-result-btn" style="display:none;" onclick="shareGameResult()">📤 結果をシェア</button>
+    <button id="back-to-daily-btn" style="display:none;" onclick="backToDaily()">📅 デイリーへ戻る</button>
+    <!-- 棋譜ボタン（プレミアム機能として将来復活予定） -->
+    <div class="result-btn-row" id="kifu-btn-row" style="display:none;">
+      <button class="result-sub-btn" id="save-game-btn" onclick="saveGameRecord()">⭐ 棋譜の保存</button>
+      <button class="result-sub-btn" id="goto-kifu-btn" style="display:none;" onclick="document.getElementById('result-modal').style.display='none';showPage('kifu')">📋 棋譜一覧へ</button>
+    </div>
+  </div>
+
+  <!-- コピー完了トースト -->
+  <div id="copy-toast" class="copy-toast">コピーしました！</div>
+
+  <!-- 棋譜テキスト表示モーダル -->
+  <div id="notation-modal">
+    <div class="notation-modal-inner">
+      <h3>📋 棋譜</h3>
+      <div id="notation-text-area"></div>
+      <div class="notation-btn-row">
+        <button class="notation-btn" id="notation-copy-btn" onclick="copyNotationText()">コピー</button>
+        <button class="notation-btn" id="notation-map-btn" onclick="showNotationMap()">表記法</button>
+        <button class="notation-btn" id="notation-close-btn" onclick="closeNotationModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 棋譜表記法マップモーダル -->
+  <div id="notation-map-modal" style="display:none;">
+    <div class="notation-modal-inner" style="max-width:400px;max-height:90vh;overflow-y:auto;">
+      <h3>棋譜表記法</h3>
+      <svg id="notation-map-svg" viewBox="-255 -250 510 500" style="width:100%;max-width:100%;display:block;"></svg>
+      <div style="text-align:center;font-size:0.85rem;color:#9a7010;margin-top:4px;">X = 10　　J = 11　　Q = 12</div>
+      <div style="text-align:left;font-size:0.82rem;color:#8a7a50;margin-top:12px;padding:12px;background:rgba(0,0,0,0.15);border-radius:8px;line-height:1.8;">
+        <div style="font-weight:bold;color:#9a7010;margin-bottom:4px;">読み方の例</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">●B1[W] +1</span> → 黒がB1に置き、CPを白でコール、1個取った</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">○C4[B]</span> → 白がC4に置き、CPを黒でコール</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">●A3 +2</span> → 黒がA3に置き、2個囲み取り</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">○B7</span> → 白がB7に置いた（コール・取りなし）</div>
+        <div><span style="color:#5a4a20;font-weight:bold;">●--</span> → 黒がパス</div>
+        <div style="margin-top:8px;font-size:0.78rem;color:#7a6a40;">● = 黒　○ = 白　+N = N個囲み取り</div>
+        <div style="font-size:0.78rem;color:#7a6a40;">[B] = CPを黒でコール　[W] = CPを白でコール</div>
+        <div style="font-size:0.78rem;color:#7a6a40;">※ CPを経由して石を挟む手の場合、CPの色（コール）が自動的に記録されます。CPを経由しない手には表示されません。</div>
+        <div style="margin-top:8px;font-size:0.78rem;color:#7a6a40;">※ 棋譜は最大30件まで保存できます</div>
+      </div>
+      <div class="notation-btn-row">
+        <button class="notation-btn" id="notation-map-close-btn" onclick="closeNotationMap()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 途中放棄確認ポップアップ -->
+  <div id="quit-confirm" style="display:none;">
+    <div class="quit-confirm-inner">
+      <p>⚠ ゲームを中断すると<br><strong>負け</strong>になります。<br>よろしいですか？</p>
+      <div class="quit-confirm-buttons">
+        <button class="quit-confirm-yes" onclick="confirmQuit()">はい</button>
+        <button class="quit-confirm-no" onclick="cancelQuit()">いいえ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 本日の成績 -->
+  <div id="today-record" style="display:none;"></div>
+
+  <!-- セッション勝敗カウント -->
+  <div id="session-score" style="display:none;">
+    <span id="session-black"></span>
+    <span id="session-white"></span>
+  </div>
+
+  <!-- ランクアップモーダル -->
+  <canvas id="fireworks-canvas" style="display:none;"></canvas>
+
+  <div id="level-unlock-modal" style="display:none;">
+    <div class="level-unlock-content">
+      <div class="level-unlock-icon" id="level-unlock-icon">🎊</div>
+      <p class="level-unlock-title" id="level-unlock-title"></p>
+      <p class="level-unlock-desc" id="level-unlock-desc"></p>
+      <p class="level-unlock-note" id="level-unlock-note"></p>
+      <div style="display:flex; flex-direction:column; gap:20px; align-items:center;">
+        <button class="level-unlock-ok-btn" id="level-unlock-yes-btn">Lv.2 に進む</button>
+        <button class="level-unlock-ok-btn level-unlock-no-btn" id="level-unlock-no-btn">今のレベルで続ける</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dev-menu" style="display:none;">
+    <div class="dev-menu-content">
+      <p class="dev-menu-title">🔧 開発者メニュー</p>
+      <button class="dev-menu-btn" onclick="toggleDevMode()" id="dev-mode-toggle-btn">🟢 開発者モード ON</button>
+      <button class="dev-menu-btn" onclick="devResetAll()">全データリセット</button>
+      <button class="dev-menu-btn" onclick="devResetBattle()">戦績リセット</button>
+      <button class="dev-menu-btn" onclick="devResetPromotions()">ランクアップマッチ リセット</button>
+      <button class="dev-menu-btn" onclick="devResetDaily()">デイリー記録リセット</button>
+      <button class="dev-menu-btn dev-close" onclick="closeDevMenu()">閉じる</button>
+    </div>
+  </div>
+
+  <div id="rankup-modal" style="display:none;">
+    <div id="rankup-content">
+      <div id="rankup-icon"></div>
+      <p id="rankup-title">ランクアップ！</p>
+      <p id="rankup-name"></p>
+      <p id="rankup-condition"></p>
+      <button id="rankup-ok-btn">OK</button>
+    </div>
+  </div>
+
+  <div id="promo-announce-modal" style="display:none;">
+    <div class="promo-announce-content">
+      <div class="promo-announce-icon">⚔</div>
+      <p class="promo-announce-title" id="promo-announce-title"></p>
+      <p class="promo-announce-desc" id="promo-announce-desc"></p>
+      <div class="promo-announce-help" id="promo-announce-help" style="display:none;">
+        <p><strong>ランクアップマッチとは？</strong></p>
+        <p>次のランク（および新しいレベル）を解放するための特別な連戦です。デイリーチャレンジとは別に挑戦できます。</p>
+        <p><strong>昇格戦の一覧</strong></p>
+        <p><img src="/icon/3.png" style="width:18px;height:18px;vertical-align:middle;"> ウッド → <img src="/icon/4.png" style="width:18px;height:18px;vertical-align:middle;"> ストーン：<strong>3番勝負</strong>（先に2勝）／Lv.2 解放</p>
+        <p><img src="/icon/6.png" style="width:18px;height:18px;vertical-align:middle;"> スチール → <img src="/icon/7.png" style="width:18px;height:18px;vertical-align:middle;"> ブロンズ：<strong>5番勝負</strong>（先に3勝）／Lv.3 解放</p>
+        <p><img src="/icon/9.png" style="width:18px;height:18px;vertical-align:middle;"> ゴールド → <img src="/icon/10.png" style="width:18px;height:18px;vertical-align:middle;"> プラチナ：<strong>7番勝負</strong>（先に4勝）／Lv.4 解放</p>
+        <p><img src="/icon/13.png" style="width:18px;height:18px;vertical-align:middle;"> ガーネット → <img src="/icon/14.png" style="width:18px;height:18px;vertical-align:middle;"> トパーズ：<strong>7番勝負</strong>（先に4勝）／Lv.5 解放</p>
+        <p><img src="/icon/18.png" style="width:18px;height:18px;vertical-align:middle;"> エメラルド → <img src="/icon/19.png" style="width:18px;height:18px;vertical-align:middle;"> ダイヤモンド：<strong>RM 5番勝負</strong>（先に3勝）／MAX 解放</p>
+        <p><img src="/icon/23.png" style="width:18px;height:18px;vertical-align:middle;"> マスター → <img src="/icon/24.png" style="width:18px;height:18px;vertical-align:middle;"> レジェンド：<strong>RM 7番勝負</strong>（先に4勝）</p>
+        <p><img src="/icon/24.png" style="width:18px;height:18px;vertical-align:middle;"> レジェンド → <img src="/icon/25.png" style="width:18px;height:18px;vertical-align:middle;"> グランドマスター：<strong>RM 15番勝負</strong>（先に8勝）／FINAL 解放</p>
+        <p><img src="/icon/28.png" style="width:18px;height:18px;vertical-align:middle;"> デミゴッド → <img src="/icon/29.png" style="width:18px;height:18px;vertical-align:middle;"> ゴッド：<strong>RM 11番勝負</strong>（先に6勝）</p>
+        <p><img src="/icon/29.png" style="width:18px;height:18px;vertical-align:middle;"> ゴッド → <img src="/icon/30.png" style="width:18px;height:18px;vertical-align:middle;"> ゼウス：<strong>RM 21番勝負</strong>（先に11勝）</p>
+        <p>※ RM ＝ リバースマッチ</p>
+        <p><strong>基本ルール</strong></p>
+        <p>・必ず連続で全試合を戦い抜く必要があります</p>
+        <p>・途中で他の画面に移動すると不合格になります</p>
+        <p>・白黒は1試合ごとに自動で交代します</p>
+        <p>・プラチナからレジェンドまでの昇格試験は、通算20勝でも昇格できます（ダイヤモンド・レジェンドは RM 通算）</p>
+        <p>不合格でも何度でも再挑戦できますので、納得できるまで挑戦してください！</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:20px; width:100%; max-width:240px; margin:0 auto;">
+        <button class="promo-announce-ok-btn" id="promo-announce-start-btn" style="background:#b8860b; border-color:#d4a520; width:100%;">⚔ すぐに挑戦する</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="promo-announce-ok-btn" id="promo-announce-ok-btn" style="background:#5878c0; border-color:#5878c0; font-size:0.85rem; flex:1;">設定画面に戻る</button>
+          <button class="promo-announce-help-btn" id="promo-announce-help-toggle">？</button>
+        </div>
+        <p style="font-size:0.75rem; color:#8090b0; margin:4px 0 0 0; text-align:center;">※ あとでゲーム設定画面からも開始できます</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/undo.js"></script>
+  <script src="js/tutorial.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/rng.js"></script>
+  <script src="js/board.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/move_quality.js"></script>
+  <script src="js/perfect.js"></script>
+  <script src="js/reverse_match_intro.js"></script>
+  <script src="js/training.js"></script>
+  <script src="js/training_juku.js"></script>
+  <script src="js/records.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/daily.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/setup.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/kifu.js"></script>
+  <script src="js/promotion_ui.js"></script>
+  <script src="js/main.js"></script>
+
+  <!-- v63: 「いい手」トースト表示用要素 -->
+  <div id="move-quality-toast" class="mq-toast"></div>
+  <div id="fireworks-layer"></div>
+  <div id="confetti-layer"></div>
+
+  <!-- v69: リバースマッチ自体の初回説明モーダル -->
+  <div id="reverse-match-intro-modal" style="display:none;">
+    <div class="rm-intro-content">
+      <div class="rm-intro-icon">🔄</div>
+      <h2 class="rm-intro-title">リバースマッチ について</h2>
+      <div class="rm-intro-body">
+        <p>Lv.5 以上の対戦では、先手後手の有利不利を解消するため、自動的に「<strong>リバースマッチ</strong>」形式になります。</p>
+        <p><strong>① 2 局 1 セット</strong><br>1 局目と 2 局目で白黒を入れ替えて、同じ相手と 2 回対戦します。</p>
+        <p><strong>② 合計得点で勝敗決定</strong><br>2 局の合計得点が多い方が勝者です。1 局目で負けても、2 局目で大きく勝てば逆転できます。</p>
+        <p><strong>③ セット間も先手交代</strong><br>続けて遊ぶ場合、セット間でも色が自然に交互になります。</p>
+      </div>
+      <p class="rm-intro-note">※ ルール画面でいつでも詳しく確認できます</p>
+      <button class="rm-intro-btn" id="rm-intro-ok-btn">理解しました</button>
+    </div>
+  </div>
+
+  <!-- v69: Lv.5 解放時のランクアップマッチ説明モーダル -->
+  <div id="reverse-match-promo-intro-modal" style="display:none;">
+    <div class="rm-intro-content">
+      <div class="rm-intro-icon">⚔ 🔄</div>
+      <h2 class="rm-intro-title">ランクアップマッチ について</h2>
+      <div class="rm-intro-body">
+        <p>Lv.5 以降のランクアップマッチは、すべて「<strong>リバースマッチ</strong>」形式で行われます。</p>
+        <p><strong>① 1 試合 = 1 セット（2 局）</strong><br>「RM ◯番勝負」の各試合は、白黒を入れ替えた 2 局のセットです。</p>
+        <p><strong>② セット単位で勝敗を集計</strong><br>各セットの合計得点で勝者を決定。先に必要勝数に達すると合格です。</p>
+        <p><strong>③ セットごとに白黒自動交代</strong><br>公平を期すため、セットが切り替わるたびに先手・後手も入れ替わります。</p>
+      </div>
+      <p class="rm-intro-note">※ ルール画面でいつでも詳しく確認できます</p>
+      <button class="rm-intro-btn" id="rm-promo-intro-ok-btn">理解しました</button>
+    </div>
+  </div>
+
+</body>
+</html>
