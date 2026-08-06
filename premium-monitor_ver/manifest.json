@@ -1,0 +1,18 @@
+{
+  "name": "ReverStarGo Premium",
+  "short_name": "RSG Premium",
+  "description": "星型の盤面で戦う戦略ゲーム ReverStarGo のプレミアム版（修行部屋・棋譜つき）",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5edd8",
+  "theme_color": "#f5edd8",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
