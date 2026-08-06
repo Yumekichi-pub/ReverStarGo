@@ -230,7 +230,7 @@ document.getElementById('rankup-ok-btn').addEventListener('click', () => {
 
 // ===== 開発者メニュー =====
 let devMode = false;
-// Premium-v55: 互換シム。本家 v83+ のファイル（daily.js 等）は _xmOn / _xmTgDly を
+// Premium-v99: 互換シム。本家 v83+ のファイル（daily.js 等）は _xmOn / _xmTgDly を
 // 参照するが、Premium は devMode 系の命名のため、エイリアスで橋渡しする。
 Object.defineProperty(globalThis, '_xmOn', { get: () => devMode, configurable: true });
 function _xmTgDly(dateStr, setComplete) {
