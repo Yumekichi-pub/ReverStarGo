@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v100</p>
+    <p class="app-version">Premium-v101</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -115,6 +115,23 @@
       <div class="setup-buttons-row">
         <button class="setup-btn selected" data-battle="cpu" onclick="selectBattleMode('cpu')">CPUと対戦</button>
         <button class="setup-btn" data-battle="two" onclick="selectBattleMode('two')">2人で対戦</button>
+      </div>
+    </div>
+    <!-- 2人対戦のプレイヤー名入力（Premium-v101、任意入力。入れると対戦成績に記録） -->
+    <div class="setup-section" id="two-player-names-section" style="display:none;">
+      <h2>プレイヤー名（入れると成績が残ります）</h2>
+      <div class="tp-name-row">
+        <label for="tp-black-name">● 黒（先手）</label>
+        <input id="tp-black-name" maxlength="7" placeholder="名前を入力" list="tp-name-list" autocomplete="off">
+      </div>
+      <div class="tp-name-row">
+        <label for="tp-white-name">○ 白（後手）</label>
+        <input id="tp-white-name" maxlength="7" placeholder="名前を入力" list="tp-name-list" autocomplete="off">
+      </div>
+      <datalist id="tp-name-list"></datalist>
+      <div class="setup-buttons-row">
+        <button class="setup-btn" onclick="tpSwapNames()">⇄ 先手と後手を入れ替え</button>
+        <button class="setup-btn" onclick="showTpRecords()">📊 これまでの対戦成績</button>
       </div>
     </div>
     <div class="setup-section" id="cpu-level-section">
@@ -660,6 +677,15 @@
   </div>
 
   <!-- コウ説明モーダル -->
+  <!-- 2人対戦 対戦成績モーダル (Premium-v101) -->
+  <div id="tp-records-modal" style="display:none;">
+    <div class="tp-records-content">
+      <h2>📊 これまでの対戦成績</h2>
+      <div id="tp-records-body"></div>
+      <button class="nav-back-btn" onclick="closeTpRecords()">閉じる</button>
+    </div>
+  </div>
+
   <div id="ko-help-modal" style="display:none;">
     <div class="ko-help-content">
       <h2>コウとは？</h2>
@@ -886,6 +912,7 @@
   <script src="js/training.js"></script>
   <script src="js/training_juku.js"></script>
   <script src="js/records.js"></script>
+  <script src="js/twoplayer.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/daily.js"></script>
   <script src="js/settings.js"></script>

@@ -154,8 +154,9 @@ function initGame() {
   // Premium-v34: 「1手進む」ボタンもリセット
   if (typeof updateRedoButton === 'function') updateRedoButton();
   if (battleMode === 'two') {
-    document.getElementById('black-role').textContent = '';
-    document.getElementById('white-role').textContent = '';
+    // Premium-v101: 名前入力があればスコアパネルに表示（どちらが自分か一目でわかる）
+    document.getElementById('black-role').textContent = (typeof tpNameFor === 'function') ? tpNameFor('black') : '';
+    document.getElementById('white-role').textContent = (typeof tpNameFor === 'function') ? tpNameFor('white') : '';
     document.getElementById('level-badge').style.display = 'none';
   } else {
     const rIdx = calculateRank();
@@ -304,6 +305,8 @@ function devResetAll() {
     localStorage.removeItem(PROMOTION_EXAM_KEY);
     localStorage.removeItem(PROMOTION_CAREER_KEY);
     localStorage.removeItem(DAILY_KEY);
+    // Premium-v101: 2人対戦の対戦成績もリセット
+    if (typeof TP_RECORDS_KEY !== 'undefined') localStorage.removeItem(TP_RECORDS_KEY);
     // devOverrideRank と進行中の試験もリセット
     promotionExam = null;
     sessionWins = { black: 0, white: 0, draw: 0 };

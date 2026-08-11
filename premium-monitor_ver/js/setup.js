@@ -101,6 +101,12 @@ function selectBattleMode(mode) {
   document.querySelectorAll('[data-battle]').forEach(b => b.classList.remove('selected'));
   document.querySelector(`[data-battle="${mode}"]`).classList.add('selected');
   document.getElementById('cpu-level-section').style.display = mode === 'two' ? 'none' : '';
+  // Premium-v101: 2人対戦のときだけプレイヤー名入力セクションを表示
+  const tpSec = document.getElementById('two-player-names-section');
+  if (tpSec) {
+    tpSec.style.display = mode === 'two' ? '' : 'none';
+    if (mode === 'two' && typeof updateTpNameSection === 'function') updateTpNameSection();
+  }
 }
 function selectSound(enabled) {
   soundEnabled = enabled;
@@ -460,7 +466,11 @@ function isCpuTurn() {
 // プレイヤー色ラベル
 function colorLabel(color) {
   const name = color === 'black' ? '黒' : '白';
-  if (battleMode === 'two') return name;
+  if (battleMode === 'two') {
+    // Premium-v101: 名前が入力されていれば「黒・たけし」の形で表示
+    const n = (typeof tpNameFor === 'function') ? tpNameFor(color) : '';
+    return n ? `${name}・${n}` : name;
+  }
   return color === cpuColor ? `${name}（CPU）` : name;
 }
 

@@ -210,11 +210,17 @@ function endGame() {
     else if (captured.white > captured.black) tiebreakWinner = 'white';
   }
   if (battleMode === 'two') {
-    if (bTotal > wTotal) { sessionWins.black++; msg = `⚫黒の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; }
-    else if (wTotal > bTotal) { sessionWins.white++; msg = `⚪白の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; }
-    else if (tiebreakWinner === 'black') { sessionWins.black++; msg = `⚫黒の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; }
-    else if (tiebreakWinner === 'white') { sessionWins.white++; msg = `⚪白の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; }
-    else { sessionWins.draw++; msg = `引き分け (黒${bTotal} vs 白${wTotal})`; }
+    // Premium-v101: 名前が入っていれば勝敗メッセージにも名前を表示
+    const _bn = (typeof tpNameFor === 'function' && tpNameFor('black')) ? `黒・${tpNameFor('black')}` : '黒';
+    const _wn = (typeof tpNameFor === 'function' && tpNameFor('white')) ? `白・${tpNameFor('white')}` : '白';
+    let _tpResult; // 'b' | 'w' | 'd'（対戦成績の記録用）
+    if (bTotal > wTotal) { sessionWins.black++; msg = `⚫${_bn}の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; _tpResult = 'b'; }
+    else if (wTotal > bTotal) { sessionWins.white++; msg = `⚪${_wn}の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; _tpResult = 'w'; }
+    else if (tiebreakWinner === 'black') { sessionWins.black++; msg = `⚫${_bn}の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; _tpResult = 'b'; }
+    else if (tiebreakWinner === 'white') { sessionWins.white++; msg = `⚪${_wn}の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; _tpResult = 'w'; }
+    else { sessionWins.draw++; msg = `引き分け (黒${bTotal} vs 白${wTotal})`; _tpResult = 'd'; }
+    // Premium-v101: 名前つき対局は対戦成績に自動記録（名前未入力なら何もしない）
+    if (typeof recordTpMatch === 'function') recordTpMatch(bTotal, wTotal, _tpResult);
   } else {
     // ============================================
     // Reverse Match 1局目終了時の中間処理（v41〜）
