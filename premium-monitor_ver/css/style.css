@@ -3358,3 +3358,58 @@
       margin-right: 3px;
       vertical-align: 1px;
     }
+
+    /* ===== Premium-v106: 名前履歴ドロップダウン ===== */
+    .tp-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .tp-input-wrap input {
+      width: 130px;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .tp-hist-btn {
+      padding: 8px 10px;
+      border: 1.5px solid #c0a858;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      background: #f0e4c4;
+      color: #7a5a20;
+      font-size: 0.8rem;
+      cursor: pointer;
+      height: 100%;
+    }
+    .tp-name-menu {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      background: #fff8ee;
+      border: 1.5px solid #c0a858;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 950;
+      max-height: 190px;
+      overflow-y: auto;
+    }
+    .tp-name-menu button {
+      display: block;
+      width: 100%;
+      padding: 9px 12px;
+      border: none;
+      border-bottom: 1px solid #ecdcb4;
+      background: none;
+      color: #2a1a0a;
+      font-size: 0.95rem;
+      text-align: left;
+      cursor: pointer;
+    }
+    .tp-name-menu button:last-child { border-bottom: none; }
+    .tp-name-menu button:hover { background: #f5e6c8; }
+    .tp-name-menu-empty {
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      color: #9a8050;
+    }

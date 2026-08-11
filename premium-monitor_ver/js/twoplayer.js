@@ -76,17 +76,58 @@ function tpSwapNames() {
   const t = b.value; b.value = w.value; w.value = t;
 }
 
-// 「2人で対戦」を選んだときに呼ぶ: 前回の名前を復元 + 入力候補リスト更新
+// 「2人で対戦」を選んだときに呼ぶ: 前回の名前を復元
 function updateTpNameSection() {
   const data = loadTpData();
   const b = document.getElementById('tp-black-name');
   const w = document.getElementById('tp-white-name');
   if (b && !b.value && data.lastB) b.value = data.lastB;
   if (w && !w.value && data.lastW) w.value = data.lastW;
-  const dl = document.getElementById('tp-name-list');
-  if (dl) dl.innerHTML = data.players.map(p => `<option value="${_tpEsc(p)}">`).join('');
   // Premium-v105: 前回の対戦形式を復元
   selectTpMode(data.lastMode === 'reverse' ? 'reverse' : 'single');
+}
+
+// ===== 名前履歴ドロップダウン (Premium-v106) =====
+// ▼ボタンで過去に使った名前の一覧を表示し、タップでその欄に入れる。
+// （datalist は入力中の文字で絞り込まれてしまい「履歴一覧」にならないため独自実装）
+function toggleTpNameMenu(color) {
+  const menu = document.getElementById(`tp-name-menu-${color}`);
+  if (!menu) return;
+  const opened = menu.style.display !== 'none';
+  closeTpNameMenus();
+  if (opened) return; // 開いていたら閉じるだけ
+  const players = loadTpData().players;
+  if (players.length === 0) {
+    menu.innerHTML = '<div class="tp-name-menu-empty">まだ履歴がありません</div>';
+  } else {
+    menu.innerHTML = players.map(p =>
+      `<button type="button" onclick="pickTpName('${color}', this.textContent)">${_tpEsc(p)}</button>`
+    ).join('');
+  }
+  menu.style.display = '';
+  // メニュー外をタップしたら閉じる（1回だけのリスナー）
+  setTimeout(() => {
+    document.addEventListener('click', _tpMenuOutsideClose, { once: true });
+  }, 0);
+}
+
+function _tpMenuOutsideClose(e) {
+  if (e.target.closest && e.target.closest('.tp-input-wrap')) {
+    // 入力欄まわりのタップなら開いたままにする（再登録）
+    document.addEventListener('click', _tpMenuOutsideClose, { once: true });
+    return;
+  }
+  closeTpNameMenus();
+}
+
+function closeTpNameMenus() {
+  document.querySelectorAll('.tp-name-menu').forEach(m => { m.style.display = 'none'; });
+}
+
+function pickTpName(color, name) {
+  const el = document.getElementById(color === 'black' ? 'tp-black-name' : 'tp-white-name');
+  if (el) el.value = name;
+  closeTpNameMenus();
 }
 
 function _tpEsc(s) {

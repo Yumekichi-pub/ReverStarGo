@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v105</p>
+    <p class="app-version">Premium-v106</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -120,15 +120,24 @@
     <!-- 2人対戦のプレイヤー名入力（Premium-v101、任意入力。入れると対戦成績に記録） -->
     <div class="setup-section" id="two-player-names-section" style="display:none;">
       <h2>プレイヤー名（入れると成績が残ります）</h2>
+      <!-- v106: datalist は入力中の文字で絞り込まれて履歴が見えないため、
+           全履歴を出す独自ドロップダウン(▼)に変更 -->
       <div class="tp-name-row">
         <label for="tp-black-name">● 黒（先手）</label>
-        <input id="tp-black-name" maxlength="7" placeholder="名前を入力" list="tp-name-list" autocomplete="off">
+        <div class="tp-input-wrap">
+          <input id="tp-black-name" maxlength="7" placeholder="名前を入力" autocomplete="off">
+          <button type="button" class="tp-hist-btn" onclick="toggleTpNameMenu('black')" title="過去の名前から選ぶ">▼</button>
+          <div id="tp-name-menu-black" class="tp-name-menu" style="display:none;"></div>
+        </div>
       </div>
       <div class="tp-name-row">
         <label for="tp-white-name">○ 白（後手）</label>
-        <input id="tp-white-name" maxlength="7" placeholder="名前を入力" list="tp-name-list" autocomplete="off">
+        <div class="tp-input-wrap">
+          <input id="tp-white-name" maxlength="7" placeholder="名前を入力" autocomplete="off">
+          <button type="button" class="tp-hist-btn" onclick="toggleTpNameMenu('white')" title="過去の名前から選ぶ">▼</button>
+          <div id="tp-name-menu-white" class="tp-name-menu" style="display:none;"></div>
+        </div>
       </div>
-      <datalist id="tp-name-list"></datalist>
       <div class="setup-buttons-row">
         <button class="setup-btn" onclick="tpSwapNames()">⇄ 先手と後手を入れ替え</button>
         <button class="setup-btn" onclick="showTpRecords()">📊 これまでの対戦成績</button>

@@ -221,7 +221,9 @@ function endGame() {
     tpRm.r1 = { bs: bTotal, ws: wTotal, bc: captured.black, wc: captured.white };
     tpRm.round = 2;
     document.getElementById('result-text').textContent =
-      `🔄 リバースマッチ 1局目終了\n黒・${tpRm.aName} ${bTotal} vs 白・${tpRm.bName} ${wTotal}\n\n先手・後手を入れ替えて2局目！\n合計で勝敗が決まります`;
+      `🔄 リバースマッチ 1局目終了\n` +
+      `1局目（${tpRm.aName}⚫）: ${bTotal} — ${wTotal}\n\n` +
+      `先手・後手を入れ替えて2局目へ！\n2局の合計で勝敗が決まります`;
     // 2局目に向けて名前を入れ替え（次の initGame でパネルに反映される）
     if (typeof tpSwapNames === 'function') tpSwapNames();
     const _paBtn = document.getElementById('play-again-btn');
@@ -246,20 +248,23 @@ function endGame() {
     const bTotalSum = tpRm.r1.ws + bTotal;           // B: 1局目白 + 2局目黒
     const aCap = tpRm.r1.bc + captured.white;
     const bCap = tpRm.r1.wc + captured.black;
-    let _rmR, _rmNote = '';
+    let _rmR, _rmTiebreak = false;
     if (aTotal > bTotalSum) _rmR = 'a';
     else if (bTotalSum > aTotal) _rmR = 'b';
-    else if (aCap > bCap) { _rmR = 'a'; _rmNote = `\n※合計同点のため囲んで取った数で判定（${tpRm.aName}${aCap} vs ${tpRm.bName}${bCap}）`; }
-    else if (bCap > aCap) { _rmR = 'b'; _rmNote = `\n※合計同点のため囲んで取った数で判定（${tpRm.aName}${aCap} vs ${tpRm.bName}${bCap}）`; }
+    else if (aCap > bCap) { _rmR = 'a'; _rmTiebreak = true; }
+    else if (bCap > aCap) { _rmR = 'b'; _rmTiebreak = true; }
     else _rmR = 'd';
-    if (_rmR === 'd') {
-      msg = `🏆 リバースマッチ 結果\n${tpRm.aName} 合計${aTotal} vs ${tpRm.bName} 合計${bTotalSum}\n引き分け`;
-      soundType = 'draw';
-    } else {
-      const _rmWinner = _rmR === 'a' ? tpRm.aName : tpRm.bName;
-      msg = `🏆 リバースマッチ 結果\n${tpRm.aName} 合計${aTotal} vs ${tpRm.bName} 合計${bTotalSum}\n${_rmWinner}の勝ち！${_rmNote}`;
-      soundType = 'win';
+    // Premium-v106: CPU版リバースマッチと同じ形式（1局目/2局目の内訳 + 罫線 + 合計）
+    msg = `🏆 リバースマッチ 結果\n` +
+          `1局目（${tpRm.aName}⚫）: ${tpRm.r1.bs} — ${tpRm.r1.ws}\n` +
+          `2局目（${tpRm.aName}⚪）: ${wTotal} — ${bTotal}\n` +
+          `───────────────\n` +
+          `合計：${tpRm.aName} ${aTotal} — ${tpRm.bName} ${bTotalSum}\n\n`;
+    if (_rmTiebreak) {
+      msg += `※合計同点 → 囲んだ石の合計で判定（${tpRm.aName} ${aCap} — ${tpRm.bName} ${bCap}）\n\n`;
     }
+    if (_rmR === 'd') { msg += `引き分け`; soundType = 'draw'; }
+    else { msg += `🎉 ${_rmR === 'a' ? tpRm.aName : tpRm.bName} の勝利！`; soundType = 'win'; }
     if (typeof recordTpRm === 'function') recordTpRm(tpRm.aName, tpRm.bName, aTotal, bTotalSum, _rmR);
     if (_tpResultBtn) _tpResultBtn.style.display = ''; // 成績ボタンは表示（交代案内は不要: 名前は既に交代済み）
     const _paBtn2 = document.getElementById('play-again-btn');
