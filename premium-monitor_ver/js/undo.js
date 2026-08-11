@@ -179,6 +179,8 @@ function endGame() {
   console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
   let _dailyCelebrateKind = null; // v83: デイリー達成お祝いの種類 ('day'|'month'|null)
   let _dailyCelebrateMonth = null; // v83: 月コンプ時の月番号（トロフィー登場用）
+  // Premium-v108: 棋譜用に「この対局の黒/白の名前」を控える（この後の自動交代より前に）
+  if (battleMode === 'two' && typeof tpMarkGameNames === 'function') tpMarkGameNames();
   // Premium-v102: 2人対戦用の結果ボタン・交代案内はいったん隠す（2人対戦の枝で再表示）
   const _tpResultBtn = document.getElementById('tp-records-result-btn');
   if (_tpResultBtn) _tpResultBtn.style.display = 'none';

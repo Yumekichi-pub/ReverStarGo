@@ -26,18 +26,24 @@ function generateNotationText() {
   }
   const bTotal = bCount + captured.black;
   const wTotal = wCount + captured.white;
-  let result;
-  if (bTotal > wTotal) { result = humanColor === 'black' ? '勝利' : '敗北'; }
-  else if (wTotal > bTotal) { result = humanColor === 'white' ? '勝利' : '敗北'; }
-  else if (captured.black > captured.white) { result = humanColor === 'black' ? '勝利' : '敗北'; }
-  else if (captured.white > captured.black) { result = humanColor === 'white' ? '勝利' : '敗北'; }
-  else { result = '引き分け'; }
+  // 勝った色を判定（同点は囲んで取った石の数、それも同数なら引き分け）
+  let winColor = null;
+  if (bTotal > wTotal) winColor = 'black';
+  else if (wTotal > bTotal) winColor = 'white';
+  else if (captured.black > captured.white) winColor = 'black';
+  else if (captured.white > captured.black) winColor = 'white';
 
-  let opponent;
+  // Premium-v108: 2人対戦は「やまと（黒） vs クッキー（白）」形式 + 名前で勝敗表記
+  const _tpN = (battleMode === 'two' && typeof tpKifuNames === 'function') ? tpKifuNames() : null;
+  let matchLine, result;
   if (battleMode === 'two') {
-    opponent = '2人対戦';
+    matchLine = _tpN ? `${_tpN.b}（黒） vs ${_tpN.w}（白）` : `黒 vs 白（2人対戦）`;
+    if (!winColor) result = '引き分け';
+    else if (_tpN) result = `${winColor === 'black' ? _tpN.b : _tpN.w}の勝ち`;
+    else result = winColor === 'black' ? '黒の勝ち' : '白の勝ち';
   } else {
-    opponent = `CPU ${getKifuOpponentLabel(cpuLevel)}`;
+    matchLine = `${pName}（${pColor}） vs CPU ${getKifuOpponentLabel(cpuLevel)}`;
+    result = !winColor ? '引き分け' : (humanColor === winColor ? '勝利' : '敗北');
   }
 
   const totalMoves = moveHistory.length;
@@ -45,7 +51,7 @@ function generateNotationText() {
 
   let text = `【ReverStarGo 棋譜】\n`;
   text += `日付: ${dateStr}\n`;
-  text += `${pName}（${pColor}） vs ${opponent}\n`;
+  text += `${matchLine}\n`;
   text += `結果: 黒${bTotal} - 白${wTotal}（${result}）\n`;
   text += `手数: ${totalMoves}手${passMoves > 0 ? `（パス${passMoves}回含む）` : ''}\n`;
   text += `────────────────\n`;
@@ -316,10 +322,15 @@ function saveGameRecord() {
 
   const memo = prompt('メモを入力（省略可）', '') || '';
 
+  // Premium-v108: 2人対戦は対局時の両プレイヤー名も保存（一覧・リプレイで表示）
+  const _tpKifuN = (battleMode === 'two' && typeof tpKifuNames === 'function') ? tpKifuNames() : null;
+
   const record = {
     id: Date.now(),
     date: new Date().toISOString(),
     playerName: getPlayerName(),
+    tpB: _tpKifuN ? _tpKifuN.b : null,
+    tpW: _tpKifuN ? _tpKifuN.w : null,
     humanColor: _saveHumanColor,
     cpuLevel: cpuLevel,
     battleMode: battleMode,
@@ -360,23 +371,29 @@ function renderKifuList() {
     const d = new Date(game.date);
     const dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 
-    let resultText, resultClass;
+    let resultText, resultClass, matchLabel;
+    const _esc = (s) => (typeof _tpEsc === 'function' ? _tpEsc(s) : s);
     if (game.battleMode === 'two') {
-      resultText = game.result === 'draw' ? '引き分け' : (game.result === 'black-win' ? '黒の勝ち' : '白の勝ち');
+      // Premium-v108: 名前つき対局は「⚔ やまと vs クッキー  やまとの勝ち」形式
+      if (game.tpB && game.tpW) {
+        resultText = game.result === 'draw' ? '引き分け'
+          : (game.result === 'black-win' ? `${_esc(game.tpB)}の勝ち` : `${_esc(game.tpW)}の勝ち`);
+        matchLabel = `⚔ ${_esc(game.tpB)} vs ${_esc(game.tpW)}`;
+      } else {
+        resultText = game.result === 'draw' ? '引き分け' : (game.result === 'black-win' ? '黒の勝ち' : '白の勝ち');
+        matchLabel = `${game.humanColor === 'black' ? '●' : '○'} vs 2人対戦`;
+      }
       resultClass = game.result === 'draw' ? 'kifu-draw' : 'kifu-win';
     } else {
       resultText = game.result === 'win' ? '勝利' : game.result === 'lose' ? '敗北' : '引き分け';
       resultClass = game.result === 'win' ? 'kifu-win' : game.result === 'lose' ? 'kifu-lose' : 'kifu-draw';
+      matchLabel = `${game.humanColor === 'black' ? '●' : '○'} vs ${getKifuOpponentLabel(game.cpuLevel)}`;
     }
-
-    const lvName = game.battleMode === 'two' ? '2人対戦'
-      : getKifuOpponentLabel(game.cpuLevel);
-    const colorIcon = game.humanColor === 'black' ? '●' : '○';
 
     html += `<div class="kifu-item">`;
     html += `<div class="kifu-item-info" onclick="startReplay(${idx})">`;
     html += `<span class="kifu-item-date">${dateStr}</span>`;
-    html += `<span class="kifu-item-result ${resultClass}">${colorIcon} vs ${lvName}  ${resultText}</span>`;
+    html += `<span class="kifu-item-result ${resultClass}">${matchLabel}  ${resultText}</span>`;
     html += `<span class="kifu-item-detail">黒${game.bTotal} - 白${game.wTotal}（${game.moveCount}手）</span>`;
     if (game.memo) html += `<span class="kifu-item-memo">📝 ${game.memo}</span>`;
     html += `</div>`;
@@ -444,8 +461,9 @@ function startReplay(idx) {
   const lvName = replayData.battleMode === 'two' ? '2人対戦'
     : getKifuOpponentLabel(replayData.cpuLevel);
   if (replayData.battleMode === 'two') {
-    document.getElementById('black-role').textContent = '黒';
-    document.getElementById('white-role').textContent = '白';
+    // Premium-v108: 名前つき対局のリプレイはプレイヤー名を表示
+    document.getElementById('black-role').textContent = replayData.tpB || '黒';
+    document.getElementById('white-role').textContent = replayData.tpW || '白';
     document.getElementById('level-badge').style.display = 'none';
   } else {
     document.getElementById('black-role').textContent = replayData.humanColor === 'black' ? replayData.playerName : 'CPU';

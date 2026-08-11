@@ -176,6 +176,22 @@ function recordTpRm(a, b, as, bs, r) {
   saveTpData(data);
 }
 
+// ===== 棋譜用: 終局時点の名前の控え (Premium-v108) =====
+// 終局後は名前入力欄が自動交代で入れ替わるため、棋譜保存時に
+// 「その対局で誰が黒/白だったか」を正しく参照できるよう終局時に控えておく。
+let tpLastGame = null; // { b: 黒の名前, w: 白の名前 } | null(名前なし対局)
+
+function tpMarkGameNames() {
+  const b = tpNameFor('black');
+  const w = tpNameFor('white');
+  tpLastGame = (b && w) ? { b, w } : null;
+}
+
+// 棋譜が参照する「直近対局の名前」。無ければ null
+function tpKifuNames() {
+  return tpLastGame;
+}
+
 // 対局終了後に呼ぶ: 次の1局に向けて先手(黒)と後手(白)を自動で入れ替え、
 // 次回起動時の復元名も入れ替え後の並びにしておく (Premium-v102)
 function tpAutoSwapAfterGame() {
