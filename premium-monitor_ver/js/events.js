@@ -157,7 +157,14 @@ function initGame() {
     // Premium-v101: 名前入力があればスコアパネルに表示（どちらが自分か一目でわかる）
     document.getElementById('black-role').textContent = (typeof tpNameFor === 'function') ? tpNameFor('black') : '';
     document.getElementById('white-role').textContent = (typeof tpNameFor === 'function') ? tpNameFor('white') : '';
-    document.getElementById('level-badge').style.display = 'none';
+    // Premium-v107: 2人対戦リバースマッチ中はCPU版と同様に 1/2・2/2 を表示
+    if (typeof tpRm !== 'undefined' && tpRm) {
+      const _lb = document.getElementById('level-badge');
+      _lb.textContent = `🏆 ${tpRm.round}/2`;
+      _lb.style.display = '';
+    } else {
+      document.getElementById('level-badge').style.display = 'none';
+    }
   } else {
     const rIdx = calculateRank();
     document.getElementById('black-role').innerHTML = humanColor === 'black' ? `${rankIcon(rIdx, 18)} ${getPlayerName()}` : 'CPU';

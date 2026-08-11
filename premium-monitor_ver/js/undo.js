@@ -248,11 +248,11 @@ function endGame() {
     const bTotalSum = tpRm.r1.ws + bTotal;           // B: 1局目白 + 2局目黒
     const aCap = tpRm.r1.bc + captured.white;
     const bCap = tpRm.r1.wc + captured.black;
-    let _rmR, _rmTiebreak = false;
+    let _rmR;
     if (aTotal > bTotalSum) _rmR = 'a';
     else if (bTotalSum > aTotal) _rmR = 'b';
-    else if (aCap > bCap) { _rmR = 'a'; _rmTiebreak = true; }
-    else if (bCap > aCap) { _rmR = 'b'; _rmTiebreak = true; }
+    else if (aCap > bCap) _rmR = 'a';
+    else if (bCap > aCap) _rmR = 'b';
     else _rmR = 'd';
     // Premium-v106: CPU版リバースマッチと同じ形式（1局目/2局目の内訳 + 罫線 + 合計）
     msg = `🏆 リバースマッチ 結果\n` +
@@ -260,10 +260,12 @@ function endGame() {
           `2局目（${tpRm.aName}⚪）: ${wTotal} — ${bTotal}\n` +
           `───────────────\n` +
           `合計：${tpRm.aName} ${aTotal} — ${tpRm.bName} ${bTotalSum}\n\n`;
-    if (_rmTiebreak) {
+    // Premium-v107: 合計同点なら勝敗が決まっても引き分けでも、囲んだ石の内訳を必ず表示
+    // （なぜその結果になったのか画面から分かるように）
+    if (aTotal === bTotalSum) {
       msg += `※合計同点 → 囲んだ石の合計で判定（${tpRm.aName} ${aCap} — ${tpRm.bName} ${bCap}）\n\n`;
     }
-    if (_rmR === 'd') { msg += `引き分け`; soundType = 'draw'; }
+    if (_rmR === 'd') { msg += `囲んだ石も同数のため引き分け`; soundType = 'draw'; }
     else { msg += `🎉 ${_rmR === 'a' ? tpRm.aName : tpRm.bName} の勝利！`; soundType = 'win'; }
     if (typeof recordTpRm === 'function') recordTpRm(tpRm.aName, tpRm.bName, aTotal, bTotalSum, _rmR);
     if (_tpResultBtn) _tpResultBtn.style.display = ''; // 成績ボタンは表示（交代案内は不要: 名前は既に交代済み）
