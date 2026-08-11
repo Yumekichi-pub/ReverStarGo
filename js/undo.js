@@ -83,6 +83,13 @@ function endGame() {
   console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
   let _dailyCelebrateKind = null; // v83: デイリー達成お祝いの種類 ('day'|'month'|null)
   let _dailyCelebrateMonth = null; // v83: 月コンプ時の月番号（トロフィー登場用）
+  // v101: 棋譜用に「この対局の黒/白の名前」を控える（この後の自動交代より前に）
+  if (battleMode === 'two' && typeof tpMarkGameNames === 'function') tpMarkGameNames();
+  // v101: 2人対戦用の結果ボタン・交代案内はいったん隠す（2人対戦の枝で再表示）
+  const _tpResultBtn = document.getElementById('tp-records-result-btn');
+  if (_tpResultBtn) _tpResultBtn.style.display = 'none';
+  const _tpSwapNote = document.getElementById('tp-swap-note');
+  if (_tpSwapNote) _tpSwapNote.style.display = 'none';
   // ゲーム終了時は「1手戻る」を完全に無効化（勝利2重カウント防止）
   undoUsed = true;
   undoSnapshot = null;
@@ -109,12 +116,83 @@ function endGame() {
     if (captured.black > captured.white) tiebreakWinner = 'black';
     else if (captured.white > captured.black) tiebreakWinner = 'white';
   }
-  if (battleMode === 'two') {
-    if (bTotal > wTotal) { sessionWins.black++; msg = `⚫黒の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; }
-    else if (wTotal > bTotal) { sessionWins.white++; msg = `⚪白の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; }
-    else if (tiebreakWinner === 'black') { sessionWins.black++; msg = `⚫黒の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; }
-    else if (tiebreakWinner === 'white') { sessionWins.white++; msg = `⚪白の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; }
-    else { sessionWins.draw++; msg = `引き分け (黒${bTotal} vs 白${wTotal})`; }
+  if (battleMode === 'two' && typeof tpRm !== 'undefined' && tpRm && tpRm.round === 1) {
+    // ============================================
+    // v101: 2人対戦リバースマッチ 1局目終了 → 中間結果を表示して2局目へ
+    // ============================================
+    tpRm.r1 = { bs: bTotal, ws: wTotal, bc: captured.black, wc: captured.white };
+    tpRm.round = 2;
+    document.getElementById('result-text').textContent =
+      `🔄 リバースマッチ 1局目終了\n` +
+      `1局目（${tpRm.aName}⚫）: ${bTotal} — ${wTotal}\n\n` +
+      `先手・後手を入れ替えて2局目へ！\n2局の合計で勝敗が決まります`;
+    // 2局目に向けて名前を入れ替え（次の initGame でパネルに反映される）
+    if (typeof tpSwapNames === 'function') tpSwapNames();
+    const _paBtn = document.getElementById('play-again-btn');
+    if (_paBtn) _paBtn.textContent = '2局目へ ▶';
+    // 中間結果では保存・シェア・成績ボタンは出さない
+    document.getElementById('back-to-daily-btn').style.display = 'none';
+    document.getElementById('kifu-btn-row').style.display = 'none';
+    document.getElementById('goto-kifu-btn').style.display = 'none';
+    const _shareBtnTp = document.getElementById('share-result-btn');
+    if (_shareBtnTp) _shareBtnTp.style.display = 'none';
+    document.getElementById('result-modal').style.display = 'flex';
+    if (typeof updateRestartBtnState === 'function') updateRestartBtnState();
+    playSound('draw');
+    return; // 記録・セッションスコアはまだ
+  }
+  if (battleMode === 'two' && typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2) {
+    // ============================================
+    // v101: 2人対戦リバースマッチ 2局目終了 → 合計で勝敗判定
+    // （2局目は aName が白、bName が黒）
+    // ============================================
+    const aTotal = tpRm.r1.bs + wTotal;              // A: 1局目黒 + 2局目白
+    const bTotalSum = tpRm.r1.ws + bTotal;           // B: 1局目白 + 2局目黒
+    const aCap = tpRm.r1.bc + captured.white;
+    const bCap = tpRm.r1.wc + captured.black;
+    let _rmR;
+    if (aTotal > bTotalSum) _rmR = 'a';
+    else if (bTotalSum > aTotal) _rmR = 'b';
+    else if (aCap > bCap) _rmR = 'a';
+    else if (bCap > aCap) _rmR = 'b';
+    else _rmR = 'd';
+    // CPU版リバースマッチと同じ形式（1局目/2局目の内訳 + 罫線 + 合計）
+    msg = `🏆 リバースマッチ 結果\n` +
+          `1局目（${tpRm.aName}⚫）: ${tpRm.r1.bs} — ${tpRm.r1.ws}\n` +
+          `2局目（${tpRm.aName}⚪）: ${wTotal} — ${bTotal}\n` +
+          `───────────────\n` +
+          `合計：${tpRm.aName} ${aTotal} — ${tpRm.bName} ${bTotalSum}\n\n`;
+    // 合計同点なら勝敗が決まっても引き分けでも、囲んだ石の内訳を必ず表示
+    if (aTotal === bTotalSum) {
+      msg += `※合計同点 → 囲んだ石の合計で判定（${tpRm.aName} ${aCap} — ${tpRm.bName} ${bCap}）\n\n`;
+    }
+    if (_rmR === 'd') { msg += `囲んだ石も同数のため引き分け`; soundType = 'draw'; }
+    else { msg += `🎉 ${_rmR === 'a' ? tpRm.aName : tpRm.bName} の勝利！`; soundType = 'win'; }
+    if (typeof recordTpRm === 'function') recordTpRm(tpRm.aName, tpRm.bName, aTotal, bTotalSum, _rmR);
+    if (_tpResultBtn) _tpResultBtn.style.display = ''; // 成績ボタンは表示（名前は既に交代済みなので交代案内は不要）
+    const _paBtn2 = document.getElementById('play-again-btn');
+    if (_paBtn2) _paBtn2.textContent = 'もう1局';
+    tpRm = null;
+  } else if (battleMode === 'two') {
+    // v101: 名前が入っていれば勝敗メッセージにも名前を表示
+    const _bn = (typeof tpNameFor === 'function' && tpNameFor('black')) ? `黒・${tpNameFor('black')}` : '黒';
+    const _wn = (typeof tpNameFor === 'function' && tpNameFor('white')) ? `白・${tpNameFor('white')}` : '白';
+    let _tpResult; // 'b' | 'w' | 'd'（対戦成績の記録用）
+    if (bTotal > wTotal) { sessionWins.black++; msg = `⚫${_bn}の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; _tpResult = 'b'; }
+    else if (wTotal > bTotal) { sessionWins.white++; msg = `⚪${_wn}の勝ち！ (黒${bTotal} vs 白${wTotal})`; soundType = 'win'; _tpResult = 'w'; }
+    else if (tiebreakWinner === 'black') { sessionWins.black++; msg = `⚫${_bn}の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; _tpResult = 'b'; }
+    else if (tiebreakWinner === 'white') { sessionWins.white++; msg = `⚪${_wn}の勝ち！ (黒${bTotal} vs 白${wTotal})\n※同点のため取った石の数で判定（黒${captured.black} vs 白${captured.white}）`; soundType = 'win'; _tpResult = 'w'; }
+    else { sessionWins.draw++; msg = `引き分け (黒${bTotal} vs 白${wTotal})`; _tpResult = 'd'; }
+    // v101: 名前つき対局は対戦成績に自動記録（名前未入力なら何もしない）
+    if (typeof recordTpMatch === 'function') recordTpMatch(bTotal, wTotal, _tpResult);
+    // v101: 名前つき対局なら結果画面に成績ボタン+交代案内を表示し、
+    // 次の1局に向けて先手・後手を自動で入れ替える（記録の後に行うこと）
+    const _tpNamed = (typeof tpNameFor === 'function') && tpNameFor('black') && tpNameFor('white');
+    if (_tpNamed) {
+      if (_tpResultBtn) _tpResultBtn.style.display = '';
+      if (_tpSwapNote) _tpSwapNote.style.display = '';
+      if (typeof tpAutoSwapAfterGame === 'function') tpAutoSwapAfterGame();
+    }
   } else {
     // ============================================
     // Reverse Match 1局目終了時の中間処理（v41〜）

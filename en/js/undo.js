@@ -83,6 +83,13 @@ function endGame() {
   console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
   let _dailyCelebrateKind = null; // v83: デイリー達成お祝いの種類 ('day'|'month'|null)
   let _dailyCelebrateMonth = null; // v83: 月コンプ時の月番号（トロフィー登場用）
+  // v101: remember this game's player names for kifu (before auto color swap)
+  if (battleMode === 'two' && typeof tpMarkGameNames === 'function') tpMarkGameNames();
+  // v101: hide 2-player result buttons by default (re-shown in the 2-player branch)
+  const _tpResultBtn = document.getElementById('tp-records-result-btn');
+  if (_tpResultBtn) _tpResultBtn.style.display = 'none';
+  const _tpSwapNote = document.getElementById('tp-swap-note');
+  if (_tpSwapNote) _tpSwapNote.style.display = 'none';
   // ゲーム終了時は「1手戻る」を完全に無効化（勝利2重カウント防止）
   undoUsed = true;
   undoSnapshot = null;
@@ -109,12 +116,71 @@ function endGame() {
     if (captured.black > captured.white) tiebreakWinner = 'black';
     else if (captured.white > captured.black) tiebreakWinner = 'white';
   }
-  if (battleMode === 'two') {
-    if (bTotal > wTotal) { sessionWins.black++; msg = `⚫Black wins! (Black ${bTotal} vs White ${wTotal})`; soundType = 'win'; }
-    else if (wTotal > bTotal) { sessionWins.white++; msg = `⚪White wins! (Black ${bTotal} vs White ${wTotal})`; soundType = 'win'; }
-    else if (tiebreakWinner === 'black') { sessionWins.black++; msg = `⚫Black wins! (Black ${bTotal} vs White ${wTotal})\n* Tiebreak by captured stones (Black ${captured.black} vs White ${captured.white})`; soundType = 'win'; }
-    else if (tiebreakWinner === 'white') { sessionWins.white++; msg = `⚪White wins! (Black ${bTotal} vs White ${wTotal})\n* Tiebreak by captured stones (Black ${captured.black} vs White ${captured.white})`; soundType = 'win'; }
-    else { sessionWins.draw++; msg = `Draw (Black ${bTotal} vs White ${wTotal})`; }
+  if (battleMode === 'two' && typeof tpRm !== 'undefined' && tpRm && tpRm.round === 1) {
+    // v101: 2-player Reverse Match — Game 1 finished, show interim result
+    tpRm.r1 = { bs: bTotal, ws: wTotal, bc: captured.black, wc: captured.white };
+    tpRm.round = 2;
+    document.getElementById('result-text').textContent =
+      `🔄 Reverse Match — Game 1 finished\n` +
+      `Game 1 (${tpRm.aName}⚫): ${bTotal} — ${wTotal}\n\n` +
+      `Swap colors for Game 2!\nThe 2-game total decides the winner`;
+    if (typeof tpSwapNames === 'function') tpSwapNames();
+    const _paBtn = document.getElementById('play-again-btn');
+    if (_paBtn) _paBtn.textContent = 'Game 2 ▶';
+    document.getElementById('back-to-daily-btn').style.display = 'none';
+    document.getElementById('kifu-btn-row').style.display = 'none';
+    document.getElementById('goto-kifu-btn').style.display = 'none';
+    const _shareBtnTp = document.getElementById('share-result-btn');
+    if (_shareBtnTp) _shareBtnTp.style.display = 'none';
+    document.getElementById('result-modal').style.display = 'flex';
+    if (typeof updateRestartBtnState === 'function') updateRestartBtnState();
+    playSound('draw');
+    return;
+  }
+  if (battleMode === 'two' && typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2) {
+    // v101: 2-player Reverse Match — Game 2 finished, decide by totals
+    const aTotal = tpRm.r1.bs + wTotal;
+    const bTotalSum = tpRm.r1.ws + bTotal;
+    const aCap = tpRm.r1.bc + captured.white;
+    const bCap = tpRm.r1.wc + captured.black;
+    let _rmR;
+    if (aTotal > bTotalSum) _rmR = 'a';
+    else if (bTotalSum > aTotal) _rmR = 'b';
+    else if (aCap > bCap) _rmR = 'a';
+    else if (bCap > aCap) _rmR = 'b';
+    else _rmR = 'd';
+    msg = `🏆 Reverse Match Result\n` +
+          `Game 1 (${tpRm.aName}⚫): ${tpRm.r1.bs} — ${tpRm.r1.ws}\n` +
+          `Game 2 (${tpRm.aName}⚪): ${wTotal} — ${bTotal}\n` +
+          `───────────────\n` +
+          `Total: ${tpRm.aName} ${aTotal} — ${tpRm.bName} ${bTotalSum}\n\n`;
+    if (aTotal === bTotalSum) {
+      msg += `* Tied total → decided by captured stones (${tpRm.aName} ${aCap} — ${tpRm.bName} ${bCap})\n\n`;
+    }
+    if (_rmR === 'd') { msg += `Captured stones also equal — Draw`; soundType = 'draw'; }
+    else { msg += `🎉 ${_rmR === 'a' ? tpRm.aName : tpRm.bName} wins!`; soundType = 'win'; }
+    if (typeof recordTpRm === 'function') recordTpRm(tpRm.aName, tpRm.bName, aTotal, bTotalSum, _rmR);
+    if (_tpResultBtn) _tpResultBtn.style.display = '';
+    const _paBtn2 = document.getElementById('play-again-btn');
+    if (_paBtn2) _paBtn2.textContent = 'Play Again';
+    tpRm = null;
+  } else if (battleMode === 'two') {
+    // v101: include player names in the result message when entered
+    const _bn = (typeof tpNameFor === 'function' && tpNameFor('black')) ? `Black (${tpNameFor('black')})` : 'Black';
+    const _wn = (typeof tpNameFor === 'function' && tpNameFor('white')) ? `White (${tpNameFor('white')})` : 'White';
+    let _tpResult;
+    if (bTotal > wTotal) { sessionWins.black++; msg = `⚫${_bn} wins! (Black ${bTotal} vs White ${wTotal})`; soundType = 'win'; _tpResult = 'b'; }
+    else if (wTotal > bTotal) { sessionWins.white++; msg = `⚪${_wn} wins! (Black ${bTotal} vs White ${wTotal})`; soundType = 'win'; _tpResult = 'w'; }
+    else if (tiebreakWinner === 'black') { sessionWins.black++; msg = `⚫${_bn} wins! (Black ${bTotal} vs White ${wTotal})\n* Tiebreak by captured stones (Black ${captured.black} vs White ${captured.white})`; soundType = 'win'; _tpResult = 'b'; }
+    else if (tiebreakWinner === 'white') { sessionWins.white++; msg = `⚪${_wn} wins! (Black ${bTotal} vs White ${wTotal})\n* Tiebreak by captured stones (Black ${captured.black} vs White ${captured.white})`; soundType = 'win'; _tpResult = 'w'; }
+    else { sessionWins.draw++; msg = `Draw (Black ${bTotal} vs White ${wTotal})`; _tpResult = 'd'; }
+    if (typeof recordTpMatch === 'function') recordTpMatch(bTotal, wTotal, _tpResult);
+    const _tpNamed = (typeof tpNameFor === 'function') && tpNameFor('black') && tpNameFor('white');
+    if (_tpNamed) {
+      if (_tpResultBtn) _tpResultBtn.style.display = '';
+      if (_tpSwapNote) _tpSwapNote.style.display = '';
+      if (typeof tpAutoSwapAfterGame === 'function') tpAutoSwapAfterGame();
+    }
   } else {
     // ============================================
     // Reverse Match 1局目終了時の中間処理（v41〜）

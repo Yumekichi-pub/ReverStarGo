@@ -114,7 +114,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v100-en</p>
+    <p class="app-version">RSG-v101-en</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -133,6 +133,36 @@
         <button class="setup-btn selected" data-battle="cpu" onclick="selectBattleMode('cpu')">Play vs CPU</button>
         <button class="setup-btn" data-battle="two" onclick="selectBattleMode('two')">2-Player</button>
       </div>
+    </div>
+    <!-- 2-player names (v101, optional; entering names keeps records) -->
+    <div class="setup-section" id="two-player-names-section" style="display:none;">
+      <h2>Player Names (enter to keep records)</h2>
+      <div class="tp-name-row">
+        <label for="tp-black-name">● Black (1st)</label>
+        <div class="tp-input-wrap">
+          <input id="tp-black-name" maxlength="7" placeholder="Enter name" autocomplete="off">
+          <button type="button" class="tp-hist-btn" onclick="toggleTpNameMenu('black')" title="Pick from past names">▼</button>
+          <div id="tp-name-menu-black" class="tp-name-menu" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="tp-name-row">
+        <label for="tp-white-name">○ White (2nd)</label>
+        <div class="tp-input-wrap">
+          <input id="tp-white-name" maxlength="7" placeholder="Enter name" autocomplete="off">
+          <button type="button" class="tp-hist-btn" onclick="toggleTpNameMenu('white')" title="Pick from past names">▼</button>
+          <div id="tp-name-menu-white" class="tp-name-menu" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="setup-buttons-row">
+        <button class="setup-btn" onclick="tpSwapNames()">⇄ Swap colors</button>
+        <button class="setup-btn" onclick="showTpRecords()">📊 Head-to-Head</button>
+      </div>
+      <h2 class="tp-mode-title">Match Format</h2>
+      <div class="setup-buttons-row">
+        <button class="setup-btn selected" data-tpmode="single" onclick="selectTpMode('single')">Single Game</button>
+        <button class="setup-btn" data-tpmode="reverse" onclick="selectTpMode('reverse')">Reverse Match</button>
+      </div>
+      <p id="tp-mode-desc" class="tp-mode-desc">Each game decides a winner</p>
     </div>
     <div class="setup-section" id="cpu-level-section">
       <h2>CPU Level</h2>
@@ -648,10 +678,13 @@
     <button id="share-result-btn" style="display:none;" onclick="shareGameResult()">📤 Share Result</button>
     <button id="back-to-daily-btn" style="display:none;" onclick="backToDaily()">📅 Return to Daily</button>
     <!-- Records buttons (planned to reappear as premium) -->
+    <!-- shown only after named 2-player games (v101) -->
+    <button class="result-sub-btn" id="tp-records-result-btn" style="display:none;" onclick="showTpRecords()">📊 Head-to-Head</button>
     <div class="result-btn-row" id="kifu-btn-row" style="display:none;">
       <button class="result-sub-btn" id="save-game-btn" onclick="saveGameRecord()">⭐ Save Record</button>
       <button class="result-sub-btn" id="goto-kifu-btn" style="display:none;" onclick="document.getElementById('result-modal').style.display='none';showPage('kifu')">📋 Go to Record List</button>
     </div>
+    <p id="tp-swap-note" style="display:none;">⇄ Colors swap for the next game</p>
   </div>
 
   <!-- Copy Toast -->
@@ -802,7 +835,17 @@
   <script src="js/move_quality.js"></script>
   <script src="js/perfect.js"></script>
   <script src="js/reverse_match_intro.js"></script>
+  <!-- 2-player head-to-head records modal (v101) -->
+  <div id="tp-records-modal" style="display:none;">
+    <div class="tp-records-content">
+      <h2>📊 Head-to-Head Records</h2>
+      <div id="tp-records-body"></div>
+      <button class="nav-back-btn" onclick="closeTpRecords()">Close</button>
+    </div>
+  </div>
+
   <script src="js/records.js"></script>
+  <script src="js/twoplayer.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/daily.js"></script>
   <script src="js/settings.js"></script>

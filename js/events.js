@@ -152,9 +152,17 @@ function initGame() {
   undoBtn.disabled = true;
   undoBtn.textContent = '1手戻る';
   if (battleMode === 'two') {
-    document.getElementById('black-role').textContent = '';
-    document.getElementById('white-role').textContent = '';
-    document.getElementById('level-badge').style.display = 'none';
+    // v101: 名前入力があればスコアパネルに表示（どちらが自分か一目でわかる）
+    document.getElementById('black-role').textContent = (typeof tpNameFor === 'function') ? tpNameFor('black') : '';
+    document.getElementById('white-role').textContent = (typeof tpNameFor === 'function') ? tpNameFor('white') : '';
+    // v101: 2人対戦リバースマッチ中はCPU版と同様に 1/2・2/2 を表示
+    if (typeof tpRm !== 'undefined' && tpRm) {
+      const _lb = document.getElementById('level-badge');
+      _lb.textContent = `🏆 ${tpRm.round}/2`;
+      _lb.style.display = '';
+    } else {
+      document.getElementById('level-badge').style.display = 'none';
+    }
   } else {
     const rIdx = calculateRank();
     document.getElementById('black-role').innerHTML = humanColor === 'black' ? `${rankIcon(rIdx, 18)} ${getPlayerName()}` : 'CPU';
@@ -273,6 +281,8 @@ function _xmRstAll() {
     localStorage.removeItem(PROMOTION_EXAM_KEY);
     localStorage.removeItem(PROMOTION_CAREER_KEY);
     localStorage.removeItem(DAILY_KEY);
+    // v101: 2人対戦の対戦成績もリセット
+    if (typeof TP_RECORDS_KEY !== 'undefined') localStorage.removeItem(TP_RECORDS_KEY);
     // _xmOvr と進行中の試験もリセット
     promotionExam = null;
     sessionWins = { black: 0, white: 0, draw: 0 };
@@ -480,6 +490,10 @@ function backToDaily() {
 
 function backToSetupPage() {
   document.getElementById('result-modal').style.display = 'none';
+  // v101: 2人対戦リバースマッチの途中離脱はマッチごと破棄（ペナルティなし）
+  if (typeof tpRm !== 'undefined') tpRm = null;
+  const _paBtn = document.getElementById('play-again-btn');
+  if (_paBtn) _paBtn.textContent = 'もう1局';
   if (isDailySetup) {
     isDailySetup = false;
     showPage('daily');

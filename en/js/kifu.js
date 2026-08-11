@@ -26,19 +26,25 @@ function generateNotationText() {
   }
   const bTotal = bCount + captured.black;
   const wTotal = wCount + captured.white;
-  let result;
-  if (bTotal > wTotal) { result = humanColor === 'black' ? 'Win' : 'Loss'; }
-  else if (wTotal > bTotal) { result = humanColor === 'white' ? 'Win' : 'Loss'; }
-  else if (captured.black > captured.white) { result = humanColor === 'black' ? 'Win' : 'Loss'; }
-  else if (captured.white > captured.black) { result = humanColor === 'white' ? 'Win' : 'Loss'; }
-  else { result = 'Draw'; }
+  // determine winning color (tie → captured stones; still tied → draw)
+  let winColor = null;
+  if (bTotal > wTotal) winColor = 'black';
+  else if (wTotal > bTotal) winColor = 'white';
+  else if (captured.black > captured.white) winColor = 'black';
+  else if (captured.white > captured.black) winColor = 'white';
 
-  let opponent;
+  // v101: 2-player games use "Yamato (Black) vs Cookie (White)" style with names
+  const _tpN = (battleMode === 'two' && typeof tpKifuNames === 'function') ? tpKifuNames() : null;
+  let matchLine, result;
   if (battleMode === 'two') {
-    opponent = '2-Player';
+    matchLine = _tpN ? `${_tpN.b} (Black) vs ${_tpN.w} (White)` : `Black vs White (2-Player)`;
+    if (!winColor) result = 'Draw';
+    else if (_tpN) result = `${winColor === 'black' ? _tpN.b : _tpN.w} wins`;
+    else result = winColor === 'black' ? 'Black wins' : 'White wins';
   } else {
     const lvName = cpuLevel >= 6 ? LEVEL_NAMES[cpuLevel-1] : `Lv.${cpuLevel}`;
-    opponent = `CPU ${lvName}`;
+    matchLine = `${pName} (${pColor}) vs CPU ${lvName}`;
+    result = !winColor ? 'Draw' : (humanColor === winColor ? 'Win' : 'Loss');
   }
 
   const totalMoves = moveHistory.length;
@@ -46,7 +52,7 @@ function generateNotationText() {
 
   let text = `[ReverStarGo Game Record]\n`;
   text += `Date: ${dateStr}\n`;
-  text += `${pName} (${pColor}) vs ${opponent}\n`;
+  text += `${matchLine}\n`;
   text += `Result: Black ${bTotal} - White ${wTotal} (${result})\n`;
   text += `Moves: ${totalMoves}${passMoves > 0 ? ` (incl. ${passMoves} passes)` : ''}\n`;
   text += `────────────────\n`;
@@ -283,10 +289,15 @@ function saveGameRecord() {
 
   const memo = prompt('Memo (optional)', '') || '';
 
+  // v101: also store both player names for 2-player games (list & replay display)
+  const _tpKifuN = (battleMode === 'two' && typeof tpKifuNames === 'function') ? tpKifuNames() : null;
+
   const record = {
     id: Date.now(),
     date: new Date().toISOString(),
     playerName: getPlayerName(),
+    tpB: _tpKifuN ? _tpKifuN.b : null,
+    tpW: _tpKifuN ? _tpKifuN.w : null,
     humanColor: humanColor,
     cpuLevel: cpuLevel,
     battleMode: battleMode,
@@ -326,23 +337,30 @@ function renderKifuList() {
     const d = new Date(game.date);
     const dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 
-    let resultText, resultClass;
+    let resultText, resultClass, matchLabel;
+    const _esc = (s) => (typeof _tpEsc === 'function' ? _tpEsc(s) : s);
     if (game.battleMode === 'two') {
-      resultText = game.result === 'draw' ? 'Draw' : (game.result === 'black-win' ? 'Black wins' : 'White wins');
+      // v101: named 2-player games show "⚔ Yamato vs Cookie  Yamato wins"
+      if (game.tpB && game.tpW) {
+        resultText = game.result === 'draw' ? 'Draw'
+          : (game.result === 'black-win' ? `${_esc(game.tpB)} wins` : `${_esc(game.tpW)} wins`);
+        matchLabel = `⚔ ${_esc(game.tpB)} vs ${_esc(game.tpW)}`;
+      } else {
+        resultText = game.result === 'draw' ? 'Draw' : (game.result === 'black-win' ? 'Black wins' : 'White wins');
+        matchLabel = `${game.humanColor === 'black' ? '●' : '○'} vs 2-Player`;
+      }
       resultClass = game.result === 'draw' ? 'kifu-draw' : 'kifu-win';
     } else {
       resultText = game.result === 'win' ? 'Win' : game.result === 'lose' ? 'Loss' : 'Draw';
       resultClass = game.result === 'win' ? 'kifu-win' : game.result === 'lose' ? 'kifu-lose' : 'kifu-draw';
+      const lvName = game.cpuLevel >= 6 ? LEVEL_NAMES[game.cpuLevel-1] : `Lv.${game.cpuLevel}`;
+      matchLabel = `${game.humanColor === 'black' ? '●' : '○'} vs ${lvName}`;
     }
-
-    const lvName = game.battleMode === 'two' ? '2-Player'
-      : game.cpuLevel >= 6 ? LEVEL_NAMES[game.cpuLevel-1] : `Lv.${game.cpuLevel}`;
-    const colorIcon = game.humanColor === 'black' ? '●' : '○';
 
     html += `<div class="kifu-item">`;
     html += `<div class="kifu-item-info" onclick="startReplay(${idx})">`;
     html += `<span class="kifu-item-date">${dateStr}</span>`;
-    html += `<span class="kifu-item-result ${resultClass}">${colorIcon} vs ${lvName}  ${resultText}</span>`;
+    html += `<span class="kifu-item-result ${resultClass}">${matchLabel}  ${resultText}</span>`;
     html += `<span class="kifu-item-detail">Black ${game.bTotal} - White ${game.wTotal} (${game.moveCount} moves)</span>`;
     if (game.memo) html += `<span class="kifu-item-memo">📝 ${game.memo}</span>`;
     html += `</div>`;
@@ -410,8 +428,9 @@ function startReplay(idx) {
   const lvName = replayData.battleMode === 'two' ? '2-Player'
     : replayData.cpuLevel >= 6 ? LEVEL_NAMES[replayData.cpuLevel-1] : `Lv.${replayData.cpuLevel}`;
   if (replayData.battleMode === 'two') {
-    document.getElementById('black-role').textContent = 'Black';
-    document.getElementById('white-role').textContent = 'White';
+    // v101: show player names in replay for named 2-player games
+    document.getElementById('black-role').textContent = replayData.tpB || 'Black';
+    document.getElementById('white-role').textContent = replayData.tpW || 'White';
     document.getElementById('level-badge').style.display = 'none';
   } else {
     document.getElementById('black-role').textContent = replayData.humanColor === 'black' ? replayData.playerName : 'CPU';

@@ -114,7 +114,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v100</p>
+    <p class="app-version">RSG-v101</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -133,6 +133,37 @@
         <button class="setup-btn selected" data-battle="cpu" onclick="selectBattleMode('cpu')">CPUと対戦</button>
         <button class="setup-btn" data-battle="two" onclick="selectBattleMode('two')">2人で対戦</button>
       </div>
+    </div>
+    <!-- 2人対戦のプレイヤー名入力（v101、任意入力。入れると対戦成績に記録） -->
+    <div class="setup-section" id="two-player-names-section" style="display:none;">
+      <h2>プレイヤー名（入れると成績が残ります）</h2>
+      <div class="tp-name-row">
+        <label for="tp-black-name">● 黒（先手）</label>
+        <div class="tp-input-wrap">
+          <input id="tp-black-name" maxlength="7" placeholder="名前を入力" autocomplete="off">
+          <button type="button" class="tp-hist-btn" onclick="toggleTpNameMenu('black')" title="過去の名前から選ぶ">▼</button>
+          <div id="tp-name-menu-black" class="tp-name-menu" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="tp-name-row">
+        <label for="tp-white-name">○ 白（後手）</label>
+        <div class="tp-input-wrap">
+          <input id="tp-white-name" maxlength="7" placeholder="名前を入力" autocomplete="off">
+          <button type="button" class="tp-hist-btn" onclick="toggleTpNameMenu('white')" title="過去の名前から選ぶ">▼</button>
+          <div id="tp-name-menu-white" class="tp-name-menu" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="setup-buttons-row">
+        <button class="setup-btn" onclick="tpSwapNames()">⇄ 先手と後手を入れ替え</button>
+        <button class="setup-btn" onclick="showTpRecords()">📊 これまでの対戦成績</button>
+      </div>
+      <!-- 対戦形式: 1局勝負 or リバースマッチ(2局合計) -->
+      <h2 class="tp-mode-title">対戦形式</h2>
+      <div class="setup-buttons-row">
+        <button class="setup-btn selected" data-tpmode="single" onclick="selectTpMode('single')">1局勝負</button>
+        <button class="setup-btn" data-tpmode="reverse" onclick="selectTpMode('reverse')">リバースマッチ</button>
+      </div>
+      <p id="tp-mode-desc" class="tp-mode-desc">1局ごとに勝敗を決めます</p>
     </div>
     <div class="setup-section" id="cpu-level-section">
       <h2>コンピューターのレベル</h2>
@@ -647,11 +678,14 @@
     <button id="play-again-btn">もう1局</button>
     <button id="share-result-btn" style="display:none;" onclick="shareGameResult()">📤 結果をシェア</button>
     <button id="back-to-daily-btn" style="display:none;" onclick="backToDaily()">📅 デイリーへ戻る</button>
+    <!-- 2人対戦(名前入り)の終局時のみ表示 (v101) -->
+    <button class="result-sub-btn" id="tp-records-result-btn" style="display:none;" onclick="showTpRecords()">📊 これまでの対戦成績</button>
     <!-- 棋譜ボタン（プレミアム機能として将来復活予定） -->
     <div class="result-btn-row" id="kifu-btn-row" style="display:none;">
       <button class="result-sub-btn" id="save-game-btn" onclick="saveGameRecord()">⭐ 棋譜の保存</button>
       <button class="result-sub-btn" id="goto-kifu-btn" style="display:none;" onclick="document.getElementById('result-modal').style.display='none';showPage('kifu')">📋 棋譜一覧へ</button>
     </div>
+    <p id="tp-swap-note" style="display:none;">⇄ 次の1局は先手・後手が入れ替わります</p>
   </div>
 
   <!-- コピー完了トースト -->
@@ -802,7 +836,17 @@
   <script src="js/move_quality.js"></script>
   <script src="js/perfect.js"></script>
   <script src="js/reverse_match_intro.js"></script>
+  <!-- 2人対戦 対戦成績モーダル (v101) -->
+  <div id="tp-records-modal" style="display:none;">
+    <div class="tp-records-content">
+      <h2>📊 これまでの対戦成績</h2>
+      <div id="tp-records-body"></div>
+      <button class="nav-back-btn" onclick="closeTpRecords()">閉じる</button>
+    </div>
+  </div>
+
   <script src="js/records.js"></script>
+  <script src="js/twoplayer.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/daily.js"></script>
   <script src="js/settings.js"></script>

@@ -91,6 +91,13 @@ document.getElementById('play-again-btn').addEventListener('click', () => {
     updateLevelButtons();
   } else {
     // Reverse Match 1局目終了後：そのまま 2局目へ進む（色反転は endGame で済）
+    // v101: 2-player Reverse Match — proceed to Game 2
+    if (typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2 && tpRm.r1) {
+      initGame();
+      return;
+    }
+    // v101: "Play Again" in 2-player mode — prepare next match (new RM if selected)
+    if (battleMode === 'two' && typeof tpPrepareMatch === 'function') tpPrepareMatch();
     if (reverseMatch && reverseMatch.round === 2) {
       initGame();
       return;

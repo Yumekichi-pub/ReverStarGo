@@ -152,9 +152,17 @@ function initGame() {
   undoBtn.disabled = true;
   undoBtn.textContent = 'Undo';
   if (battleMode === 'two') {
-    document.getElementById('black-role').textContent = '';
-    document.getElementById('white-role').textContent = '';
-    document.getElementById('level-badge').style.display = 'none';
+    // v101: show player names on score panels
+    document.getElementById('black-role').textContent = (typeof tpNameFor === 'function') ? tpNameFor('black') : '';
+    document.getElementById('white-role').textContent = (typeof tpNameFor === 'function') ? tpNameFor('white') : '';
+    // v101: show 1/2, 2/2 during 2-player Reverse Match (same as CPU RM)
+    if (typeof tpRm !== 'undefined' && tpRm) {
+      const _lb = document.getElementById('level-badge');
+      _lb.textContent = `🏆 ${tpRm.round}/2`;
+      _lb.style.display = '';
+    } else {
+      document.getElementById('level-badge').style.display = 'none';
+    }
   } else {
     const rIdx = calculateRank();
     document.getElementById('black-role').innerHTML = humanColor === 'black' ? `${rankIcon(rIdx, 18)} ${getPlayerName()}` : 'CPU';
@@ -273,6 +281,8 @@ function _xmRstAll() {
     localStorage.removeItem(PROMOTION_EXAM_KEY);
     localStorage.removeItem(PROMOTION_CAREER_KEY);
     localStorage.removeItem(DAILY_KEY);
+    // v101: also reset 2-player head-to-head records
+    if (typeof TP_RECORDS_KEY !== 'undefined') localStorage.removeItem(TP_RECORDS_KEY);
     // _xmOvr と進行中の試験もリセット
     promotionExam = null;
     sessionWins = { black: 0, white: 0, draw: 0 };
@@ -480,6 +490,10 @@ function backToDaily() {
 
 function backToSetupPage() {
   document.getElementById('result-modal').style.display = 'none';
+  // v101: leaving mid 2-player Reverse Match discards the match (no penalty)
+  if (typeof tpRm !== 'undefined') tpRm = null;
+  const _paBtn = document.getElementById('play-again-btn');
+  if (_paBtn) _paBtn.textContent = 'Play Again';
   if (isDailySetup) {
     isDailySetup = false;
     showPage('daily');

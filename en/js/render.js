@@ -43,6 +43,12 @@ function updateScore() {
       whiteR1El.textContent = `🏆 R1: ${whitePtsR1}`;
       blackR1El.style.display = '';
       whiteR1El.style.display = '';
+    } else if (typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2 && tpRm.r1) {
+      // v101: 2-player Reverse Match Game 2 — show Game 1 points (players swapped colors)
+      blackR1El.textContent = `🏆 Game 1: ${tpRm.r1.ws}`;
+      whiteR1El.textContent = `🏆 Game 1: ${tpRm.r1.bs}`;
+      blackR1El.style.display = '';
+      whiteR1El.style.display = '';
     } else {
       blackR1El.style.display = 'none';
       whiteR1El.style.display = 'none';

@@ -101,6 +101,12 @@ function selectBattleMode(mode) {
   document.querySelectorAll('[data-battle]').forEach(b => b.classList.remove('selected'));
   document.querySelector(`[data-battle="${mode}"]`).classList.add('selected');
   document.getElementById('cpu-level-section').style.display = mode === 'two' ? 'none' : '';
+  // v101: show player-name section only in 2-player mode
+  const tpSec = document.getElementById('two-player-names-section');
+  if (tpSec) {
+    tpSec.style.display = mode === 'two' ? '' : 'none';
+    if (mode === 'two' && typeof updateTpNameSection === 'function') updateTpNameSection();
+  }
 }
 function selectSound(enabled) {
   soundEnabled = enabled;
@@ -160,6 +166,13 @@ function selectLevel(lv) {
  */
 function startGame() {
   saveSettings();
+  // v101: prepare 2-player match (Reverse Match requires both player names)
+  if (typeof tpPrepareMatch === 'function') {
+    if (tpPrepareMatch() === 'need-names') {
+      alert('Reverse Match requires both player names (Black and White).');
+      return;
+    }
+  }
   // 前回の Reverse Match 途中離脱を検知 → 1敗として記録（v44〜）
   handlePendingReverseMatchOnStart();
   prevRank = calculateRank(); // ランクアップ判定用
@@ -425,7 +438,11 @@ function isCpuTurn() {
 // プレイヤー色ラベル
 function colorLabel(color) {
   const name = color === 'black' ? 'Black' : 'White';
-  if (battleMode === 'two') return name;
+  if (battleMode === 'two') {
+    // v101: show "Black (Takeshi)" style when names are entered
+    const n = (typeof tpNameFor === 'function') ? tpNameFor(color) : '';
+    return n ? `${name} (${n})` : name;
+  }
   return color === cpuColor ? `${name} (CPU)` : name;
 }
 

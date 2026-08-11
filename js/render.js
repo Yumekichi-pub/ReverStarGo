@@ -43,6 +43,13 @@ function updateScore() {
       whiteR1El.textContent = `🏆 1局目 ${whitePtsR1}点`;
       blackR1El.style.display = '';
       whiteR1El.style.display = '';
+    } else if (typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2 && tpRm.r1) {
+      // v101: 2人対戦リバースマッチの2局目もCPU版と同様に1局目の得点を表示
+      // 2局目は先手後手が入れ替わっている: 現在の黒=1局目の白(bName)、現在の白=1局目の黒(aName)
+      blackR1El.textContent = `🏆 1局目 ${tpRm.r1.ws}点`;
+      whiteR1El.textContent = `🏆 1局目 ${tpRm.r1.bs}点`;
+      blackR1El.style.display = '';
+      whiteR1El.style.display = '';
     } else {
       blackR1El.style.display = 'none';
       whiteR1El.style.display = 'none';
