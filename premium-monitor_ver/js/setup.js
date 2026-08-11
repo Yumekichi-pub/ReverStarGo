@@ -166,6 +166,13 @@ function selectLevel(lv) {
  */
 function startGame() {
   saveSettings();
+  // Premium-v105: 2人対戦のマッチ準備（リバースマッチは名前2人分が必須）
+  if (typeof tpPrepareMatch === 'function') {
+    if (tpPrepareMatch() === 'need-names') {
+      alert('リバースマッチには、黒と白それぞれのプレイヤー名の入力が必要です。');
+      return;
+    }
+  }
   // 前回の Reverse Match 途中離脱を検知 → 1敗として記録（v44〜）
   handlePendingReverseMatchOnStart();
   prevRank = calculateRank(); // ランクアップ判定用

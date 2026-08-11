@@ -3336,3 +3336,25 @@
       flex-shrink: 0;
     }
     .tp-del-btn:hover { background: #f5e6c8; }
+
+    /* ===== Premium-v105: 2人対戦リバースマッチ ===== */
+    .tp-mode-title {
+      margin-top: 14px;
+    }
+    .tp-mode-desc {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #c8b888;
+      margin-top: 6px;
+    }
+    .tp-rm-mark {
+      display: inline-block;
+      font-size: 0.62rem;
+      font-weight: bold;
+      color: #fff;
+      background: #a08030;
+      border-radius: 4px;
+      padding: 0 4px;
+      margin-right: 3px;
+      vertical-align: 1px;
+    }

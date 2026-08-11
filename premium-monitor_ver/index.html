@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v104</p>
+    <p class="app-version">Premium-v105</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -133,6 +133,13 @@
         <button class="setup-btn" onclick="tpSwapNames()">⇄ 先手と後手を入れ替え</button>
         <button class="setup-btn" onclick="showTpRecords()">📊 これまでの対戦成績</button>
       </div>
+      <!-- 対戦形式（Premium-v105）: 1局勝負 or リバースマッチ(2局合計) -->
+      <h2 class="tp-mode-title">対戦形式</h2>
+      <div class="setup-buttons-row">
+        <button class="setup-btn selected" data-tpmode="single" onclick="selectTpMode('single')">1局勝負</button>
+        <button class="setup-btn" data-tpmode="reverse" onclick="selectTpMode('reverse')">リバースマッチ</button>
+      </div>
+      <p id="tp-mode-desc" class="tp-mode-desc">1局ごとに勝敗を決めます</p>
     </div>
     <div class="setup-section" id="cpu-level-section">
       <h2>コンピューターのレベル</h2>

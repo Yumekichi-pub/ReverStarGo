@@ -531,6 +531,10 @@ function backToDaily() {
 
 function backToSetupPage() {
   document.getElementById('result-modal').style.display = 'none';
+  // Premium-v105: 2人対戦リバースマッチの途中離脱はマッチごと破棄（ペナルティなし）
+  if (typeof tpRm !== 'undefined') tpRm = null;
+  const _paBtn = document.getElementById('play-again-btn');
+  if (_paBtn) _paBtn.textContent = 'もう1局';
   // Premium-v11: 修行コース中・終了後は大宇宙の修行部屋に戻る
   if (typeof isTrainingMode === 'function' && isTrainingMode()) {
     showPage('training');

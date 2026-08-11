@@ -214,7 +214,58 @@ function endGame() {
     if (captured.black > captured.white) tiebreakWinner = 'black';
     else if (captured.white > captured.black) tiebreakWinner = 'white';
   }
-  if (battleMode === 'two') {
+  if (battleMode === 'two' && typeof tpRm !== 'undefined' && tpRm && tpRm.round === 1) {
+    // ============================================
+    // Premium-v105: 2人対戦リバースマッチ 1局目終了 → 中間結果を表示して2局目へ
+    // ============================================
+    tpRm.r1 = { bs: bTotal, ws: wTotal, bc: captured.black, wc: captured.white };
+    tpRm.round = 2;
+    document.getElementById('result-text').textContent =
+      `🔄 リバースマッチ 1局目終了\n黒・${tpRm.aName} ${bTotal} vs 白・${tpRm.bName} ${wTotal}\n\n先手・後手を入れ替えて2局目！\n合計で勝敗が決まります`;
+    // 2局目に向けて名前を入れ替え（次の initGame でパネルに反映される）
+    if (typeof tpSwapNames === 'function') tpSwapNames();
+    const _paBtn = document.getElementById('play-again-btn');
+    if (_paBtn) _paBtn.textContent = '2局目へ ▶';
+    // 中間結果では保存・シェア・成績ボタンは出さない
+    document.getElementById('back-to-daily-btn').style.display = 'none';
+    document.getElementById('kifu-btn-row').style.display = 'none';
+    document.getElementById('goto-kifu-btn').style.display = 'none';
+    const _shareBtnTp = document.getElementById('share-result-btn');
+    if (_shareBtnTp) _shareBtnTp.style.display = 'none';
+    document.getElementById('result-modal').style.display = 'flex';
+    if (typeof updateRestartBtnState === 'function') updateRestartBtnState();
+    playSound('draw');
+    return; // 記録・セッションスコアはまだ
+  }
+  if (battleMode === 'two' && typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2) {
+    // ============================================
+    // Premium-v105: 2人対戦リバースマッチ 2局目終了 → 合計で勝敗判定
+    // （2局目は aName が白、bName が黒）
+    // ============================================
+    const aTotal = tpRm.r1.bs + wTotal;              // A: 1局目黒 + 2局目白
+    const bTotalSum = tpRm.r1.ws + bTotal;           // B: 1局目白 + 2局目黒
+    const aCap = tpRm.r1.bc + captured.white;
+    const bCap = tpRm.r1.wc + captured.black;
+    let _rmR, _rmNote = '';
+    if (aTotal > bTotalSum) _rmR = 'a';
+    else if (bTotalSum > aTotal) _rmR = 'b';
+    else if (aCap > bCap) { _rmR = 'a'; _rmNote = `\n※合計同点のため囲んで取った数で判定（${tpRm.aName}${aCap} vs ${tpRm.bName}${bCap}）`; }
+    else if (bCap > aCap) { _rmR = 'b'; _rmNote = `\n※合計同点のため囲んで取った数で判定（${tpRm.aName}${aCap} vs ${tpRm.bName}${bCap}）`; }
+    else _rmR = 'd';
+    if (_rmR === 'd') {
+      msg = `🏆 リバースマッチ 結果\n${tpRm.aName} 合計${aTotal} vs ${tpRm.bName} 合計${bTotalSum}\n引き分け`;
+      soundType = 'draw';
+    } else {
+      const _rmWinner = _rmR === 'a' ? tpRm.aName : tpRm.bName;
+      msg = `🏆 リバースマッチ 結果\n${tpRm.aName} 合計${aTotal} vs ${tpRm.bName} 合計${bTotalSum}\n${_rmWinner}の勝ち！${_rmNote}`;
+      soundType = 'win';
+    }
+    if (typeof recordTpRm === 'function') recordTpRm(tpRm.aName, tpRm.bName, aTotal, bTotalSum, _rmR);
+    if (_tpResultBtn) _tpResultBtn.style.display = ''; // 成績ボタンは表示（交代案内は不要: 名前は既に交代済み）
+    const _paBtn2 = document.getElementById('play-again-btn');
+    if (_paBtn2) _paBtn2.textContent = 'もう1局';
+    tpRm = null;
+  } else if (battleMode === 'two') {
     // Premium-v101: 名前が入っていれば勝敗メッセージにも名前を表示
     const _bn = (typeof tpNameFor === 'function' && tpNameFor('black')) ? `黒・${tpNameFor('black')}` : '黒';
     const _wn = (typeof tpNameFor === 'function' && tpNameFor('white')) ? `白・${tpNameFor('white')}` : '白';

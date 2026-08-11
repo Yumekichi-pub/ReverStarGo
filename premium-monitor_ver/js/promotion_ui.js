@@ -90,6 +90,14 @@ document.getElementById('play-again-btn').addEventListener('click', () => {
     updateRankDisplay();
     updateLevelButtons();
   } else {
+    // Premium-v105: 2人対戦リバースマッチ 1局目終了後 →「2局目へ ▶」で続行
+    // （名前は endGame で入れ替え済み。2局目終了後は tpRm=null なのでここには来ない）
+    if (typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2 && tpRm.r1) {
+      initGame();
+      return;
+    }
+    // Premium-v105: 2人対戦の「もう1局」→ 次のマッチ準備（RM選択中なら新しいRMを開始）
+    if (battleMode === 'two' && typeof tpPrepareMatch === 'function') tpPrepareMatch();
     // Reverse Match 1局目終了後：そのまま 2局目へ進む（色反転は endGame で済）
     if (reverseMatch && reverseMatch.round === 2) {
       initGame();
