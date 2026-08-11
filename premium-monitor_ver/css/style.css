@@ -21,7 +21,7 @@
       min-height: 100vh;
       padding: 16px;
       gap: 12px;
-      overscroll-behavior-y: contain;
+      overscroll-behavior-y: none;
     }
 
     /* ===== ヘッダー ===== */
@@ -3211,4 +3211,31 @@
       background-position: center center;
       background-repeat: no-repeat;
       background-attachment: fixed;
+    }
+
+    /* ===== v100: スマホの「下に引いて更新」(Pull-to-Refresh) 対策 =====
+       対局中の誤スワイプでリロード→負け扱いになる事故の防止。
+       Chrome では html 側に指定しないと効かないため html/body 両方に none を指定 */
+    html {
+      overscroll-behavior-y: none;
+    }
+    body {
+      overscroll-behavior-y: none;
+    }
+
+    /* ===== v100: 狭い端末でスコアパネル(名前ボックス)が盤面に重なる対策 =====
+       星型盤の左右上角の空きに浮かせる設計だが、幅400px以下では辺に重なるため
+       盤を下げてパネル分の余白を確保し、パネル自体も少し細くする */
+    @media (max-width: 400px) {
+      #board-container {
+        padding-top: 84px;
+      }
+      .score-panel {
+        width: 102px;
+      }
+      .score-panel .sp-row1 {
+        font-size: 0.78em;
+        white-space: nowrap;
+        gap: 4px;
+      }
     }

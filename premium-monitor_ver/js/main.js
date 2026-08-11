@@ -60,3 +60,25 @@ document.getElementById('player-name-input').addEventListener('input', function(
     updatePlayerNameDisplay();
   }
 });
+
+// ===== v100: 対局中のリロード/離脱前に確認ダイアログを表示 =====
+// スマホの「下に引いて更新」誤操作や誤ってタブを閉じた際の、
+// 対局が負け扱いになる事故の保険（CSS overscroll-behavior が
+// 効かないブラウザ向けの二重対策）。
+// 条件: ゲーム進行中 + 対局画面が表示中 + 結果モーダル非表示 + チュートリアル以外
+window.addEventListener('beforeunload', function (e) {
+  try {
+    if (typeof gameStarted === 'undefined' || !gameStarted) return;
+    if (typeof isTutorial !== 'undefined' && isTutorial) return;
+    if (typeof tutorialMiniGame !== 'undefined' && tutorialMiniGame) return;
+    const rm = document.getElementById('result-modal');
+    if (rm && rm.style.display === 'flex') return; // 終局結果の表示中は自由に離脱OK
+    // いずれかのメニュー画面が表示中なら対局画面にいない → 確認不要
+    const pages = document.querySelectorAll('.setup-page');
+    for (const p of pages) {
+      if (getComputedStyle(p).display !== 'none') return;
+    }
+    e.preventDefault();
+    e.returnValue = ''; // ブラウザ標準の「離れますか?」ダイアログを表示
+  } catch (err) {}
+});
