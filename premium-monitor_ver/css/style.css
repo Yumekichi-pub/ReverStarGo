@@ -3303,3 +3303,15 @@
     }
     .tp-table th { background: #f0e4c4; }
     .tp-empty { text-align: center; color: #7a5a20; line-height: 1.9; }
+
+    /* ===== Premium-v102: 2人対戦UIの改善 ===== */
+    /* 名前入力ラベルがダークテーマで暗く沈んで読みにくかったため明るい色に */
+    #two-player-names-section .tp-name-row label {
+      color: #f0e4c0;
+    }
+    /* 結果画面の「次の1局は先手・後手が入れ替わります」案内 */
+    #tp-swap-note {
+      font-size: 0.8rem;
+      color: #7a5a20;
+      margin: -6px 0 0;
+    }

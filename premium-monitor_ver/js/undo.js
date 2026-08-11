@@ -179,6 +179,11 @@ function endGame() {
   console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
   let _dailyCelebrateKind = null; // v83: デイリー達成お祝いの種類 ('day'|'month'|null)
   let _dailyCelebrateMonth = null; // v83: 月コンプ時の月番号（トロフィー登場用）
+  // Premium-v102: 2人対戦用の結果ボタン・交代案内はいったん隠す（2人対戦の枝で再表示）
+  const _tpResultBtn = document.getElementById('tp-records-result-btn');
+  if (_tpResultBtn) _tpResultBtn.style.display = 'none';
+  const _tpSwapNote = document.getElementById('tp-swap-note');
+  if (_tpSwapNote) _tpSwapNote.style.display = 'none';
   // ゲーム終了時は「1手戻る」を完全に無効化（勝利2重カウント防止）
   undoUsed = true;
   undoSnapshot = null;
@@ -221,6 +226,14 @@ function endGame() {
     else { sessionWins.draw++; msg = `引き分け (黒${bTotal} vs 白${wTotal})`; _tpResult = 'd'; }
     // Premium-v101: 名前つき対局は対戦成績に自動記録（名前未入力なら何もしない）
     if (typeof recordTpMatch === 'function') recordTpMatch(bTotal, wTotal, _tpResult);
+    // Premium-v102: 名前つき対局なら結果画面に成績ボタン+交代案内を表示し、
+    // 次の1局に向けて先手・後手を自動で入れ替える（記録の後に行うこと）
+    const _tpNamed = (typeof tpNameFor === 'function') && tpNameFor('black') && tpNameFor('white');
+    if (_tpNamed) {
+      if (_tpResultBtn) _tpResultBtn.style.display = '';
+      if (_tpSwapNote) _tpSwapNote.style.display = '';
+      if (typeof tpAutoSwapAfterGame === 'function') tpAutoSwapAfterGame();
+    }
   } else {
     // ============================================
     // Reverse Match 1局目終了時の中間処理（v41〜）
