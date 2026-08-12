@@ -621,13 +621,21 @@ function showPassModal(message) {
     document.getElementById('pass-ok').textContent = 'OK';
     pm.style.display = 'flex';
     document.getElementById('controls').style.display = 'none';
+    let done = false;
     const handler = () => {
+      if (done) return;
+      done = true;
       pm.style.display = 'none';
       document.getElementById('controls').style.display = '';
       document.getElementById('pass-ok').removeEventListener('click', handler);
       resolve();
     };
     document.getElementById('pass-ok').addEventListener('click', handler);
+    // Premium-v111: オンライン対戦では OK クリック待ちで両端末の進行がずれて
+    // デッドロックするため、約2秒表示して自動で進める（先にOKを押してもよい）
+    if (typeof olActive === 'function' && olActive()) {
+      setTimeout(handler, 2000);
+    }
   });
 }
 
