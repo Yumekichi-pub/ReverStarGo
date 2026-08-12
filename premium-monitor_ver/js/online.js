@@ -165,10 +165,44 @@ function _olOnMessage(m) {
       online.rematchRemote = true;
       _olMaybeRematch();
       break;
+    case 'chat':
+      _olBubble(`💬 ${online.oppName}「${String(m.text || '').slice(0, 30)}」`);
+      break;
     case 'bye':
       _olOnDisconnect();
       break;
   }
+}
+
+// ===== 一言チャット (Premium-v113) =====
+function olSendChat() {
+  if (!olActive()) return;
+  const input = document.getElementById('ol-chat-input');
+  if (!input) return;
+  const text = input.value.trim().slice(0, 30);
+  if (!text) return;
+  online.transport.send({ t: 'chat', text });
+  _olBubble(`💬 自分「${text}」`);
+  input.value = '';
+}
+
+// 画面上部にふわっと出て数秒で消える吹き出し（チャット・CPコール通知の共通表示）
+function _olBubble(text) {
+  const wrap = document.getElementById('ol-bubble-wrap');
+  if (!wrap) return;
+  const div = document.createElement('div');
+  div.className = 'ol-bubble';
+  div.textContent = text; // textContent なのでHTMLは無害化される
+  wrap.appendChild(div);
+  while (wrap.children.length > 3) wrap.removeChild(wrap.firstChild);
+  setTimeout(() => { div.classList.add('ol-bubble-out'); }, 5200);
+  setTimeout(() => { if (div.parentNode) div.parentNode.removeChild(div); }, 6000);
+}
+
+// チャットバーの表示/非表示（対局開始/終了時に切替）
+function _olChatBar(show) {
+  const bar = document.getElementById('ol-chat-bar');
+  if (bar) bar.style.display = show ? 'flex' : 'none';
 }
 
 // ===== ゲーム開始（両端末で同じ状態を作る）=====
@@ -188,6 +222,7 @@ function _olStartGame() {
   _olStatus('');
   _olSetLobbyButtons(false);
   startGame();
+  _olChatBar(true);
   showTurn(`🌐 対戦開始！ あなたは${online.myColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}です`);
 }
 
@@ -214,6 +249,11 @@ async function _olApplyRemoteMove(q, r, s, gp) {
     if (needsKoException && prevKoException) { endGame(); return; }
     prevKoException = needsKoException && !prevKoException;
     await executeMove(q, r, s, gp === undefined ? null : gp);
+    // Premium-v113: 相手がCPコールした場合、どちらの色を選んだか通知
+    const _lastMv = moveHistory[moveHistory.length - 1];
+    if (_lastMv && _lastMv.type === 'move' && _lastMv.gpCall && _lastMv.gpColor) {
+      _olBubble(`💠 ${online.oppName}のCPコール：${_lastMv.gpColor === 'black' ? '⚫黒' : '⚪白'}を選択`);
+    }
   } catch (e) {
     console.error('[online] リモート手の適用に失敗', e);
   } finally {
@@ -265,6 +305,7 @@ function _olOnDisconnect() {
 // 退室処理。sendBye=true なら相手に通知してから切る
 function olTeardown(sendBye) {
   if (!online) return;
+  _olChatBar(false);
   const t = online.transport;
   const btn = document.getElementById('play-again-btn');
   if (btn) { btn.textContent = 'もう1局'; btn.disabled = false; }

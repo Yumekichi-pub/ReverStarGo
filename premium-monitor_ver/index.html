@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v112</p>
+    <p class="app-version">Premium-v113</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -700,6 +700,14 @@
   </div>
 
   <!-- コウ説明モーダル -->
+  <!-- オンライン対戦: 吹き出し + 一言チャット (Premium-v113) -->
+  <div id="ol-bubble-wrap"></div>
+  <div id="ol-chat-bar" style="display:none;">
+    <input id="ol-chat-input" maxlength="30" placeholder="一言メッセージ（30文字まで）"
+           onkeydown="if(event.key==='Enter'){olSendChat();}">
+    <button type="button" onclick="olSendChat()">送信</button>
+  </div>
+
   <!-- 2人対戦 対戦成績モーダル (Premium-v101) -->
   <div id="tp-records-modal" style="display:none;">
     <div class="tp-records-content">
