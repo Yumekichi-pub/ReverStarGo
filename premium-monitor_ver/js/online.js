@@ -18,7 +18,8 @@ let online = null; // {transport, isHost, code, myColor, myName, oppName,
                    //  connected, applyingRemote, rematchLocal, rematchRemote,
                    //  helloReceived, started}
 
-const OL_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 紛らわしい文字を除外
+// Premium-v112: スマホで打ちやすいよう小文字に（紛らわしい l,o,0,1 は除外）
+const OL_CODE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
 
 function olActive() {
   return !!(online && online.connected && online.started);
@@ -105,9 +106,9 @@ function olHost() {
 
 function olJoinPrompt() {
   if (online) { olTeardown(false); _olStatus('キャンセルしました'); return; }
-  const input = prompt('相手から聞いた部屋コードを入力してください（例: AB12）');
+  const input = prompt('相手から聞いた部屋コードを入力してください（例: ab12）');
   if (!input) return;
-  const code = input.trim().toUpperCase();
+  const code = input.trim().toLowerCase(); // 大文字で入力されても受け付ける
   if (code.length < 3) { alert('部屋コードが短すぎます'); return; }
   _olBegin(code, false);
   _olStatus(`部屋【 ${code} 】に接続しています…`);
