@@ -90,6 +90,8 @@ document.getElementById('play-again-btn').addEventListener('click', () => {
     updateRankDisplay();
     updateLevelButtons();
   } else {
+    // Premium-v109: オンライン対戦の「もう1局」は両者合意で色交代して再戦
+    if (typeof olHandlePlayAgain === 'function' && olHandlePlayAgain()) return;
     // Premium-v105: 2人対戦リバースマッチ 1局目終了後 →「2局目へ ▶」で続行
     // （名前は endGame で入れ替え済み。2局目終了後は tpRm=null なのでここには来ない）
     if (typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2 && tpRm.r1) {

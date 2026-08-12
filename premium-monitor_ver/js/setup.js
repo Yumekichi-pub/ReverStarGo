@@ -311,6 +311,8 @@ async function animateFlipSequence(flipped, player) {
  * @param {'black'|'white'|null} gpColor - GP コール色（CP 経由時、それ以外は null）
  */
 async function executeMove(q, r, s, gpColor) {
+  // Premium-v109: オンライン対戦中、自分の手なら相手へ送信（リモート適用中は送らない）
+  if (typeof olMaybeSendMove === 'function') olMaybeSendMove(q, r, s, gpColor);
   isAnimating = true;
   gameStarted = true;         // ゲームが開始された
   pendingMoveMarker = null;   // GP選択中の仮マーカーをクリア
@@ -718,7 +720,9 @@ async function updateGame(showTurnChange = false) {
     return;
   }
 
-  if (battleMode === 'two' && showTurnChange) {
+  if (battleMode === 'two' && showTurnChange
+      && !(typeof olActive === 'function' && olActive())) {
+    // オンライン対戦では各自の端末があるので交代オーバーレイは不要
     await showTurnModal();
   }
 

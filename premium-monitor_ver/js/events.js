@@ -35,6 +35,8 @@ function pixelToCell(px, py) {
 async function onCellClick(q, r, s) {
   if (replayMode) return; // リプレイ中はクリック無効
   if (isAnimating) return;
+  // Premium-v109: オンライン対戦中は自分のターンのみ入力可
+  if (typeof onlineBlocksInput === 'function' && onlineBlocksInput()) return;
   // Premium-v13: CPコール待ち中（gp-modal表示中）は盤面クリック無効化
   // バグ修正: pendingMove が残ったままセルクリックすると別の場所に石が
   // 置けてしまい、事実上「待った」になっていた問題への対策。
@@ -70,7 +72,8 @@ async function onCellClick(q, r, s) {
   // GPモーダル経由でも反映されるよう、手を打つ前にフラグ更新
   prevKoException = koException;
 
-  saveUndoState();
+  // Premium-v109: オンライン対戦では「1手戻る」は使えない（相手と状態がずれるため）
+  if (!(typeof olActive === 'function' && olActive())) saveUndoState();
   if (needsGPCall(q,r,s,current)) {
     pendingMove = [q,r,s];
     // 自分が置いた場所にマーカーを表示してからGP選択モーダルを出す
@@ -538,6 +541,8 @@ function backToDaily() {
 
 function backToSetupPage() {
   document.getElementById('result-modal').style.display = 'none';
+  // Premium-v109: オンライン対戦中に戻ったら相手に通知して退室
+  if (typeof olTeardown === 'function' && typeof online !== 'undefined' && online) olTeardown(true);
   // Premium-v105: 2人対戦リバースマッチの途中離脱はマッチごと破棄（ペナルティなし）
   if (typeof tpRm !== 'undefined') tpRm = null;
   const _paBtn = document.getElementById('play-again-btn');

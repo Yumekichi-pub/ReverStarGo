@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v108</p>
+    <p class="app-version">Premium-v109</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -149,6 +149,13 @@
         <button class="setup-btn" data-tpmode="reverse" onclick="selectTpMode('reverse')">リバースマッチ</button>
       </div>
       <p id="tp-mode-desc" class="tp-mode-desc">1局ごとに勝敗を決めます</p>
+      <!-- オンライン対戦（Premium-v109 ベータ）: P2P で離れた相手と対戦 -->
+      <h2 class="tp-mode-title">🌐 離れた相手と対戦（ベータ）</h2>
+      <div class="setup-buttons-row">
+        <button class="setup-btn" id="ol-host-btn" onclick="olHost()">部屋を作る</button>
+        <button class="setup-btn" id="ol-join-btn" onclick="olJoinPrompt()">部屋に入る</button>
+      </div>
+      <p id="ol-status" class="tp-mode-desc"></p>
     </div>
     <div class="setup-section" id="cpu-level-section">
       <h2>コンピューターのレベル</h2>
@@ -932,6 +939,8 @@
   <script src="js/training_juku.js"></script>
   <script src="js/records.js"></script>
   <script src="js/twoplayer.js"></script>
+  <script src="js/peerjs.min.js"></script>
+  <script src="js/online.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/daily.js"></script>
   <script src="js/settings.js"></script>
