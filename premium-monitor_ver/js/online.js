@@ -153,14 +153,18 @@ function _olOnMessage(m) {
     case 'hello':
       online.oppName = String(m.name || '相手').slice(0, 7);
       online.helloReceived = true;
-      // ホストは両者の hello が揃ったら開始合図を送る
+      // ホストは両者の hello が揃ったら開始合図を送る（対戦形式も同梱: Premium-v117）
       if (online.isHost) {
-        online.transport.send({ t: 'start' });
+        online.transport.send({ t: 'start', mode: (typeof tpMatchMode !== 'undefined' ? tpMatchMode : 'single') });
         _olStartGame();
       }
       break;
     case 'start':
-      if (!online.isHost) _olStartGame();
+      // Premium-v117: ゲストはホストが選んだ対戦形式（1局勝負/リバースマッチ）に合わせる
+      if (!online.isHost) {
+        if (typeof selectTpMode === 'function') selectTpMode(m.mode === 'reverse' ? 'reverse' : 'single');
+        _olStartGame();
+      }
       break;
     case 'mv':
       _olApplyRemoteMove(m.q, m.r, m.s, m.gp);
@@ -276,10 +280,16 @@ function olUpdateLobbyButtons() {
 function _olStartGame() {
   if (online.started) return;
   online.started = true;
-  // battleMode を 2人対戦に、対戦形式は1局勝負に固定（RMのオンライン対応は今後）
+  // Premium-v117: 対戦形式はホストの選択に従う（リバースマッチもオンライン対応）。
+  // ホストは自分の選択のまま、ゲストは start メッセージで合わせ済み
   selectBattleMode('two');
-  if (typeof selectTpMode === 'function') selectTpMode('single');
-  // 名前: ホスト=黒、ゲスト=白（既存の名前表示・成績・棋譜がそのまま機能する）
+  // 同名対策: 両者が同じアカウント名だと色の対応付けが崩れるため、ゲスト側に「２」を付ける
+  // （両端末で同じ規則を適用するので表示・記録が一致する）
+  if (online.oppName === online.myName) {
+    if (online.isHost) online.oppName = online.oppName + '２';
+    else online.myName = online.myName + '２';
+  }
+  // 名前: ホスト=1局目の黒、ゲスト=白（既存の名前表示・成績・棋譜がそのまま機能する）
   const b = document.getElementById('tp-black-name');
   const w = document.getElementById('tp-white-name');
   const blackName = online.isHost ? online.myName : online.oppName;
@@ -288,10 +298,20 @@ function _olStartGame() {
   if (w) w.value = whiteName;
   _olStatus('');
   _olSetLobbyButtons(false);
-  startGame();
+  startGame(); // 内部の tpPrepareMatch がリバースマッチなら tpRm を初期化する
+  olSyncMyColor();
   _olChatBar(true);
   olUpdateLobbyButtons();
   showTurn(`🌐 対戦開始！ あなたは${online.myColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}です`);
+}
+
+// Premium-v117: 自分の色は「黒の名前欄＝自分の名前か」から導出する。
+// 名前欄の入れ替え（自動交代・RM2局目）は両端末で同一に走るため、
+// これが常に正しい色の対応付けになる（手動で myColor を反転させる方式を廃止）
+function olSyncMyColor() {
+  if (!online) return;
+  online.myColor = (typeof tpNameFor === 'function' && tpNameFor('black') === online.myName)
+    ? 'black' : 'white';
 }
 
 // ===== 手の送受信 =====
@@ -355,12 +375,20 @@ function _olMaybeRematch() {
   if (!online || !online.rematchLocal || !online.rematchRemote) return;
   online.rematchLocal = false;
   online.rematchRemote = false;
-  online.myColor = opp(online.myColor); // 色を交代（名前欄は終局時に自動交代済み）
+  // Premium-v117: リバースマッチ2局目への継続か、新しいマッチかを区別
+  const _rmContinuing = (typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2 && tpRm.r1);
+  if (!_rmContinuing && typeof tpPrepareMatch === 'function') {
+    tpPrepareMatch(); // 新マッチ（RM選択中なら新しいRMのゲーム1として初期化）
+  }
+  olSyncMyColor(); // 色は名前欄から導出（1局目終了時・終局時に名前は交代済み）
   const btn = document.getElementById('play-again-btn');
   if (btn) { btn.textContent = 'もう1局'; btn.disabled = false; }
   document.getElementById('result-modal').style.display = 'none';
   initGame();
-  showTurn(`🌐 再戦！ あなたは${online.myColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}です`);
+  const _msg = _rmContinuing
+    ? `🌐 リバースマッチ2局目！ あなたは${online.myColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}です`
+    : `🌐 再戦！ あなたは${online.myColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}です`;
+  showTurn(_msg);
 }
 
 // ===== 切断・退室 =====
