@@ -21,12 +21,12 @@ let online = null; // {transport, isHost, code, myColor, myName, oppName,
 
 // Premium-v120: 中断した対局を復元するための保存キーと有効期限（30分）
 const OL_SESSION_KEY = 'rsg-ol-session';
-const OL_SESSION_TTL = 30 * 60 * 1000;
-const OL_RETRY_MS = 3000;        // 再接続の試行間隔
-const OL_RETRY_LIMIT = 120000;   // あきらめるまで（2分）
+const OL_SESSION_TTL = 2 * 60 * 60 * 1000; // v122: 30分→2時間
+const OL_RETRY_MS = 2000;        // 再接続の試行間隔
+const OL_RETRY_LIMIT = 300000;   // あきらめるまで（v122: 2分→5分）
 
-// Premium-v112: スマホで打ちやすいよう小文字に（紛らわしい l,o,0,1 は除外）
-const OL_CODE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
+// Premium-v122: 数字4桁のほうが口頭でも伝えやすく入力も速いので数字のみに
+const OL_CODE_CHARS = '0123456789';
 
 function olActive() {
   return !!(online && online.connected && online.started);
@@ -102,15 +102,33 @@ function _olCreateTransport(code, isHost, cb) {
   const ensurePeer = (ready) => {
     if (destroyed) return;
     if (peer && !peer.destroyed) {
-      if (peer.open) ready();
-      else peer.once('open', ready); // 接続確立の途中
-      return;
+      // Premium-v122: スマホのスリープでは受付窓口(シグナリングサーバ)との
+      // 接続も切れる。peer.destroyed は false のままなので生きているように
+      // 見えるが、この状態では発信も着信もできない。復帰させる必要がある。
+      if (peer.disconnected) {
+        try {
+          peer.once('open', ready);
+          peer.reconnect();
+        } catch (e) {
+          try { peer.destroy(); } catch (x) {}
+          peer = null;
+        }
+        if (peer) return;
+      } else if (peer.open) { ready(); return; }
+      else { peer.once('open', ready); return; }
     }
     peer = isHost ? new Peer(peerId) : new Peer();
     peer.on('error', (e) => {
       // ID重複は古い登録が残っているだけなので、次の再試行に任せる
       if (e && e.type === 'unavailable-id') { try { peer.destroy(); } catch (x) {} peer = null; return; }
+      // Premium-v122: 相手がまだ窓口に復帰していないだけなので再試行に任せる
+      if (e && e.type === 'peer-unavailable' && online && online.started) return;
       cb.onError(e);
+    });
+    // Premium-v122: 窓口との接続が切れたら自動で復帰を試みる
+    peer.on('disconnected', () => {
+      if (destroyed) return;
+      try { peer.reconnect(); } catch (e) {}
     });
     if (isHost) {
       peer.on('connection', (c) => {
@@ -124,6 +142,8 @@ function _olCreateTransport(code, isHost, cb) {
   const dial = () => {
     if (destroyed || isHost) return;   // ホストは相手からの接続を待つだけ
     if (conn && conn.open) return;
+    // Premium-v122: 開かないまま残っている古い通信路を片付けてからかけ直す
+    if (conn) { try { conn.close(); } catch (e) {} conn = null; }
     try { attach(peer.connect(peerId, { reliable: true })); } catch (e) {}
   };
 
@@ -157,9 +177,9 @@ function olJoinPrompt() {
   // Premium-v114: 対局中は「退出する」として動作（確認つきで明示的に切断）
   if (online && online.started && online.connected) { olLeaveRoom(); return; }
   if (online) { olTeardown(false); _olStatus('キャンセルしました'); olUpdateLobbyButtons(); return; }
-  const input = prompt('相手から聞いた部屋コードを入力してください（例: ab12）');
+  const input = prompt('相手から聞いた部屋コード（数字4桁）を入力してください');
   if (!input) return;
-  const code = input.trim().toLowerCase(); // 大文字で入力されても受け付ける
+  const code = input.trim().toLowerCase(); // 旧コード（英字）も受け付ける
   if (code.length < 3) { alert('部屋コードが短すぎます'); return; }
   _olBegin(code, false);
   _olStatus(`部屋【 ${code} 】に接続しています…`);
@@ -221,6 +241,15 @@ function _olOnMessage(m) {
     case 'hello':
       online.oppName = String(m.name || '相手').slice(0, 7);
       online.helloReceived = true;
+      // Premium-v122: すでに対局中なら新規開始せず、状態を送り返して復元させる
+      // （片方が「前回の対局に再接続」、もう片方が新規接続だと、以前は
+      //   開始フローが走って対局がリセットされていた）
+      if (online.started) {
+        online.transport.send(_olSyncPayload());
+        _olStopReconnect();
+        _olSetReconnectOverlay('', false);
+        break;
+      }
       // ホストは両者の hello が揃ったら開始合図を送る（対戦形式も同梱: Premium-v117）
       if (online.isHost) {
         online.transport.send({ t: 'start', mode: (typeof tpMatchMode !== 'undefined' ? tpMatchMode : 'single') });
@@ -229,10 +258,13 @@ function _olOnMessage(m) {
       }
       break;
     case 'start':
+      // Premium-v122: 対局中なら無視（復帰した相手が新規開始しようとしている）
+      if (online.started) { online.transport.send(_olSyncPayload()); break; }
       // Premium-v118: ゲストはホスト提案の形式を確認してから開始（1往復で決着）
       if (!online.isHost) _olAskFormat(m.mode === 'reverse' ? 'reverse' : 'single');
       break;
     case 'fmt':
+      if (online.started) break; // Premium-v122: 対局中なら無視（リセット防止）
       // Premium-v118: ゲストの最終決定が届いた（ホスト側で形式を合わせて開始）
       if (online.isHost) {
         if (typeof selectTpMode === 'function') selectTpMode(m.mode === 'reverse' ? 'reverse' : 'single');
@@ -294,6 +326,7 @@ function _olSyncPayload() {
 // 相手の状態を受け取って比較。相手が先に進んでいれば自分の盤面を作り直す
 async function _olHandleSync(p) {
   if (!online || !online.started) return;
+  _olStopReconnect(); // Premium-v122: 相手の状態が届いた＝つながっている
   const mySeq = online.gameSeq, myLen = online.moveLog.length;
   const theirSeq = p.seq || 0, theirLen = (p.moves || []).length;
   const behind = (theirSeq > mySeq) || (theirSeq === mySeq && theirLen > myLen);
@@ -805,6 +838,24 @@ async function olResumeSession() {
   };
   online.retryTimer = setTimeout(tick, OL_RETRY_MS);
 }
+
+// Premium-v122: スリープ中はタイマーも止まるため、復帰した瞬間に
+// 「制限時間はとっくに過ぎている」と判定されて即あきらめてしまっていた。
+// 画面に戻ってきたら時間を仕切り直し、その場で再試行する。
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (!online || !online.started) return;
+  if (online.connected) {
+    // つながっているように見えても実際は切れていることがあるので、
+    // 生存確認の基準時刻をリセットして ping を投げ直す
+    online.lastRecv = Date.now();
+    try { online.transport.send({ t: 'ping' }); } catch (e) {}
+    return;
+  }
+  online.retryUntil = Date.now() + OL_RETRY_LIMIT;
+  if (!online.reconnecting) _olStartReconnect();
+  else if (online.transport && online.transport.retry) online.transport.retry();
+});
 
 // 退室処理。sendBye=true なら相手に通知してから切る
 function olTeardown(sendBye) {
