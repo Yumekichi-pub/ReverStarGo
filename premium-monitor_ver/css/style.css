@@ -3590,3 +3590,11 @@
       display: block;
       width: 100%;
     }
+
+    /* Premium-v123: 再接続オーバーレイの補足文 */
+    .ol-reconnect-sub {
+      font-size: 0.8rem !important;
+      font-weight: normal !important;
+      color: #8a6a30 !important;
+      margin-bottom: 14px !important;
+    }

@@ -702,21 +702,40 @@ function _olStopHeartbeat() {
 }
 
 // ===== 自動再接続 (Premium-v120) =====
-function _olStartReconnect() {
+function _olStartReconnect(msg) {
   if (!online || online.reconnecting) return;
   online.reconnecting = true;
   online.connected = false;
   online.retryUntil = Date.now() + OL_RETRY_LIMIT;
+  online.retryCount = 0;
+  online.rebuilding = false;
   _olSaveSession();
-  _olSetReconnectOverlay('🔌 通信が切れました。再接続を試みています…', true);
+  _olSetReconnectOverlay(msg || '🔌 再接続を試みています…', true);
+  // Premium-v123: 軽い再試行（通信路だけ張り直す）を数回試し、だめなら
+  // 接続を丸ごと作り直す。実機検証では作り直しのほうが確実につながるため、
+  // 早い段階で作り直しに切り替える
   const tick = () => {
     if (!online || !online.reconnecting) return;
     if (Date.now() > online.retryUntil) { _olGiveUpReconnect(); return; }
-    const left = Math.max(0, Math.ceil((online.retryUntil - Date.now()) / 1000));
-    _olSetReconnectOverlay(`🔌 再接続を試みています…（あと${left}秒）`, true);
-    // Premium-v121: Peer は使い回し、通信路だけ張り直す（開通すれば onOpen で sync）
-    if (online.transport && online.transport.retry) online.transport.retry();
-    else _olConnect();
+    online.retryCount = (online.retryCount || 0) + 1;
+    if (online.retryCount <= 2 && online.transport && online.transport.retry) {
+      online.transport.retry();
+      online.retryTimer = setTimeout(tick, OL_RETRY_MS);
+      return;
+    }
+    if (!online.rebuilding) {
+      online.rebuilding = true;
+      try { if (online.transport) online.transport.close(); } catch (e) {}
+      online.transport = null;
+      // 窓口が古い登録を手放すのを待ってから作り直す（ID重複を避ける）
+      setTimeout(() => {
+        if (!online || !online.reconnecting) { if (online) online.rebuilding = false; return; }
+        _olConnect();
+        online.rebuilding = false;
+      }, 1500);
+      online.retryTimer = setTimeout(tick, 7000);
+      return;
+    }
     online.retryTimer = setTimeout(tick, OL_RETRY_MS);
   };
   tick();
@@ -752,9 +771,12 @@ function _olSetReconnectOverlay(msg, showCancel) {
   const el = document.getElementById('ol-reconnect-modal');
   const tx = document.getElementById('ol-reconnect-text');
   const btn = document.getElementById('ol-reconnect-cancel');
+  const sub = document.getElementById('ol-reconnect-sub');
   if (!el || !tx) return;
   if (!msg) { el.style.display = 'none'; return; }
   tx.textContent = msg;
+  // Premium-v123: 残り秒数は「あと◯分待つのか」と不安にさせるので出さない
+  if (sub) sub.style.display = showCancel ? '' : 'none';
   if (btn) btn.style.display = showCancel ? '' : 'none';
   el.style.display = 'flex';
 }
@@ -825,18 +847,10 @@ async function olResumeSession() {
   olUpdateLobbyButtons();
   olUpdateResumeButton();
   _olConnect();               // ここで初めて接続（onOpen では sync が飛ぶ）
-  online.reconnecting = true;
-  online.retryUntil = Date.now() + OL_RETRY_LIMIT;
-  _olSetReconnectOverlay('🔌 相手に再接続しています…', true);
-  const tick = () => {
-    if (!online || !online.reconnecting) return;
-    if (Date.now() > online.retryUntil) { _olGiveUpReconnect(); return; }
-    const left = Math.max(0, Math.ceil((online.retryUntil - Date.now()) / 1000));
-    _olSetReconnectOverlay(`🔌 相手に再接続しています…（あと${left}秒）`, true);
-    if (online.transport && online.transport.retry) online.transport.retry();
-    online.retryTimer = setTimeout(tick, OL_RETRY_MS);
-  };
-  online.retryTimer = setTimeout(tick, OL_RETRY_MS);
+  // Premium-v123: 復元した盤面をすぐ見せる（以前は設定画面のままで、
+  // 「部屋を作る」を押して初めて盤面が出るため繋がったことに気づけなかった）
+  olReturnToGame();
+  _olStartReconnect('🔌 相手に接続しています…');
 }
 
 // Premium-v122: スリープ中はタイマーも止まるため、復帰した瞬間に
