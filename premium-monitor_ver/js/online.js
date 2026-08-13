@@ -16,7 +16,14 @@
 
 let online = null; // {transport, isHost, code, myColor, myName, oppName,
                    //  connected, applyingRemote, rematchLocal, rematchRemote,
-                   //  helloReceived, started}
+                   //  helloReceived, started, moveLog, gameSeq,
+                   //  reconnecting, replaying, retryTimer, retryUntil}
+
+// Premium-v120: 中断した対局を復元するための保存キーと有効期限（30分）
+const OL_SESSION_KEY = 'rsg-ol-session';
+const OL_SESSION_TTL = 30 * 60 * 1000;
+const OL_RETRY_MS = 3000;        // 再接続の試行間隔
+const OL_RETRY_LIMIT = 120000;   // あきらめるまで（2分）
 
 // Premium-v112: スマホで打ちやすいよう小文字に（紛らわしい l,o,0,1 は除外）
 const OL_CODE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
@@ -27,6 +34,8 @@ function olActive() {
 
 // 自分のターン以外・リモート適用中は盤面入力を無効化（events.js から参照）
 function onlineBlocksInput() {
+  // Premium-v120: 再接続中・復元中は着手させない（相手と状態がずれるため）
+  if (online && (online.reconnecting || online.replaying)) return true;
   if (!olActive()) return false;
   return online.applyingRemote || current !== online.myColor;
 }
@@ -123,25 +132,44 @@ function _olBegin(code, isHost) {
     code, isHost, transport: null, myColor: isHost ? 'black' : 'white',
     myName: _olMyName(), oppName: '', connected: false, started: false,
     applyingRemote: false, rematchLocal: false, rematchRemote: false,
-    helloReceived: false
+    helloReceived: false,
+    moveLog: [], gameSeq: 0,          // Premium-v120: 再接続時の照合用
+    reconnecting: false, replaying: false, retryTimer: null, retryUntil: 0
   };
+  _olConnect();
+}
+
+// トランスポートを作って接続する。再接続時も同じ経路を通る (Premium-v120)
+function _olConnect() {
+  const { code, isHost } = online;
   online.transport = _olCreateTransport(code, isHost, {
     onOpen: () => {
+      if (!online) return;
       online.connected = true;
-      online.transport.send({ t: 'hello', name: online.myName });
-      _olStatus('接続しました。相手の情報を待っています…');
+      if (online.started) {
+        // 再接続: 対局の状態を送り合って、遅れている側が復元する
+        _olStopReconnect();
+        _olSetReconnectOverlay('🔌 再接続しました。対局を復元しています…', false);
+        online.transport.send(_olSyncPayload());
+      } else {
+        online.transport.send({ t: 'hello', name: online.myName });
+        _olStatus('接続しました。相手の情報を待っています…');
+      }
     },
     onData: (m) => _olOnMessage(m),
     onClose: () => _olOnDisconnect('lost'),
     onError: (e) => {
       console.warn('[online] error', e);
       const type = e && e.type;
+      if (online && (online.reconnecting || online.started)) return; // 再接続中の失敗は握りつぶして再試行
       if (type === 'peer-unavailable') {
         _olStatus('その部屋コードが見つかりません。コードを確認してください');
         olTeardown(false);
+        olUpdateLobbyButtons();
       } else if (!olActive()) {
         _olStatus('接続エラーが発生しました。通信環境を変えて再度お試しください');
         olTeardown(false);
+        olUpdateLobbyButtons();
       }
     }
   });
@@ -149,6 +177,8 @@ function _olBegin(code, isHost) {
 
 function _olOnMessage(m) {
   if (!online || !m || typeof m !== 'object') return;
+  online.lastRecv = Date.now(); // Premium-v120: 生存確認用
+
   switch (m.t) {
     case 'hello':
       online.oppName = String(m.name || '相手').slice(0, 7);
@@ -194,9 +224,88 @@ function _olOnMessage(m) {
       _olRemoveBubble('gpwait');
       _olBubble(m.c === 'black' ? '💠 CPコール黒' : '💠 CPコール白', 'cp');
       break;
+    case 'ping':
+      // Premium-v120: 心拍。受け取ったこと自体が「生きている」証拠
+      break;
+    case 'sync':
+      // Premium-v120: 再接続後の状態照合。相手が進んでいれば自分が復元する
+      _olHandleSync(m);
+      break;
     case 'bye':
       _olOnDisconnect('left');
       break;
+  }
+}
+
+// ===== 再接続と対局の復元 (Premium-v120) =====
+
+// 自分の対局状態をひとまとめにする（相手へ送る / localStorage 保存に使う）
+function _olSyncPayload() {
+  return {
+    t: 'sync',
+    seq: online.gameSeq,
+    moves: online.moveLog,
+    mode: (typeof tpMatchMode !== 'undefined') ? tpMatchMode : 'single',
+    blackName: (typeof tpNameFor === 'function') ? tpNameFor('black') : '',
+    whiteName: (typeof tpNameFor === 'function') ? tpNameFor('white') : '',
+    rm: (typeof tpRm !== 'undefined' && tpRm) ? JSON.parse(JSON.stringify(tpRm)) : null,
+    name: online.myName
+  };
+}
+
+// 相手の状態を受け取って比較。相手が先に進んでいれば自分の盤面を作り直す
+async function _olHandleSync(p) {
+  if (!online || !online.started) return;
+  const mySeq = online.gameSeq, myLen = online.moveLog.length;
+  const theirSeq = p.seq || 0, theirLen = (p.moves || []).length;
+  const behind = (theirSeq > mySeq) || (theirSeq === mySeq && theirLen > myLen);
+  if (behind) {
+    await _olApplySync(p);
+    _olBubble('🔌 対局を復元しました', 'cp');
+  }
+  // 進んでいる側は何もしない（相手が自分の sync を受け取って追いつく）
+  _olSetReconnectOverlay('', false);
+  _olSaveSession();
+  _olStartHeartbeat();
+  if (!behind) _olBubble('🔌 再接続しました', 'cp');
+}
+
+// 相手の状態にそろえる: 盤面をリセットして手を最初から無音・無アニメで再生する
+async function _olApplySync(p) {
+  online.replaying = true;
+  const savedAnim = (typeof animationsEnabled !== 'undefined') ? animationsEnabled : true;
+  if (typeof animationsEnabled !== 'undefined') animationsEnabled = false;
+  try {
+    if (typeof selectTpMode === 'function') selectTpMode(p.mode === 'reverse' ? 'reverse' : 'single');
+    const b = document.getElementById('tp-black-name');
+    const w = document.getElementById('tp-white-name');
+    if (b) b.value = p.blackName || '';
+    if (w) w.value = p.whiteName || '';
+    if (typeof tpRm !== 'undefined') tpRm = p.rm ? JSON.parse(JSON.stringify(p.rm)) : null;
+    online.gameSeq = p.seq || 0;
+    online.moveLog = (p.moves || []).slice();
+    // 表示中のモーダルを片付けてから再生
+    document.getElementById('gp-modal').style.display = 'none';
+    document.getElementById('result-modal').style.display = 'none';
+    const _pm = document.getElementById('pass-modal');
+    if (_pm) _pm.style.display = 'none';
+    pendingMove = null;
+    initGame();
+    for (const mv of online.moveLog) {
+      // onCellClick と同じコウ例外の帳簿づけ（判定を一致させる）
+      const allValid = getValidMoves(current);
+      const valid = filterKoMoves(allValid, current);
+      const needsKo = valid.length === 0 && allValid.length > 0;
+      if (needsKo && prevKoException) { endGame(); break; }
+      prevKoException = needsKo && !prevKoException;
+      await executeMove(mv.q, mv.r, mv.s, mv.gp === undefined ? null : mv.gp);
+    }
+    olSyncMyColor();
+  } catch (e) {
+    console.error('[online] 対局の復元に失敗', e);
+  } finally {
+    if (typeof animationsEnabled !== 'undefined') animationsEnabled = savedAnim;
+    online.replaying = false;
   }
 }
 
@@ -268,6 +377,7 @@ function olReturnToGame() {
 // 確認つきで部屋から退出する（相手に通知して切断）
 function olLeaveRoom() {
   if (!confirm(`部屋【 ${online.code} 】から退出しますか？\n対局は終了し、相手に通知されます。`)) return;
+  _olClearSession();
   olTeardown(true);
   _olStatus('退出しました');
   olUpdateLobbyButtons();
@@ -349,8 +459,12 @@ function _olStartGame() {
   if (w) w.value = whiteName;
   _olStatus('');
   _olSetLobbyButtons(false);
+  online.moveLog = [];   // Premium-v120: 新しい対局なので手ログをリセット
+  online.gameSeq = 1;
+  _olStartHeartbeat();
   startGame(); // 内部の tpPrepareMatch がリバースマッチなら tpRm を初期化する
   olSyncMyColor();
+  _olSaveSession();
   _olChatBar(true);
   olUpdateLobbyButtons();
   showTurn(`🌐 対戦開始！ あなたは${online.myColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}です`);
@@ -368,8 +482,12 @@ function olSyncMyColor() {
 // ===== 手の送受信 =====
 // executeMove の冒頭から呼ばれる（自分の手のみ送信）
 function olMaybeSendMove(q, r, s, gpColor) {
-  if (!olActive() || online.applyingRemote) return;
+  if (!online || online.replaying) return; // 復元の再生中は送らない
+  // Premium-v120: 自分・相手どちらの手も記録する（再接続時の照合に使う）
+  if (online.started) online.moveLog.push({ q, r, s, gp: gpColor === undefined ? null : gpColor });
+  if (!olActive() || online.applyingRemote) { _olSaveSession(); return; }
   online.transport.send({ t: 'mv', q, r, s, gp: gpColor });
+  _olSaveSession();
 }
 
 // Premium-v114: CPコール選択画面を開いた/選んだことを相手に知らせる
@@ -435,7 +553,10 @@ function _olMaybeRematch() {
   const btn = document.getElementById('play-again-btn');
   if (btn) { btn.textContent = 'もう1局'; btn.disabled = false; }
   document.getElementById('result-modal').style.display = 'none';
+  online.moveLog = [];      // Premium-v120: 次の対局用にリセットして連番を進める
+  online.gameSeq = (online.gameSeq || 0) + 1;
   initGame();
+  _olSaveSession();
   const _msg = _rmContinuing
     ? `🌐 リバースマッチ2局目！ あなたは${online.myColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}です`
     : `🌐 再戦！ あなたは${online.myColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}です`;
@@ -445,8 +566,15 @@ function _olMaybeRematch() {
 // ===== 切断・退室 =====
 function _olOnDisconnect(reason) {
   if (!online) return;
+  // Premium-v120: 対局中の通信断は退出扱いにせず、自動で再接続を試みる
+  // （相手が明示的に退出した 'left' のときだけ即終了）
+  if (reason === 'lost' && online.started && !online.reconnecting) {
+    _olStartReconnect();
+    return;
+  }
   const oppName = online.oppName || '相手';
   const started = online.started; // 対局が始まっていたか
+  _olClearSession();
   olTeardown(false);
   _olStatus('');
   const msg = reason === 'left'
@@ -478,9 +606,164 @@ function olNoticeClose() {
   if (typeof backToSetupPage === 'function') backToSetupPage();
 }
 
+// ===== 心拍による生存確認 (Premium-v120) =====
+// スマホのスリープやアプリ破棄では切断通知が飛ばないことがあるため、
+// 定期的に ping を送り、一定時間相手から何も届かなければ切断とみなす
+const OL_PING_MS = 5000;
+const OL_DEAD_MS = 16000;
+
+function _olStartHeartbeat() {
+  _olStopHeartbeat();
+  if (!online) return;
+  online.lastRecv = Date.now();
+  online.pingTimer = setInterval(() => {
+    if (!online || online.reconnecting) return;
+    if (online.connected) { try { online.transport.send({ t: 'ping' }); } catch (e) {} }
+    if (online.started && Date.now() - (online.lastRecv || 0) > OL_DEAD_MS) {
+      _olStartReconnect(); // 無言のまま応答が途絶えた
+    }
+  }, OL_PING_MS);
+}
+
+function _olStopHeartbeat() {
+  if (online && online.pingTimer) { clearInterval(online.pingTimer); online.pingTimer = null; }
+}
+
+// ===== 自動再接続 (Premium-v120) =====
+function _olStartReconnect() {
+  if (!online || online.reconnecting) return;
+  online.reconnecting = true;
+  online.connected = false;
+  online.retryUntil = Date.now() + OL_RETRY_LIMIT;
+  _olSaveSession();
+  try { if (online.transport) online.transport.close(); } catch (e) {}
+  online.transport = null;
+  _olSetReconnectOverlay('🔌 通信が切れました。再接続を試みています…', true);
+  const tick = () => {
+    if (!online || !online.reconnecting) return;
+    if (Date.now() > online.retryUntil) { _olGiveUpReconnect(); return; }
+    const left = Math.max(0, Math.ceil((online.retryUntil - Date.now()) / 1000));
+    _olSetReconnectOverlay(`🔌 再接続を試みています…（あと${left}秒）`, true);
+    try { if (online.transport) online.transport.close(); } catch (e) {}
+    _olConnect(); // 開通すれば onOpen で sync が走る
+    online.retryTimer = setTimeout(tick, OL_RETRY_MS);
+  };
+  tick();
+}
+
+function _olStopReconnect() {
+  if (!online) return;
+  online.reconnecting = false;
+  if (online.retryTimer) { clearTimeout(online.retryTimer); online.retryTimer = null; }
+}
+
+function _olGiveUpReconnect() {
+  if (!online) return;
+  const oppName = online.oppName || '相手';
+  _olStopReconnect();
+  _olSetReconnectOverlay('', false);
+  _olClearSession();
+  olTeardown(false);
+  _olStatus('');
+  _olShowNotice(`⚡ ${oppName}と再接続できませんでした`);
+}
+
+// ユーザーが「あきらめる」を押したとき
+function olCancelReconnect() {
+  if (!online) return;
+  _olGiveUpReconnect();
+}
+
+// 再接続中のオーバーレイ表示。msg が空なら隠す
+function _olSetReconnectOverlay(msg, showCancel) {
+  const el = document.getElementById('ol-reconnect-modal');
+  const tx = document.getElementById('ol-reconnect-text');
+  const btn = document.getElementById('ol-reconnect-cancel');
+  if (!el || !tx) return;
+  if (!msg) { el.style.display = 'none'; return; }
+  tx.textContent = msg;
+  if (btn) btn.style.display = showCancel ? '' : 'none';
+  el.style.display = 'flex';
+}
+
+// ===== 中断した対局の保存と復元 (Premium-v120) =====
+// ページごと閉じられた場合（スマホがアプリを破棄した等）に備えて
+// 部屋コードと対局内容を保存しておき、次回起動時に再開できるようにする
+function _olSaveSession() {
+  if (!online || !online.started) return;
+  try {
+    const p = _olSyncPayload();
+    p.code = online.code;
+    p.isHost = online.isHost;
+    p.oppName = online.oppName;
+    p.ts = Date.now();
+    localStorage.setItem(OL_SESSION_KEY, JSON.stringify(p));
+  } catch (e) {}
+}
+
+function _olClearSession() {
+  try { localStorage.removeItem(OL_SESSION_KEY); } catch (e) {}
+  olUpdateResumeButton();
+}
+
+function _olLoadSession() {
+  try {
+    const raw = localStorage.getItem(OL_SESSION_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (!p || !p.code || !p.ts || (Date.now() - p.ts) > OL_SESSION_TTL) {
+      localStorage.removeItem(OL_SESSION_KEY);
+      return null;
+    }
+    return p;
+  } catch (e) { return null; }
+}
+
+// 「前回の対局に再接続」ボタンの表示を更新（保存があるときだけ出す）
+function olUpdateResumeButton() {
+  const btn = document.getElementById('ol-resume-btn');
+  if (!btn) return;
+  const p = (online ? null : _olLoadSession());
+  if (p) {
+    btn.style.display = '';
+    btn.textContent = `🔄 前回の対局に再接続（相手: ${p.oppName || '?'}）`;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+// 保存された対局を復元して同じ部屋につなぎ直す
+async function olResumeSession() {
+  const p = _olLoadSession();
+  if (!p) { olUpdateResumeButton(); return; }
+  _olBegin(p.code, p.isHost);
+  online.started = true;      // 対局中として再開（onOpen で sync を送る）
+  online.myName = p.name || _olMyName();
+  online.oppName = p.oppName || '相手';
+  selectBattleMode('two');
+  await _olApplySync(p);      // 保存内容から盤面を復元
+  _olChatBar(true);
+  olUpdateLobbyButtons();
+  olUpdateResumeButton();
+  _olSetReconnectOverlay('🔌 相手に再接続しています…', true);
+  online.reconnecting = true;
+  online.retryUntil = Date.now() + OL_RETRY_LIMIT;
+  const tick = () => {
+    if (!online || !online.reconnecting) return;
+    if (Date.now() > online.retryUntil) { _olGiveUpReconnect(); return; }
+    const left = Math.max(0, Math.ceil((online.retryUntil - Date.now()) / 1000));
+    _olSetReconnectOverlay(`🔌 相手に再接続しています…（あと${left}秒）`, true);
+    online.retryTimer = setTimeout(tick, OL_RETRY_MS);
+  };
+  tick();
+}
+
 // 退室処理。sendBye=true なら相手に通知してから切る
 function olTeardown(sendBye) {
   if (!online) return;
+  _olStopHeartbeat();
+  _olStopReconnect();
+  _olSetReconnectOverlay('', false);
   _olChatBar(false);
   const _bw = document.getElementById('ol-bubble-wrap');
   if (_bw) _bw.innerHTML = '';

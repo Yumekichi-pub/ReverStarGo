@@ -3564,3 +3564,29 @@
       font-weight: normal;
       margin-bottom: 0;
     }
+
+    /* ===== Premium-v120: 再接続中のオーバーレイ ===== */
+    #ol-reconnect-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.62);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 970;
+      padding: 20px;
+    }
+    .ol-reconnect-spinner {
+      width: 38px;
+      height: 38px;
+      margin: 0 auto 14px;
+      border: 4px solid #e8d8a8;
+      border-top-color: #c09020;
+      border-radius: 50%;
+      animation: olSpin 0.9s linear infinite;
+    }
+    @keyframes olSpin { to { transform: rotate(360deg); } }
+    #ol-reconnect-modal .ol-notice-content button {
+      display: block;
+      width: 100%;
+    }

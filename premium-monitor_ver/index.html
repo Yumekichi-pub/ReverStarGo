@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v119</p>
+    <p class="app-version">Premium-v120</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -155,6 +155,7 @@
         <button class="setup-btn" id="ol-host-btn" onclick="olHost()">部屋を作る</button>
         <button class="setup-btn" id="ol-join-btn" onclick="olJoinPrompt()">部屋に入る</button>
       </div>
+      <button class="setup-btn" id="ol-resume-btn" style="display:none;" onclick="olResumeSession()">🔄 前回の対局に再接続</button>
       <p id="ol-status" class="tp-mode-desc"></p>
     </div>
     <div class="setup-section" id="cpu-level-section">
@@ -706,6 +707,15 @@
     <input id="ol-chat-input" maxlength="30" placeholder="一言メッセージ（30文字まで）"
            onkeydown="if(event.key==='Enter'){olSendChat();}">
     <button type="button" onclick="olSendChat()">送信</button>
+  </div>
+
+  <!-- オンライン対戦: 再接続中のオーバーレイ (Premium-v120) -->
+  <div id="ol-reconnect-modal" style="display:none;">
+    <div class="ol-notice-content">
+      <div class="ol-reconnect-spinner"></div>
+      <p id="ol-reconnect-text"></p>
+      <button type="button" id="ol-reconnect-cancel" class="ol-format-alt" onclick="olCancelReconnect()">あきらめる</button>
+    </div>
   </div>
 
   <!-- オンライン対戦: 対戦形式の確認 (Premium-v118) -->

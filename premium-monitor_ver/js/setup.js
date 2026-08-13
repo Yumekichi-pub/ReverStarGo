@@ -106,6 +106,8 @@ function selectBattleMode(mode) {
   if (tpSec) {
     tpSec.style.display = mode === 'two' ? '' : 'none';
     if (mode === 'two' && typeof updateTpNameSection === 'function') updateTpNameSection();
+    // Premium-v120: 中断した対局があれば「前回の対局に再接続」を表示
+    if (mode === 'two' && typeof olUpdateResumeButton === 'function') olUpdateResumeButton();
   }
 }
 function selectSound(enabled) {
@@ -631,6 +633,11 @@ function showPassModal(message) {
       resolve();
     };
     document.getElementById('pass-ok').addEventListener('click', handler);
+    // Premium-v120: 対局の復元中（再接続後の再生）は待たずに即座に進める
+    if (typeof online !== 'undefined' && online && online.replaying) {
+      handler();
+      return;
+    }
     // Premium-v111: オンライン対戦では OK クリック待ちで両端末の進行がずれて
     // デッドロックするため、約2秒表示して自動で進める（先にOKを押してもよい）
     if (typeof olActive === 'function' && olActive()) {
@@ -729,8 +736,10 @@ async function updateGame(showTurnChange = false) {
   }
 
   if (battleMode === 'two' && showTurnChange
-      && !(typeof olActive === 'function' && olActive())) {
+      && !(typeof olActive === 'function' && olActive())
+      && !(typeof online !== 'undefined' && online && online.replaying)) {
     // オンライン対戦では各自の端末があるので交代オーバーレイは不要
+    // Premium-v120: 対局の復元中もタップ待ちで止まらないよう抑止する
     await showTurnModal();
   }
 

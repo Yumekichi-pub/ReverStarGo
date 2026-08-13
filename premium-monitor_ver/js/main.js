@@ -35,6 +35,8 @@ if ('serviceWorker' in navigator) {
 // ===== スタート =====
 // Premium-v54: 戦績データの署名移行（初回のみ。既存ランク維持 + 改ざん検知を有効化）
 if (typeof _rsgInit === 'function') _rsgInit();
+// Premium-v120: 中断した対局が保存されていれば「前回の対局に再接続」を出す
+if (typeof olUpdateResumeButton === 'function') olUpdateResumeButton();
 // セットアップ画面が表示されるのでゲームは startGame() から開始
 loadSettings();
 promotionExam = loadPromotionExam(); // 昇格試験の復元
