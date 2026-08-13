@@ -67,40 +67,78 @@ function _olCreateTransport(code, isHost, cb) {
     const open = () => { if (!opened) { opened = true; cb.onOpen(); } };
     ch.onmessage = (e) => {
       const m = e.data;
-      if (m && m.sys === 'join' && isHost) { ch.postMessage({ sys: 'ack' }); open(); return; }
-      if (m && m.sys === 'ack' && !isHost) { open(); return; }
+      if (m && m.sys === 'join' && isHost) { ch.postMessage({ sys: 'ack' }); opened = false; open(); return; }
+      if (m && m.sys === 'ack' && !isHost) { opened = false; open(); return; }
       if (m && m.sys === 'close') { cb.onClose(); return; }
       if (m && 'd' in m) cb.onData(m.d);
     };
     if (!isHost) ch.postMessage({ sys: 'join' });
+    let chClosed = false;
     return {
-      send: (obj) => ch.postMessage({ d: obj }),
-      close: () => { try { ch.postMessage({ sys: 'close' }); ch.close(); } catch (e) {} }
+      send: (obj) => { try { if (!chClosed) ch.postMessage({ d: obj }); } catch (e) {} },
+      // Premium-v121: 再接続の再試行（ゲストが名乗り直す。ホストは待つだけ）
+      retry: () => { try { if (!chClosed && !isHost) ch.postMessage({ sys: 'join' }); } catch (e) {} },
+      close: () => { try { ch.postMessage({ sys: 'close' }); ch.close(); } catch (e) {} chClosed = true; }
     };
   }
   // ===== PeerJS 版 =====
+  // Premium-v121: 再接続のたびに Peer を作り直すと、ホストは同じIDを
+  // 取り直そうとして自分自身の古い登録と衝突し、永久に繋がらなくなる。
+  // Peer（＝部屋の番号札）は使い回し、切れた通信路だけを張り直す。
   const peerId = 'rsg-p2p-' + code;
   let conn = null;
-  const peer = isHost ? new Peer(peerId) : new Peer();
-  const bindConn = (c) => {
+  let peer = null;
+  let destroyed = false;
+
+  const attach = (c) => {
     conn = c;
     c.on('open', () => cb.onOpen());
     c.on('data', (d) => cb.onData(d));
-    c.on('close', () => cb.onClose());
+    c.on('close', () => { if (conn === c) conn = null; cb.onClose(); });
     c.on('error', (e) => cb.onError(e));
   };
-  peer.on('error', (e) => cb.onError(e));
-  if (isHost) {
-    peer.on('connection', (c) => {
-      if (conn) { try { c.close(); } catch (e) {} return; } // 2人目以降は拒否
-      bindConn(c);
+
+  // Peer を用意して（生きていれば使い回して）ready を呼ぶ
+  const ensurePeer = (ready) => {
+    if (destroyed) return;
+    if (peer && !peer.destroyed) {
+      if (peer.open) ready();
+      else peer.once('open', ready); // 接続確立の途中
+      return;
+    }
+    peer = isHost ? new Peer(peerId) : new Peer();
+    peer.on('error', (e) => {
+      // ID重複は古い登録が残っているだけなので、次の再試行に任せる
+      if (e && e.type === 'unavailable-id') { try { peer.destroy(); } catch (x) {} peer = null; return; }
+      cb.onError(e);
     });
-  } else {
-    peer.on('open', () => bindConn(peer.connect(peerId, { reliable: true })));
-  }
+    if (isHost) {
+      peer.on('connection', (c) => {
+        if (conn && conn.open) { try { c.close(); } catch (e) {} return; } // 2人目は拒否
+        attach(c);
+      });
+    }
+    peer.on('open', ready);
+  };
+
+  const dial = () => {
+    if (destroyed || isHost) return;   // ホストは相手からの接続を待つだけ
+    if (conn && conn.open) return;
+    try { attach(peer.connect(peerId, { reliable: true })); } catch (e) {}
+  };
+
+  ensurePeer(dial);
+
   return {
     send: (obj) => { if (conn && conn.open) conn.send(obj); },
-    close: () => { try { if (conn) conn.close(); } catch (e) {} try { peer.destroy(); } catch (e) {} }
+    // 再接続の再試行。Peer は壊さず、通信路だけ張り直す
+    retry: () => { if (!destroyed) ensurePeer(dial); },
+    close: () => {
+      destroyed = true;
+      try { if (conn) conn.close(); } catch (e) {}
+      try { if (peer) peer.destroy(); } catch (e) {}
+      conn = null; peer = null;
+    }
   };
 }
 
@@ -386,6 +424,7 @@ function olLeaveRoom() {
 // 接続状態に応じてボタンの表示を切り替える
 // 通常時: 「部屋を作る」「部屋に入る」 / 対局中: 「▶ 部屋に戻る」「🚪 退出する」
 function olUpdateLobbyButtons() {
+  if (typeof olUpdateResumeButton === 'function') olUpdateResumeButton();
   const h = document.getElementById('ol-host-btn');
   const j = document.getElementById('ol-join-btn');
   if (!h || !j) return;
@@ -636,16 +675,15 @@ function _olStartReconnect() {
   online.connected = false;
   online.retryUntil = Date.now() + OL_RETRY_LIMIT;
   _olSaveSession();
-  try { if (online.transport) online.transport.close(); } catch (e) {}
-  online.transport = null;
   _olSetReconnectOverlay('🔌 通信が切れました。再接続を試みています…', true);
   const tick = () => {
     if (!online || !online.reconnecting) return;
     if (Date.now() > online.retryUntil) { _olGiveUpReconnect(); return; }
     const left = Math.max(0, Math.ceil((online.retryUntil - Date.now()) / 1000));
     _olSetReconnectOverlay(`🔌 再接続を試みています…（あと${left}秒）`, true);
-    try { if (online.transport) online.transport.close(); } catch (e) {}
-    _olConnect(); // 開通すれば onOpen で sync が走る
+    // Premium-v121: Peer は使い回し、通信路だけ張り直す（開通すれば onOpen で sync）
+    if (online.transport && online.transport.retry) online.transport.retry();
+    else _olConnect();
     online.retryTimer = setTimeout(tick, OL_RETRY_MS);
   };
   tick();
@@ -662,10 +700,12 @@ function _olGiveUpReconnect() {
   const oppName = online.oppName || '相手';
   _olStopReconnect();
   _olSetReconnectOverlay('', false);
-  _olClearSession();
+  // Premium-v121: 保存は残す（あとで「🔄 前回の対局に再接続」から再開できる）
+  _olSaveSession();
   olTeardown(false);
   _olStatus('');
-  _olShowNotice(`⚡ ${oppName}と再接続できませんでした`);
+  olUpdateResumeButton();
+  _olShowNotice(`⚡ ${oppName}と再接続できませんでした\n（ゲーム設定の「🔄 前回の対局に再接続」からやり直せます）`);
 }
 
 // ユーザーが「あきらめる」を押したとき
@@ -736,26 +776,34 @@ function olUpdateResumeButton() {
 async function olResumeSession() {
   const p = _olLoadSession();
   if (!p) { olUpdateResumeButton(); return; }
-  _olBegin(p.code, p.isHost);
-  online.started = true;      // 対局中として再開（onOpen で sync を送る）
-  online.myName = p.name || _olMyName();
-  online.oppName = p.oppName || '相手';
+  // Premium-v121: 先に状態を組み立ててから接続する
+  // （started を立てる前に開通すると hello が飛んで新規対局扱いになるため）
+  online = {
+    code: p.code, isHost: !!p.isHost, transport: null,
+    myColor: 'black', myName: p.name || _olMyName(), oppName: p.oppName || '相手',
+    connected: false, started: true,
+    applyingRemote: false, rematchLocal: false, rematchRemote: false,
+    helloReceived: true, moveLog: [], gameSeq: p.seq || 0,
+    reconnecting: false, replaying: false, retryTimer: null, retryUntil: 0
+  };
   selectBattleMode('two');
   await _olApplySync(p);      // 保存内容から盤面を復元
   _olChatBar(true);
   olUpdateLobbyButtons();
   olUpdateResumeButton();
-  _olSetReconnectOverlay('🔌 相手に再接続しています…', true);
+  _olConnect();               // ここで初めて接続（onOpen では sync が飛ぶ）
   online.reconnecting = true;
   online.retryUntil = Date.now() + OL_RETRY_LIMIT;
+  _olSetReconnectOverlay('🔌 相手に再接続しています…', true);
   const tick = () => {
     if (!online || !online.reconnecting) return;
     if (Date.now() > online.retryUntil) { _olGiveUpReconnect(); return; }
     const left = Math.max(0, Math.ceil((online.retryUntil - Date.now()) / 1000));
     _olSetReconnectOverlay(`🔌 相手に再接続しています…（あと${left}秒）`, true);
+    if (online.transport && online.transport.retry) online.transport.retry();
     online.retryTimer = setTimeout(tick, OL_RETRY_MS);
   };
-  tick();
+  online.retryTimer = setTimeout(tick, OL_RETRY_MS);
 }
 
 // 退室処理。sendBye=true なら相手に通知してから切る
