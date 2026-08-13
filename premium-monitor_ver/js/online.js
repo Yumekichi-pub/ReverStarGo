@@ -156,14 +156,23 @@ function _olOnMessage(m) {
       // ホストは両者の hello が揃ったら開始合図を送る（対戦形式も同梱: Premium-v117）
       if (online.isHost) {
         online.transport.send({ t: 'start', mode: (typeof tpMatchMode !== 'undefined' ? tpMatchMode : 'single') });
-        _olStartGame();
+        // Premium-v118: ゲストが形式を確認して返事(fmt)するまで待つ
+        _olStatus(`${online.oppName}さんが対戦形式を確認しています…`);
       }
       break;
     case 'start':
-      // Premium-v117: ゲストはホストが選んだ対戦形式（1局勝負/リバースマッチ）に合わせる
-      if (!online.isHost) {
+      // Premium-v118: ゲストはホスト提案の形式を確認してから開始（1往復で決着）
+      if (!online.isHost) _olAskFormat(m.mode === 'reverse' ? 'reverse' : 'single');
+      break;
+    case 'fmt':
+      // Premium-v118: ゲストの最終決定が届いた（ホスト側で形式を合わせて開始）
+      if (online.isHost) {
         if (typeof selectTpMode === 'function') selectTpMode(m.mode === 'reverse' ? 'reverse' : 'single');
+        const _changed = m.changed;
         _olStartGame();
+        if (_changed) {
+          _olBubble(`🤝 ${online.oppName}の希望で${m.mode === 'reverse' ? 'リバースマッチ' : '1局勝負'}になりました`, 'cp');
+        }
       }
       break;
     case 'mv':
@@ -274,6 +283,48 @@ function olUpdateLobbyButtons() {
   h.textContent = inRoom ? '▶ 部屋に戻る' : '部屋を作る';
   j.textContent = inRoom ? '🚪 退出する' : '部屋に入る';
   if (inRoom) _olStatus(`対局中の部屋【 ${online.code} 】 相手: ${online.oppName}`);
+}
+
+// ===== 対戦形式の合意 (Premium-v118) =====
+// ホストが選んだ形式をゲストに確認する。ゲストの選択がそのまま最終決定
+// （ホストへの再確認はしない＝行き止まりが発生しない）
+function _olAskFormat(hostMode) {
+  const modal = document.getElementById('ol-format-modal');
+  const text = document.getElementById('ol-format-text');
+  const okBtn = document.getElementById('ol-format-ok');
+  const altBtn = document.getElementById('ol-format-alt');
+  if (!modal || !text || !okBtn || !altBtn) { // 保険: UIが無ければ提案通り開始
+    if (typeof selectTpMode === 'function') selectTpMode(hostMode);
+    _olFinishFormat(hostMode, false);
+    return;
+  }
+  const isRm = hostMode === 'reverse';
+  text.innerHTML = isRm
+    ? `${_olEsc(online.oppName)}さんの部屋は<br><strong>リバースマッチ（2局勝負）</strong>です。<br>この形式で対戦しますか？`
+    : `${_olEsc(online.oppName)}さんの部屋は<br><strong>1局勝負</strong>です。<br>この形式で対戦しますか？`;
+  okBtn.textContent = isRm ? '⚔ リバースマッチでOK' : '⚔ 1局勝負でOK';
+  altBtn.textContent = isRm ? '1局勝負がいい' : 'リバースマッチがいい';
+  okBtn.onclick = () => { modal.style.display = 'none'; _olFinishFormat(hostMode, false); };
+  altBtn.onclick = () => {
+    modal.style.display = 'none';
+    _olFinishFormat(isRm ? 'single' : 'reverse', true);
+  };
+  modal.style.display = 'flex';
+}
+
+function _olEsc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ゲストの決定を確定してホストに伝え、両者で開始する
+function _olFinishFormat(mode, changed) {
+  if (!online) return;
+  if (typeof selectTpMode === 'function') selectTpMode(mode);
+  online.transport.send({ t: 'fmt', mode, changed });
+  _olStartGame();
+  if (changed) {
+    _olBubble(`🤝 ${mode === 'reverse' ? 'リバースマッチ' : '1局勝負'}で対戦します`, 'cp');
+  }
 }
 
 // ===== ゲーム開始（両端末で同じ状態を作る）=====

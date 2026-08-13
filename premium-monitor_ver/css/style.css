@@ -3540,3 +3540,27 @@
       transform: translateY(-45vh) scale(0.5);
       opacity: 0;
     }
+
+    /* ===== Premium-v118: 対戦形式の確認モーダル ===== */
+    #ol-format-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 960;
+      padding: 20px;
+    }
+    #ol-format-modal .ol-notice-content button {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    #ol-format-modal .ol-format-alt {
+      background: #fdf6e8;
+      color: #8a6a30;
+      border: 1.5px solid #c8a868;
+      font-weight: normal;
+      margin-bottom: 0;
+    }
