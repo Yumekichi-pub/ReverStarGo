@@ -9,7 +9,27 @@
 
 // ===== Service Worker登録 =====
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+  // Premium-v119: 公開版のルートSW(/sw.js)を登録していたため、プレミアム版の
+  // ファイルまで公開版のキャッシュ管理下に入り、更新しても古い版が返り続けて
+  // いた（スマホPWAで顕著）。プレミアム専用SWに切り替え、古い登録は解除する。
+  (async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      // プレミアム配下以外（＝公開版のSW）の登録を解除
+      for (const r of regs) {
+        const url = (r.active && r.active.scriptURL) || (r.installing && r.installing.scriptURL) || r.scope || '';
+        if (url.indexOf('/premium-monitor_ver/') === -1) await r.unregister();
+      }
+      // 公開版SWが溜め込んだキャッシュも掃除（プレミアムのファイルが混在しているため）
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter(k => k.indexOf('reverstargo-') === 0).map(k => caches.delete(k)));
+      }
+    } catch (e) { /* 解除に失敗しても登録は進める */ }
+    try {
+      await navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' });
+    } catch (e) {}
+  })();
 }
 
 // ===== スタート =====
