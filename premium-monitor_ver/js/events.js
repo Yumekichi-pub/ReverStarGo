@@ -106,6 +106,8 @@ async function onCellClick(q, r, s) {
     }
     document.getElementById('gp-modal').style.display = 'flex';
     document.getElementById('controls').style.display = 'none';
+    // Premium-v114: オンライン対戦なら相手に「CPコール待ち」を通知
+    if (typeof olNotifyGpWait === 'function') olNotifyGpWait();
   } else {
     executeMove(q,r,s, bestGPColor(q,r,s,current));
   }
@@ -429,6 +431,8 @@ document.getElementById('promo-announce-help-toggle').addEventListener('click', 
 function updateRestartBtnState() {
   const btn = document.getElementById('restart-btn');
   if (!btn) return;
+  // Premium-v114: オンライン対戦中は接続を維持したまま戻れるので常に有効
+  if (typeof olActive === 'function' && olActive()) { btn.disabled = false; return; }
   const resultModalOpen = document.getElementById('result-modal').style.display !== 'none';
   // 結果モーダル表示中：RM 進行中なら disable（1局目終了モーダル等）、それ以外（完全終局）は enable
   if (resultModalOpen) {
@@ -465,6 +469,11 @@ function updateRestartBtnState() {
 document.getElementById('restart-btn').addEventListener('click', (ev) => {
   // Premium-v14: disabled 状態でのクリックは無視（保険、通常はブラウザが防ぐ）
   if (ev.currentTarget.disabled) return;
+  // Premium-v114: オンライン対戦中は接続を維持したまま戻る（確認・ペナルティなし）
+  if (typeof olActive === 'function' && olActive()) {
+    backToSetupPage();
+    return;
+  }
   // ゲーム終了後（結果表示中）はそのまま戻る
   if (document.getElementById('result-modal').style.display !== 'none') {
     backToSetupPage();
@@ -541,8 +550,9 @@ function backToDaily() {
 
 function backToSetupPage() {
   document.getElementById('result-modal').style.display = 'none';
-  // Premium-v109: オンライン対戦中に戻ったら相手に通知して退室
-  if (typeof olTeardown === 'function' && typeof online !== 'undefined' && online) olTeardown(true);
+  // Premium-v114: オンライン対戦中でも接続は維持したまま設定画面へ戻れる
+  // （退出は「🚪 退出する」ボタンで明示的に行う。v109の自動切断を廃止）
+  if (typeof olUpdateLobbyButtons === 'function') olUpdateLobbyButtons();
   // Premium-v105: 2人対戦リバースマッチの途中離脱はマッチごと破棄（ペナルティなし）
   if (typeof tpRm !== 'undefined') tpRm = null;
   const _paBtn = document.getElementById('play-again-btn');

@@ -142,6 +142,8 @@ document.getElementById('gp-black').addEventListener('click', async () => {
     if (isTutorial) {
       tutFlipCount = getFlippable(...pendingMove, 'black', 'black').length;
     }
+    // Premium-v114: オンライン対戦なら選んだ色を相手に通知
+    if (typeof olNotifyGpSelect === 'function') olNotifyGpSelect('black');
     await executeMove(...pendingMove, 'black'); pendingMove = null;
     if (isTutorial) onTutorialGPCallComplete('black', tutFlipCount);
   }
@@ -155,6 +157,8 @@ document.getElementById('gp-white').addEventListener('click', async () => {
     if (isTutorial) {
       tutFlipCount = getFlippable(...pendingMove, 'black', 'white').length;
     }
+    // Premium-v114: オンライン対戦なら選んだ色を相手に通知
+    if (typeof olNotifyGpSelect === 'function') olNotifyGpSelect('white');
     await executeMove(...pendingMove, 'white'); pendingMove = null;
     if (isTutorial) onTutorialGPCallComplete('white', tutFlipCount);
   }

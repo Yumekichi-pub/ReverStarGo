@@ -97,7 +97,9 @@ function _olCreateTransport(code, isHost, cb) {
 
 // ===== 部屋の作成・参加 =====
 function olHost() {
-  if (online) { olTeardown(false); _olStatus('キャンセルしました'); return; }
+  // Premium-v114: 対局中は「部屋に戻る」として動作（設定画面→ゲーム画面へ復帰）
+  if (online && online.started && online.connected) { olReturnToGame(); return; }
+  if (online) { olTeardown(false); _olStatus('キャンセルしました'); olUpdateLobbyButtons(); return; }
   let code = '';
   for (let i = 0; i < 4; i++) code += OL_CODE_CHARS[Math.floor(Math.random() * OL_CODE_CHARS.length)];
   _olBegin(code, true);
@@ -105,7 +107,9 @@ function olHost() {
 }
 
 function olJoinPrompt() {
-  if (online) { olTeardown(false); _olStatus('キャンセルしました'); return; }
+  // Premium-v114: 対局中は「退出する」として動作（確認つきで明示的に切断）
+  if (online && online.started && online.connected) { olLeaveRoom(); return; }
+  if (online) { olTeardown(false); _olStatus('キャンセルしました'); olUpdateLobbyButtons(); return; }
   const input = prompt('相手から聞いた部屋コードを入力してください（例: ab12）');
   if (!input) return;
   const code = input.trim().toLowerCase(); // 大文字で入力されても受け付ける
@@ -166,7 +170,16 @@ function _olOnMessage(m) {
       _olMaybeRematch();
       break;
     case 'chat':
-      _olBubble(`💬 ${online.oppName}「${String(m.text || '').slice(0, 30)}」`);
+      _olBubble(`💬 ${online.oppName}「${String(m.text || '').slice(0, 30)}」`, 'chat');
+      break;
+    case 'gpwait':
+      // Premium-v114: 相手がCPコールの選択画面を開いた（選ぶまで表示し続ける）
+      _olBubble('💠 CPコール待ち…', 'cp', { id: 'gpwait', sticky: true });
+      break;
+    case 'gpsel':
+      // Premium-v114: 相手がCPコールの色を選んだ（待ち表示を置き換え）
+      _olRemoveBubble('gpwait');
+      _olBubble(m.c === 'black' ? '💠 CPコール黒' : '💠 CPコール白', 'cp');
       break;
     case 'bye':
       _olOnDisconnect();
@@ -182,27 +195,64 @@ function olSendChat() {
   const text = input.value.trim().slice(0, 30);
   if (!text) return;
   online.transport.send({ t: 'chat', text });
-  _olBubble(`💬 自分「${text}」`);
+  _olBubble(`💬 自分「${text}」`, 'chat');
   input.value = '';
 }
 
-// 画面上部にふわっと出て数秒で消える吹き出し（チャット・CPコール通知の共通表示）
-function _olBubble(text) {
+// 盤面中央下寄りにふわっと出る吹き出し（Premium-v114: 種類別に色分け）
+// kind: 'chat'(オレンジ) | 'cp'(パープル) / opts: { id, sticky }
+function _olBubble(text, kind, opts) {
   const wrap = document.getElementById('ol-bubble-wrap');
   if (!wrap) return;
+  opts = opts || {};
+  if (opts.id) _olRemoveBubble(opts.id); // 同じIDの吹き出しは置き換え
   const div = document.createElement('div');
-  div.className = 'ol-bubble';
+  div.className = 'ol-bubble ' + (kind === 'chat' ? 'ol-bubble-chat' : 'ol-bubble-cp');
+  if (opts.id) div.dataset.olid = opts.id;
   div.textContent = text; // textContent なのでHTMLは無害化される
   wrap.appendChild(div);
   while (wrap.children.length > 3) wrap.removeChild(wrap.firstChild);
-  setTimeout(() => { div.classList.add('ol-bubble-out'); }, 5200);
-  setTimeout(() => { if (div.parentNode) div.parentNode.removeChild(div); }, 6000);
+  if (!opts.sticky) {
+    setTimeout(() => { div.classList.add('ol-bubble-out'); }, 5200);
+    setTimeout(() => { if (div.parentNode) div.parentNode.removeChild(div); }, 6000);
+  }
+}
+
+function _olRemoveBubble(id) {
+  document.querySelectorAll(`[data-olid="${id}"]`).forEach(el => el.remove());
 }
 
 // チャットバーの表示/非表示（対局開始/終了時に切替）
 function _olChatBar(show) {
   const bar = document.getElementById('ol-chat-bar');
   if (bar) bar.style.display = show ? 'flex' : 'none';
+}
+
+// ===== 部屋に戻る / 退出する (Premium-v114) =====
+// 設定画面などから対局画面へ復帰する（接続・対局はそのまま）
+function olReturnToGame() {
+  document.querySelectorAll('.setup-page').forEach(p => { p.style.display = 'none'; });
+  document.body.classList.remove('training-sun-bg', 'training-galaxy-bg', 'juku-mode');
+}
+
+// 確認つきで部屋から退出する（相手に通知して切断）
+function olLeaveRoom() {
+  if (!confirm(`部屋【 ${online.code} 】から退出しますか？\n対局は終了し、相手に通知されます。`)) return;
+  olTeardown(true);
+  _olStatus('退出しました');
+  olUpdateLobbyButtons();
+}
+
+// 接続状態に応じてボタンの表示を切り替える
+// 通常時: 「部屋を作る」「部屋に入る」 / 対局中: 「▶ 部屋に戻る」「🚪 退出する」
+function olUpdateLobbyButtons() {
+  const h = document.getElementById('ol-host-btn');
+  const j = document.getElementById('ol-join-btn');
+  if (!h || !j) return;
+  const inRoom = !!(online && online.started && online.connected);
+  h.textContent = inRoom ? '▶ 部屋に戻る' : '部屋を作る';
+  j.textContent = inRoom ? '🚪 退出する' : '部屋に入る';
+  if (inRoom) _olStatus(`対局中の部屋【 ${online.code} 】 相手: ${online.oppName}`);
 }
 
 // ===== ゲーム開始（両端末で同じ状態を作る）=====
@@ -223,6 +273,7 @@ function _olStartGame() {
   _olSetLobbyButtons(false);
   startGame();
   _olChatBar(true);
+  olUpdateLobbyButtons();
   showTurn(`🌐 対戦開始！ あなたは${online.myColor === 'black' ? '⚫黒（先手）' : '⚪白（後手）'}です`);
 }
 
@@ -231,6 +282,16 @@ function _olStartGame() {
 function olMaybeSendMove(q, r, s, gpColor) {
   if (!olActive() || online.applyingRemote) return;
   online.transport.send({ t: 'mv', q, r, s, gp: gpColor });
+}
+
+// Premium-v114: CPコール選択画面を開いた/選んだことを相手に知らせる
+function olNotifyGpWait() {
+  if (!olActive() || online.applyingRemote) return;
+  online.transport.send({ t: 'gpwait' });
+}
+function olNotifyGpSelect(color) {
+  if (!olActive() || online.applyingRemote) return;
+  online.transport.send({ t: 'gpsel', c: color });
 }
 
 async function _olApplyRemoteMove(q, r, s, gp) {
@@ -248,12 +309,10 @@ async function _olApplyRemoteMove(q, r, s, gp) {
     const needsKoException = valid.length === 0 && allValid.length > 0;
     if (needsKoException && prevKoException) { endGame(); return; }
     prevKoException = needsKoException && !prevKoException;
+    _olRemoveBubble('gpwait'); // 保険: 選択通知が届かなくても手の適用で待ち表示を消す
     await executeMove(q, r, s, gp === undefined ? null : gp);
-    // Premium-v113: 相手がCPコールした場合、どちらの色を選んだか通知
-    const _lastMv = moveHistory[moveHistory.length - 1];
-    if (_lastMv && _lastMv.type === 'move' && _lastMv.gpCall && _lastMv.gpColor) {
-      _olBubble(`💠 ${online.oppName}のCPコール：${_lastMv.gpColor === 'black' ? '⚫黒' : '⚪白'}を選択`);
-    }
+    // Premium-v114: CPコール通知は gpwait/gpsel の2段階方式に変更
+    // （人間が実際に選択画面で選んだときだけ飛ぶ。自動コールでは飛ばない）
   } catch (e) {
     console.error('[online] リモート手の適用に失敗', e);
   } finally {
@@ -306,6 +365,8 @@ function _olOnDisconnect() {
 function olTeardown(sendBye) {
   if (!online) return;
   _olChatBar(false);
+  const _bw = document.getElementById('ol-bubble-wrap');
+  if (_bw) _bw.innerHTML = '';
   const t = online.transport;
   const btn = document.getElementById('play-again-btn');
   if (btn) { btn.textContent = 'もう1局'; btn.disabled = false; }
@@ -314,4 +375,5 @@ function olTeardown(sendBye) {
     try { if (sendBye) t.send({ t: 'bye' }); } catch (e) {}
     setTimeout(() => { try { t.close(); } catch (e) {} }, 200);
   }
+  olUpdateLobbyButtons();
 }
