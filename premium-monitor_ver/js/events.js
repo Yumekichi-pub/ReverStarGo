@@ -549,14 +549,22 @@ function backToDaily() {
 }
 
 function backToSetupPage() {
-  document.getElementById('result-modal').style.display = 'none';
+  // Premium-v115: オンライン対戦中は結果モーダルを隠さない＆もう1局ボタンの
+  // 状態も保持する（設定画面は全画面オーバーレイなので隠す必要がなく、
+  // 「部屋に戻る」で戻ったときに「もう1局」がそのまま使える）
+  const _olKeep = (typeof olActive === 'function' && olActive());
+  if (!_olKeep) {
+    document.getElementById('result-modal').style.display = 'none';
+  }
   // Premium-v114: オンライン対戦中でも接続は維持したまま設定画面へ戻れる
   // （退出は「🚪 退出する」ボタンで明示的に行う。v109の自動切断を廃止）
   if (typeof olUpdateLobbyButtons === 'function') olUpdateLobbyButtons();
   // Premium-v105: 2人対戦リバースマッチの途中離脱はマッチごと破棄（ペナルティなし）
   if (typeof tpRm !== 'undefined') tpRm = null;
-  const _paBtn = document.getElementById('play-again-btn');
-  if (_paBtn) _paBtn.textContent = 'もう1局';
+  if (!_olKeep) {
+    const _paBtn = document.getElementById('play-again-btn');
+    if (_paBtn) _paBtn.textContent = 'もう1局';
+  }
   // Premium-v11: 修行コース中・終了後は大宇宙の修行部屋に戻る
   if (typeof isTrainingMode === 'function' && isTrainingMode()) {
     showPage('training');
