@@ -638,11 +638,14 @@ function _olMaybeRematch() {
 // ===== 切断・退室 =====
 function _olOnDisconnect(reason) {
   if (!online) return;
-  // Premium-v120: 対局中の通信断は退出扱いにせず、自動で再接続を試みる
-  // （相手が明示的に退出した 'left' のときだけ即終了）
-  if (reason === 'lost' && online.started && !online.reconnecting) {
-    _olStartReconnect();
-    return;
+  // Premium-v124: 対局中の通信断は、すべて再接続ループに委ねる。
+  // 特に再接続の「作り直し」中は自分で閉じた接続の close イベントが
+  // 自分に届くが、以前はこれを本物の切断と誤認して終了処理に落ち、
+  // 保存まで消していた（PC側が即「通信が切断されました」になり、
+  // 再接続ボタンも消えていた原因）。'left'（相手の明示的な退出）のみ即終了。
+  if (reason === 'lost' && online.started) {
+    if (!online.reconnecting) _olStartReconnect();
+    return; // 再接続中の close イベントは無視（ループが面倒を見る）
   }
   const oppName = online.oppName || '相手';
   const started = online.started; // 対局が始まっていたか
