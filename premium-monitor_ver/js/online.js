@@ -132,7 +132,7 @@ function _olBegin(code, isHost) {
       _olStatus('接続しました。相手の情報を待っています…');
     },
     onData: (m) => _olOnMessage(m),
-    onClose: () => _olOnDisconnect(),
+    onClose: () => _olOnDisconnect('lost'),
     onError: (e) => {
       console.warn('[online] error', e);
       const type = e && e.type;
@@ -182,7 +182,7 @@ function _olOnMessage(m) {
       _olBubble(m.c === 'black' ? '💠 CPコール黒' : '💠 CPコール白', 'cp');
       break;
     case 'bye':
-      _olOnDisconnect();
+      _olOnDisconnect('left');
       break;
   }
 }
@@ -195,8 +195,25 @@ function olSendChat() {
   const text = input.value.trim().slice(0, 30);
   if (!text) return;
   online.transport.send({ t: 'chat', text });
-  _olBubble(`💬 自分「${text}」`, 'chat');
+  // Premium-v116: 自分側の吹き出しはやめて、入力欄からメッセージが
+  // シュッと飛んでいくアニメーションで「送れた」ことを表現する
+  _olFlyChat(text, input);
   input.value = '';
+}
+
+// 送信演出: 入力欄の位置からオレンジの吹き出しが盤面へ飛んで消える (Premium-v116)
+function _olFlyChat(text, input) {
+  const rect = input.getBoundingClientRect();
+  const fly = document.createElement('div');
+  fly.className = 'ol-chat-fly';
+  fly.textContent = `💬 ${text}`;
+  fly.style.left = `${rect.left + 8}px`;
+  fly.style.top = `${rect.top}px`;
+  document.body.appendChild(fly);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => fly.classList.add('ol-chat-fly-go'));
+  });
+  setTimeout(() => { if (fly.parentNode) fly.parentNode.removeChild(fly); }, 900);
 }
 
 // 盤面中央下寄りにふわっと出る吹き出し（Premium-v114: 種類別に色分け）
@@ -347,18 +364,39 @@ function _olMaybeRematch() {
 }
 
 // ===== 切断・退室 =====
-function _olOnDisconnect() {
+function _olOnDisconnect(reason) {
   if (!online) return;
-  const wasInGame = olActive() && typeof gameStarted !== 'undefined' && gameStarted
-    && document.getElementById('result-modal').style.display !== 'flex';
+  const oppName = online.oppName || '相手';
+  const started = online.started; // 対局が始まっていたか
   olTeardown(false);
   _olStatus('');
-  if (wasInGame) {
-    alert('相手との接続が切れました。対局を終了します。');
-    if (typeof backToSetupPage === 'function') backToSetupPage();
+  const msg = reason === 'left'
+    ? `🚪 ${oppName}が退室しました`
+    : '⚡ 通信が切断されました';
+  if (started) {
+    // Premium-v116: alert をやめ、閉じるまで消えない専用ポップアップで通知
+    _olShowNotice(msg);
   } else {
-    _olStatus('相手が退室しました');
+    // ロビー段階（対局前）はステータス表示だけで十分
+    _olStatus(msg);
   }
+}
+
+// ===== 退室・切断の常設ポップアップ (Premium-v116) =====
+// ボタンを押すまで消えない。押すとゲーム設定画面に戻る
+function _olShowNotice(msg) {
+  const modal = document.getElementById('ol-notice-modal');
+  const text = document.getElementById('ol-notice-text');
+  if (!modal || !text) { alert(msg); return; } // 保険
+  text.textContent = msg;
+  modal.style.display = 'flex';
+}
+
+function olNoticeClose() {
+  const modal = document.getElementById('ol-notice-modal');
+  if (modal) modal.style.display = 'none';
+  document.getElementById('result-modal').style.display = 'none';
+  if (typeof backToSetupPage === 'function') backToSetupPage();
 }
 
 // 退室処理。sendBye=true なら相手に通知してから切る
