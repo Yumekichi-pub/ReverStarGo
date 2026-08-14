@@ -127,8 +127,14 @@ function _olCreateTransport(code, isHost, cb) {
         peer = null;
         return;
       }
-      // 相手がまだ待ち受けに戻っていないだけ → 掛け直しに任せる
-      if (t === 'peer-unavailable') { opening = false; return; }
+      // Premium-v129: 対局中の再接続なら相手がまだ戻っていないだけなので再試行に任せる。
+      // 新規入室（コード入力）の場合は、部屋が無いことを利用者に知らせる必要がある
+      if (t === 'peer-unavailable') {
+        opening = false;
+        if (online && online.started) return;  // 再接続中は黙って再試行
+        cb.onError(e);
+        return;
+      }
       // 通信まわりの一時的な失敗 → 電話機を作り直す
       if (t === 'network' || t === 'server-error' || t === 'socket-error' || t === 'socket-closed') {
         opening = false;
@@ -210,6 +216,14 @@ function olJoinPrompt() {
   if (code.length < 3) { alert('部屋コードが短すぎます'); return; }
   _olBegin(code, false);
   _olStatus(`部屋【 ${code} 】に接続しています…`);
+  // Premium-v129: 打ち間違いに気づけるよう、一定時間で見つからなければ知らせる
+  online.joinTimer = setTimeout(() => {
+    if (!online || online.started || online.connected) return;
+    _olStatus('');
+    olTeardown(false);
+    olUpdateLobbyButtons();
+    _olShowNotice(`⚠ 部屋【 ${code} 】が見つかりませんでした\n部屋コード（数字4桁）をもう一度ご確認ください`);
+  }, 20000);
 }
 
 function _olBegin(code, isHost) {
@@ -231,6 +245,7 @@ function _olConnect() {
     onOpen: () => {
       if (!online) return;
       online.connected = true;
+      if (online.joinTimer) { clearTimeout(online.joinTimer); online.joinTimer = null; } // Premium-v129
       if (online.started) {
         // 再接続: 対局の状態を送り合って、遅れている側が復元する
         _olStopReconnect();
@@ -248,9 +263,12 @@ function _olConnect() {
       const type = e && e.type;
       if (online && (online.reconnecting || online.started)) return; // 再接続中の失敗は握りつぶして再試行
       if (type === 'peer-unavailable') {
-        _olStatus('その部屋コードが見つかりません。コードを確認してください');
+        // Premium-v129: 打ち間違いに気づけるよう、はっきり知らせる
+        const _c = online ? online.code : '';
+        _olStatus('');
         olTeardown(false);
         olUpdateLobbyButtons();
+        _olShowNotice(`⚠ 部屋【 ${_c} 】が見つかりませんでした\n部屋コード（数字4桁）をもう一度ご確認ください`);
       } else if (!olActive()) {
         _olStatus('接続エラーが発生しました。通信環境を変えて再度お試しください');
         olTeardown(false);
@@ -919,6 +937,7 @@ document.addEventListener('visibilitychange', () => {
 // 退室処理。sendBye=true なら相手に通知してから切る
 function olTeardown(sendBye) {
   if (!online) return;
+  if (online.joinTimer) { clearTimeout(online.joinTimer); online.joinTimer = null; } // Premium-v129
   _olStopHeartbeat();
   _olStopReconnect();
   _olSetReconnectOverlay('', false);
