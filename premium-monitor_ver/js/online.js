@@ -78,17 +78,21 @@ function _olCreateTransport(code, isHost, cb) {
       send: (obj) => { try { if (!chClosed) ch.postMessage({ d: obj }); } catch (e) {} },
       // Premium-v121: 再接続の再試行（ゲストが名乗り直す。ホストは待つだけ）
       retry: () => { try { if (!chClosed && !isHost) ch.postMessage({ sys: 'join' }); } catch (e) {} },
+      dead: () => chClosed,
       close: () => { try { ch.postMessage({ sys: 'close' }); ch.close(); } catch (e) {} chClosed = true; }
     };
   }
   // ===== PeerJS 版 =====
-  // Premium-v121: 再接続のたびに Peer を作り直すと、ホストは同じIDを
-  // 取り直そうとして自分自身の古い登録と衝突し、永久に繋がらなくなる。
-  // Peer（＝部屋の番号札）は使い回し、切れた通信路だけを張り直す。
+  // Premium-v125: 役割で挙動を明確に分ける。
+  //   ホスト = 待ち受け（電話番号を確保して動かさない）
+  //   ゲスト = 掛ける側（自分の電話機は自由に作り直してよい）
+  // v123 まではホストも接続を作り直していたため、待ち受け番号が
+  // 消えては復活する「動く標的」となり、ゲストの発信とすれ違い続けていた。
   const peerId = 'rsg-p2p-' + code;
   let conn = null;
   let peer = null;
   let destroyed = false;
+  let opening = false;
 
   const attach = (c) => {
     conn = c;
@@ -98,34 +102,44 @@ function _olCreateTransport(code, isHost, cb) {
     c.on('error', (e) => cb.onError(e));
   };
 
-  // Peer を用意して（生きていれば使い回して）ready を呼ぶ
-  const ensurePeer = (ready) => {
-    if (destroyed) return;
-    if (peer && !peer.destroyed) {
-      // Premium-v122: スマホのスリープでは受付窓口(シグナリングサーバ)との
-      // 接続も切れる。peer.destroyed は false のままなので生きているように
-      // 見えるが、この状態では発信も着信もできない。復帰させる必要がある。
-      if (peer.disconnected) {
-        try {
-          peer.once('open', ready);
-          peer.reconnect();
-        } catch (e) {
-          try { peer.destroy(); } catch (x) {}
-          peer = null;
-        }
-        if (peer) return;
-      } else if (peer.open) { ready(); return; }
-      else { peer.once('open', ready); return; }
-    }
-    peer = isHost ? new Peer(peerId) : new Peer();
+  const healthy = () => !!(peer && !peer.destroyed && !peer.disconnected && peer.open);
+
+  const dial = () => {
+    if (destroyed || isHost || !healthy()) return;  // ホストは待つだけ
+    if (conn && conn.open) return;
+    if (conn) { try { conn.close(); } catch (e) {} conn = null; }
+    try { attach(peer.connect(peerId, { reliable: true })); } catch (e) {}
+  };
+
+  const makePeer = () => {
+    if (destroyed || opening) return;
+    opening = true;
+    try {
+      peer = isHost ? new Peer(peerId) : new Peer();
+    } catch (e) { opening = false; peer = null; return; }
+    peer.on('open', () => { opening = false; dial(); });
     peer.on('error', (e) => {
-      // ID重複は古い登録が残っているだけなので、次の再試行に任せる
-      if (e && e.type === 'unavailable-id') { try { peer.destroy(); } catch (x) {} peer = null; return; }
-      // Premium-v122: 相手がまだ窓口に復帰していないだけなので再試行に任せる
-      if (e && e.type === 'peer-unavailable' && online && online.started) return;
+      const t = e && e.type;
+      // 窓口がまだ古い登録を手放していない → 少し置いて作り直す（次の再試行に任せる）
+      if (t === 'unavailable-id') {
+        opening = false;
+        try { peer.destroy(); } catch (x) {}
+        peer = null;
+        return;
+      }
+      // 相手がまだ待ち受けに戻っていないだけ → 掛け直しに任せる
+      if (t === 'peer-unavailable') { opening = false; return; }
+      // 通信まわりの一時的な失敗 → 電話機を作り直す
+      if (t === 'network' || t === 'server-error' || t === 'socket-error' || t === 'socket-closed') {
+        opening = false;
+        try { peer.destroy(); } catch (x) {}
+        peer = null;
+        return;
+      }
+      opening = false;
       cb.onError(e);
     });
-    // Premium-v122: 窓口との接続が切れたら自動で復帰を試みる
+    // 窓口との接続が切れたら復帰を試みる（スリープ復帰時によく起きる）
     peer.on('disconnected', () => {
       if (destroyed) return;
       try { peer.reconnect(); } catch (e) {}
@@ -136,23 +150,36 @@ function _olCreateTransport(code, isHost, cb) {
         attach(c);
       });
     }
-    peer.on('open', ready);
   };
 
-  const dial = () => {
-    if (destroyed || isHost) return;   // ホストは相手からの接続を待つだけ
-    if (conn && conn.open) return;
-    // Premium-v122: 開かないまま残っている古い通信路を片付けてからかけ直す
-    if (conn) { try { conn.close(); } catch (e) {} conn = null; }
-    try { attach(peer.connect(peerId, { reliable: true })); } catch (e) {}
-  };
-
-  ensurePeer(dial);
+  makePeer();
 
   return {
     send: (obj) => { if (conn && conn.open) conn.send(obj); },
-    // 再接続の再試行。Peer は壊さず、通信路だけ張り直す
-    retry: () => { if (!destroyed) ensurePeer(dial); },
+    // 再試行。ホストは待ち受けの健康チェックのみ、ゲストは掛け直す
+    retry: () => {
+      if (destroyed) return;
+      if (!peer || peer.destroyed) { makePeer(); return; }
+      if (peer.disconnected) {
+        try { peer.reconnect(); }
+        catch (e) { try { peer.destroy(); } catch (x) {} peer = null; makePeer(); }
+        return;
+      }
+      if (!peer.open) return; // 開通待ち
+      dial();
+    },
+    // ゲスト専用: 電話機ごと作り直す（ホストの待ち受けは絶対に壊さない）
+    hardRetry: () => {
+      if (destroyed || isHost) return;
+      try { if (conn) conn.close(); } catch (e) {}
+      conn = null;
+      try { if (peer) peer.destroy(); } catch (e) {}
+      peer = null; opening = false;
+      makePeer();
+    },
+    // Premium-v125: 閉じられた通信路は retry も hardRetry も効かないため、
+    // 外から作り直せるよう死活を公開する
+    dead: () => destroyed,
     close: () => {
       destroyed = true;
       try { if (conn) conn.close(); } catch (e) {}
@@ -711,33 +738,26 @@ function _olStartReconnect(msg) {
   online.connected = false;
   online.retryUntil = Date.now() + OL_RETRY_LIMIT;
   online.retryCount = 0;
-  online.rebuilding = false;
   _olSaveSession();
   _olSetReconnectOverlay(msg || '🔌 再接続を試みています…', true);
-  // Premium-v123: 軽い再試行（通信路だけ張り直す）を数回試し、だめなら
-  // 接続を丸ごと作り直す。実機検証では作り直しのほうが確実につながるため、
-  // 早い段階で作り直しに切り替える
+  // Premium-v125: 役割で再試行の中身を分ける。
+  //   ホスト: 待ち受けを壊さない。窓口から切れていたら復帰させるだけ
+  //   ゲスト: 掛け直す。数回だめなら自分の電話機ごと作り直す
+  // （v123 はホストも接続を作り直していたため待ち受けが「動く標的」となり、
+  //   ゲストの発信とすれ違い続けて永久に繋がらなかった）
   const tick = () => {
     if (!online || !online.reconnecting) return;
     if (Date.now() > online.retryUntil) { _olGiveUpReconnect(); return; }
     online.retryCount = (online.retryCount || 0) + 1;
-    if (online.retryCount <= 2 && online.transport && online.transport.retry) {
-      online.transport.retry();
-      online.retryTimer = setTimeout(tick, OL_RETRY_MS);
-      return;
-    }
-    if (!online.rebuilding) {
-      online.rebuilding = true;
-      try { if (online.transport) online.transport.close(); } catch (e) {}
+    if (!online.transport || (online.transport.dead && online.transport.dead())) {
+      // 通信路そのものが閉じられている場合は作り直す
       online.transport = null;
-      // 窓口が古い登録を手放すのを待ってから作り直す（ID重複を避ける）
-      setTimeout(() => {
-        if (!online || !online.reconnecting) { if (online) online.rebuilding = false; return; }
-        _olConnect();
-        online.rebuilding = false;
-      }, 1500);
-      online.retryTimer = setTimeout(tick, 7000);
-      return;
+      _olConnect();
+    } else {
+      if (online.transport.retry) online.transport.retry();
+      if (!online.isHost && online.retryCount % 5 === 0 && online.transport.hardRetry) {
+        online.transport.hardRetry();
+      }
     }
     online.retryTimer = setTimeout(tick, OL_RETRY_MS);
   };
