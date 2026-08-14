@@ -2967,3 +2967,224 @@
     }
 
     
+/* ===== v113: オンライン対戦のチャットと吹き出し ===== */
+    /* v114: ターン表示と重ならないよう画面中央〜下寄りに移動し、
+       CPUの称賛トーストのような色付きで目立たせる（チャット=オレンジ / CP=パープル） */
+    #ol-bubble-wrap {
+      position: fixed;
+      top: 58%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+      width: max-content;
+      max-width: 92vw;
+    }
+    .ol-bubble {
+      border-radius: 16px;
+      padding: 10px 20px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+      max-width: 92vw;
+      overflow-wrap: anywhere;
+      transition: opacity 0.7s;
+      text-align: center;
+    }
+    .ol-bubble-chat {
+      background: linear-gradient(135deg, #ffb347, #ff8c42);
+      color: #4a2500;
+      border: 2px solid #d4761f;
+    }
+    .ol-bubble-cp {
+      background: linear-gradient(135deg, #9b6dd8, #7040b0);
+      color: #fff;
+      border: 2px solid #5a2d94;
+    }
+    .ol-bubble-out { opacity: 0; }
+    #ol-chat-bar {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+      max-width: 480px;
+      margin: 6px auto 0;
+      padding: 0 8px;
+    }
+    #ol-chat-bar input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1.5px solid #c0a858;
+      border-radius: 18px;
+      font-size: 0.95rem;
+      background: #fff8ee;
+      color: #2a1a0a;
+    }
+    #ol-chat-bar button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 18px;
+      background: #c09020;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* ===== v116: 退室・切断の常設ポップアップ ===== */
+    #ol-notice-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 960;
+      padding: 20px;
+    }
+    .ol-notice-content {
+      background: #fff8ee;
+      border: 2px solid #c09020;
+      border-radius: 16px;
+      padding: 26px 30px;
+      text-align: center;
+      max-width: 340px;
+      width: 100%;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    }
+    .ol-notice-content p {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: #3a2a1a;
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+    .ol-notice-content button {
+      padding: 12px 26px;
+      border: none;
+      border-radius: 22px;
+      background: #c09020;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* ===== v116: チャット送信の「シュッと飛ぶ」演出 ===== */
+    .ol-chat-fly {
+      position: fixed;
+      z-index: 400;
+      background: linear-gradient(135deg, #ffb347, #ff8c42);
+      color: #4a2500;
+      border: 2px solid #d4761f;
+      border-radius: 16px;
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      pointer-events: none;
+      max-width: 80vw;
+      overflow-wrap: anywhere;
+      transition: transform 0.75s cubic-bezier(0.4, -0.1, 0.4, 1), opacity 0.75s ease-in;
+    }
+    .ol-chat-fly-go {
+      transform: translateY(-45vh) scale(0.5);
+      opacity: 0;
+    }
+
+    /* ===== v118: 対戦形式の確認モーダル ===== */
+    #ol-format-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 960;
+      padding: 20px;
+    }
+    #ol-format-modal .ol-notice-content button {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    #ol-format-modal .ol-format-alt {
+      background: #fdf6e8;
+      color: #8a6a30;
+      border: 1.5px solid #c8a868;
+      font-weight: normal;
+      margin-bottom: 0;
+    }
+
+    /* ===== v120: 再接続中のオーバーレイ ===== */
+    #ol-reconnect-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.62);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 970;
+      padding: 20px;
+    }
+    .ol-reconnect-spinner {
+      width: 38px;
+      height: 38px;
+      margin: 0 auto 14px;
+      border: 4px solid #e8d8a8;
+      border-top-color: #c09020;
+      border-radius: 50%;
+      animation: olSpin 0.9s linear infinite;
+    }
+    @keyframes olSpin { to { transform: rotate(360deg); } }
+    #ol-reconnect-modal .ol-notice-content button {
+      display: block;
+      width: 100%;
+    }
+
+    /* v123: 再接続オーバーレイの補足文 */
+    .ol-reconnect-sub {
+      font-size: 0.8rem !important;
+      font-weight: normal !important;
+      color: #8a6a30 !important;
+      margin-bottom: 14px !important;
+    }
+
+    /* v127: 「これで終了」ボタン（もう1局と役割が違うので控えめな配色） */
+    .result-finish-btn {
+      background: #fdf6e8;
+      color: #7a5a20;
+      border: 1.5px solid #c8a868;
+      margin-top: 4px;
+    }
+    .result-finish-btn:hover { background: #f5e6c8; }
+
+    /* ===== v128: 対局時計 ===== */
+    .sp-clock {
+      margin-top: 3px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      color: #6a5a30;
+      text-align: center;
+      border-top: 1px solid rgba(192,168,88,0.45);
+      padding-top: 3px;
+    }
+    /* 手番側は目立たせる */
+    .sp-clock.clock-active { color: #2a7a45; }
+    /* 秒読み中は赤く点滅 */
+    .sp-clock.clock-byo {
+      color: #c02828;
+      animation: clockPulse 1s ease-in-out infinite;
+    }
+    .sp-clock.clock-over {
+      color: #fff;
+      background: #c02828;
+      border-radius: 6px;
+      animation: none;
+    }
+    @keyframes clockPulse { 50% { opacity: 0.45; } }
+    .clock-btn-row { margin-bottom: 6px; }
+    .clock-btn-row .setup-btn { font-size: 0.85rem; padding: 8px 10px; }

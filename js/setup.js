@@ -106,6 +106,8 @@ function selectBattleMode(mode) {
   if (tpSec) {
     tpSec.style.display = mode === 'two' ? '' : 'none';
     if (mode === 'two' && typeof updateTpNameSection === 'function') updateTpNameSection();
+    // v131: 中断した対局があれば「前回の対局に再接続」を表示
+    if (mode === 'two' && typeof olUpdateResumeButton === 'function') olUpdateResumeButton();
   }
 }
 function selectSound(enabled) {
@@ -315,6 +317,9 @@ async function executeMove(q, r, s, gpColor) {
   lastMove = [q, r, s];       // 置いた場所を記録
   showPlacedAnim = true;      // 次のrenderでポップ＆グローを発火
 
+  // v131: オンライン対戦中、自分の手なら相手へ送信（リモート適用中は送らない）
+  if (typeof olMaybeSendMove === 'function') olMaybeSendMove(q, r, s, gpColor);
+
   // v63: プレイヤーの手の品質評価（board を変更する前に実施）
   // 候補手数・順位・cpuLevel・battleMode・手数・石差などの条件をすべて満たした時のみ
   // 1〜3 のランクを返す。それ以外は null（表示なし）。
@@ -423,6 +428,10 @@ async function executeMove(q, r, s, gpColor) {
     // （CPU の手だけなら enabled のまま、人間が打ったら disabled になる）
     if (typeof updateRestartBtnState === 'function') updateRestartBtnState();
 
+    // v131: 最初の着手で時計を動かし、着手完了で手番を切り替える
+    if (typeof clockStart === 'function') clockStart();
+    if (typeof clockOnMoveDone === 'function') clockOnMoveDone(current);
+
     current = opp(current);
     await updateGame(true);
   } finally {
@@ -448,6 +457,9 @@ function colorLabel(color) {
 
 // 2人対戦用ターン交代オーバーレイ（画面タップで続行）
 function showTurnModal() {
+  // v131: 交代の合図を待つ間は時計を止める
+  // （タップして盤面を見る前から次の人の時間が減るのは不公平なため）
+  if (typeof clockPause === 'function') clockPause();
   return new Promise(resolve => {
     const icon = current === 'black' ? '⚫' : '⚪';
     const name = current === 'black' ? '黒' : '白';
@@ -457,6 +469,7 @@ function showTurnModal() {
     const handler = () => {
       modal.style.display = 'none';
       modal.removeEventListener('click', handler);
+      if (typeof clockResume === 'function') clockResume(); // v131
       resolve();
     };
     modal.addEventListener('click', handler);
@@ -578,19 +591,35 @@ function pickNonKoGPColor(q, r, s, player) {
 
 // パス表示（人間もCPUも同じモーダルで確認）
 function showPassModal(message) {
+  // v131: パスの確認中は時計を止める
+  if (typeof clockPause === 'function') clockPause();
   return new Promise(resolve => {
     const pm = document.getElementById('pass-modal');
     pm.querySelector('p').textContent = message;
     document.getElementById('pass-ok').textContent = 'OK';
     pm.style.display = 'flex';
     document.getElementById('controls').style.display = 'none';
+    let done = false;
     const handler = () => {
+      if (done) return;
+      done = true;
       pm.style.display = 'none';
       document.getElementById('controls').style.display = '';
+      if (typeof clockResume === 'function') clockResume(); // v131
       document.getElementById('pass-ok').removeEventListener('click', handler);
       resolve();
     };
     document.getElementById('pass-ok').addEventListener('click', handler);
+    // v131: 対局の復元中（再接続後の再生）は待たずに即座に進める
+    if (typeof online !== 'undefined' && online && online.replaying) {
+      handler();
+      return;
+    }
+    // v131: オンライン対戦では OK クリック待ちで両端末の進行がずれて
+    // デッドロックするため、約2秒表示して自動で進める（先にOKを押してもよい）
+    if (typeof olActive === 'function' && olActive()) {
+      setTimeout(handler, 2000);
+    }
   });
 }
 
@@ -683,7 +712,11 @@ async function updateGame(showTurnChange = false) {
     return;
   }
 
-  if (battleMode === 'two' && showTurnChange) {
+  if (battleMode === 'two' && showTurnChange
+      && !(typeof olActive === 'function' && olActive())
+      && !(typeof online !== 'undefined' && online && online.replaying)) {
+    // オンライン対戦では各自の端末があるので交代オーバーレイは不要
+    // v131: 対局の復元中もタップ待ちで止まらないよう抑止する
     await showTurnModal();
   }
 

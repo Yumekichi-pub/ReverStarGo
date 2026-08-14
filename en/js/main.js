@@ -14,6 +14,10 @@ if ('serviceWorker' in navigator) {
 }
 
 // ===== スタート =====
+// v131: 対局時計の設定を復元
+if (typeof loadClockSetting === 'function') loadClockSetting();
+// v131: 中断した対局が保存されていれば「前回の対局に再接続」を出す
+if (typeof olUpdateResumeButton === 'function') olUpdateResumeButton();
 // v81: 戦績データの署名移行（初回のみ。既存テスターのランク維持 + 以降の改ざん検知を有効化）
 if (typeof _rsgInit === 'function') _rsgInit();
 // セットアップ画面が表示されるのでゲームは startGame() から開始

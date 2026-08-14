@@ -105,6 +105,14 @@ function drawStarOutline(svg) {
 // 六角形リングを描画
 
 function render(validMoves, koRestrictedSet, koBlockedMoves) {
+  // v131: オンライン対戦では相手の手番中はヒント（黄色い点）を出さない
+  // （自分の画面に相手の候補手が出ると「押せそう」に見えて紛らわしいため）
+  if (typeof olActive === 'function' && olActive()
+      && typeof online !== 'undefined' && online && current !== online.myColor) {
+    validMoves = [];
+    koRestrictedSet = new Set();
+    koBlockedMoves = [];
+  }
   const showAnim = showPlacedAnim;  // このrender1回だけアニメーション発火
   showPlacedAnim = false;
   const validSet = new Set((validMoves || []).map(([q,r,s]) => K(q,r,s)));

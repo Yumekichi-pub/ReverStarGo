@@ -90,6 +90,8 @@ document.getElementById('play-again-btn').addEventListener('click', () => {
     updateRankDisplay();
     updateLevelButtons();
   } else {
+    // v131: online rematch — both players agree, colors swap
+    if (typeof olHandlePlayAgain === 'function' && olHandlePlayAgain()) return;
     // Reverse Match 1局目終了後：そのまま 2局目へ進む（色反転は endGame で済）
     // v101: 2-player Reverse Match — proceed to Game 2
     if (typeof tpRm !== 'undefined' && tpRm && tpRm.round === 2 && tpRm.r1) {
@@ -129,6 +131,31 @@ document.getElementById('play-again-btn').addEventListener('click', () => {
   }
 });
 
+// v131: 「🏁 これで終了」— 対局をはっきり終わらせてメインへ戻る。
+// オンライン対戦中は相手にも退室を通知してから離れる（放置で相手を待たせない）。
+function finishSession() {
+  const isOnline = (typeof olActive === 'function' && olActive());
+  if (isOnline) {
+    const oppName = (online && online.oppName) || 'your opponent';
+    if (!confirm(`Finish the game and leave the room with ${oppName}?`)) return;
+    if (typeof _olClearSession === 'function') _olClearSession();
+    if (typeof olTeardown === 'function') olTeardown(true); // 相手へ退室を通知
+    if (typeof _olStatus === 'function') _olStatus('');
+    if (typeof olUpdateLobbyButtons === 'function') olUpdateLobbyButtons();
+  }
+  document.getElementById('result-modal').style.display = 'none';
+  // 進行中の状態を片付ける（次に遊ぶときに前の対局が残らないように）
+  if (typeof tpRm !== 'undefined') tpRm = null;
+  if (typeof reverseMatch !== 'undefined') reverseMatch = null;
+  if (typeof clearReverseMatchPending === 'function') clearReverseMatchPending();
+  const paBtn = document.getElementById('play-again-btn');
+  if (paBtn) { paBtn.textContent = 'Play Again'; paBtn.disabled = false; }
+  if (typeof sessionWins !== 'undefined') sessionWins = { black: 0, white: 0, draw: 0 };
+  const ss = document.getElementById('session-score');
+  if (ss) ss.style.display = 'none';
+  showPage('main');
+}
+
 // pass-ok のクリックは showCpuPass() 内で動的にハンドリング
 
 document.getElementById('gp-black').addEventListener('click', async () => {
@@ -139,6 +166,8 @@ document.getElementById('gp-black').addEventListener('click', async () => {
     if (isTutorial) {
       tutFlipCount = getFlippable(...pendingMove, 'black', 'black').length;
     }
+    // v131: オンライン対戦なら選んだ色を相手に通知
+    if (typeof olNotifyGpSelect === 'function') olNotifyGpSelect('black');
     await executeMove(...pendingMove, 'black'); pendingMove = null;
     if (isTutorial) onTutorialGPCallComplete('black', tutFlipCount);
   }
@@ -152,6 +181,8 @@ document.getElementById('gp-white').addEventListener('click', async () => {
     if (isTutorial) {
       tutFlipCount = getFlippable(...pendingMove, 'black', 'white').length;
     }
+    // v131: オンライン対戦なら選んだ色を相手に通知
+    if (typeof olNotifyGpSelect === 'function') olNotifyGpSelect('white');
     await executeMove(...pendingMove, 'white'); pendingMove = null;
     if (isTutorial) onTutorialGPCallComplete('white', tutFlipCount);
   }

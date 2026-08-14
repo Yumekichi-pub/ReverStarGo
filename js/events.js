@@ -39,6 +39,8 @@ function pixelToCell(px, py) {
 async function onCellClick(q, r, s) {
   if (replayMode) return; // リプレイ中はクリック無効
   if (isAnimating) return;
+  // v131: オンライン対戦中は自分のターンのみ入力可
+  if (typeof onlineBlocksInput === 'function' && onlineBlocksInput()) return;
   // v75: CPコール待ち中（gp-modal表示中）は盤面クリック無効化
   // バグ修正: pendingMove が残ったままセルクリックすると別の場所に石が
   // 置けてしまい、事実上「待った」になっていた問題への対策。
@@ -73,7 +75,8 @@ async function onCellClick(q, r, s) {
   // GPモーダル経由でも反映されるよう、手を打つ前にフラグ更新
   prevKoException = koException;
 
-  saveUndoState();
+  // v131: オンライン対戦では「1手戻る」は使えない（相手と状態がずれるため）
+  if (!(typeof olActive === 'function' && olActive())) saveUndoState();
   if (needsGPCall(q,r,s,current)) {
     pendingMove = [q,r,s];
     // 自分が置いた場所にマーカーを表示してからGP選択モーダルを出す
@@ -106,6 +109,8 @@ async function onCellClick(q, r, s) {
     }
     document.getElementById('gp-modal').style.display = 'flex';
     document.getElementById('controls').style.display = 'none';
+    // v131: オンライン対戦なら相手に「CPコール待ち」と着手位置を通知
+    if (typeof olNotifyGpWait === 'function') olNotifyGpWait(q, r, s);
   } else {
     executeMove(q,r,s, bestGPColor(q,r,s,current));
   }
@@ -137,6 +142,8 @@ function initGame() {
   const ring1 = [[1,-1,0],[1,0,-1],[0,1,-1],[-1,1,0],[-1,0,1],[0,-1,1]];
   ring1.forEach(([q,r,s], i) => board[K(q,r,s)] = i % 2 === 0 ? 'white' : 'black');
 
+  // v131: 対局時計を初期化（2人対戦かつ設定ありのときだけ動く）
+  if (typeof clockInit === 'function') clockInit();
   capturePending = new Set();
   isAnimating = false;
   lastMove = null;
@@ -281,6 +288,7 @@ function _xmRstAll() {
     localStorage.removeItem(PROMOTION_EXAM_KEY);
     localStorage.removeItem(PROMOTION_CAREER_KEY);
     localStorage.removeItem(DAILY_KEY);
+    if (typeof OL_SESSION_KEY !== 'undefined') localStorage.removeItem(OL_SESSION_KEY); // v131
     // v101: 2人対戦の対戦成績もリセット
     if (typeof TP_RECORDS_KEY !== 'undefined') localStorage.removeItem(TP_RECORDS_KEY);
     // _xmOvr と進行中の試験もリセット
@@ -395,6 +403,8 @@ document.getElementById('promo-announce-help-toggle').addEventListener('click', 
 function updateRestartBtnState() {
   const btn = document.getElementById('restart-btn');
   if (!btn) return;
+  // v131: オンライン対戦中は接続を維持したまま戻れるので常に有効
+  if (typeof olActive === 'function' && olActive()) { btn.disabled = false; return; }
   const resultModalOpen = document.getElementById('result-modal').style.display !== 'none';
   // 結果モーダル表示中：RM 進行中なら disable（1局目終了モーダル等）、それ以外（完全終局）は enable
   if (resultModalOpen) {
@@ -417,6 +427,8 @@ function updateRestartBtnState() {
 }
 
 document.getElementById('restart-btn').addEventListener('click', (ev) => {
+  // v131: オンライン対戦中は接続を維持したまま戻る（確認・ペナルティなし）
+  if (typeof olActive === 'function' && olActive()) { backToSetupPage(); return; }
   // v77: disabled 状態でのクリックは無視（保険、通常はブラウザが防ぐ）
   if (ev.currentTarget.disabled) return;
   // ゲーム終了後（結果表示中）はそのまま戻る
@@ -489,7 +501,12 @@ function backToDaily() {
 }
 
 function backToSetupPage() {
-  document.getElementById('result-modal').style.display = 'none';
+  // v131: オンライン対戦中は結果画面と「もう1局」の状態を保持したまま設定へ
+  const _olKeep = (typeof olActive === 'function' && olActive());
+  if (!_olKeep) {
+    document.getElementById('result-modal').style.display = 'none';
+  }
+  if (typeof olUpdateLobbyButtons === 'function') olUpdateLobbyButtons();
   // v101: 2人対戦リバースマッチの途中離脱はマッチごと破棄（ペナルティなし）
   if (typeof tpRm !== 'undefined') tpRm = null;
   const _paBtn = document.getElementById('play-again-btn');

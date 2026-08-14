@@ -114,7 +114,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v108</p>
+    <p class="app-version">RSG-v131</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -164,6 +164,27 @@
         <button class="setup-btn" data-tpmode="reverse" onclick="selectTpMode('reverse')">リバースマッチ</button>
       </div>
       <p id="tp-mode-desc" class="tp-mode-desc">1局ごとに勝敗を決めます</p>
+      <!-- 対局時計（v131）: 持ち時間＋秒読み -->
+      <h2 class="tp-mode-title">⏱ 対局時計</h2>
+      <div class="setup-buttons-row clock-btn-row">
+        <button class="setup-btn selected" data-clock="off" onclick="selectClock('off')">なし</button>
+        <button class="setup-btn" data-clock="b30" onclick="selectClock('b30')">秒読み30秒</button>
+      </div>
+      <div class="setup-buttons-row clock-btn-row">
+        <button class="setup-btn" data-clock="m3" onclick="selectClock('m3')">3分＋30秒</button>
+        <button class="setup-btn" data-clock="m10" onclick="selectClock('m10')">10分＋30秒</button>
+        <button class="setup-btn" data-clock="m15" onclick="selectClock('m15')">15分＋60秒</button>
+      </div>
+      <p id="clock-desc" class="tp-mode-desc">時間を計らずに対局します</p>
+      <!-- オンライン対戦（v131 ベータ）: P2P で離れた相手と対戦 -->
+      <h2 class="tp-mode-title">🌐 離れた相手と対戦（ベータ）</h2>
+      <div class="setup-buttons-row">
+        <button class="setup-btn" id="ol-host-btn" onclick="olHost()">部屋を作る</button>
+        <button class="setup-btn" id="ol-join-btn" onclick="olJoinPrompt()">部屋に入る</button>
+      </div>
+      <button class="setup-btn" id="ol-resume-btn" style="display:none;" onclick="olResumeSession()">🔄 前回の対局に再接続</button>
+      <p id="ol-status" class="tp-mode-desc"></p>
+
     </div>
     <div class="setup-section" id="cpu-level-section">
       <h2>コンピューターのレベル</h2>
@@ -486,6 +507,7 @@
       </div>
       <!-- Reverse Match 2局目に1局目得点を表示（v42〜） -->
       <div class="sp-round1" id="black-round1" style="display:none;"></div>
+      <div class="sp-clock" id="black-clock" style="display:none;"></div>
     </div>
     <!-- スコアパネル 右上（白） -->
     <div id="score-white" class="score-panel">
@@ -499,6 +521,7 @@
       </div>
       <!-- Reverse Match 2局目に1局目得点を表示（v42〜） -->
       <div class="sp-round1" id="white-round1" style="display:none;"></div>
+      <div class="sp-clock" id="white-clock" style="display:none;"></div>
     </div>
     <svg id="board" viewBox="-195 -220 390 440" style="width:100%;display:block;">
     </svg>
@@ -686,6 +709,8 @@
       <button class="result-sub-btn" id="goto-kifu-btn" style="display:none;" onclick="document.getElementById('result-modal').style.display='none';showPage('kifu')">📋 棋譜一覧へ</button>
     </div>
     <p id="tp-swap-note" style="display:none;">⇄ 次の1局は先手・後手が入れ替わります</p>
+    <!-- v109: 対局をはっきり終わらせる導線 -->
+    <button class="result-sub-btn result-finish-btn" id="finish-btn" onclick="finishSession()">🏁 これで終了</button>
   </div>
 
   <!-- コピー完了トースト -->
@@ -836,6 +861,41 @@
   <script src="js/move_quality.js"></script>
   <script src="js/perfect.js"></script>
   <script src="js/reverse_match_intro.js"></script>
+  <!-- オンライン対戦: 吹き出し + 一言チャット (v131) -->
+  <div id="ol-bubble-wrap"></div>
+  <div id="ol-chat-bar" style="display:none;">
+    <input id="ol-chat-input" maxlength="30" placeholder="一言メッセージ（30文字まで）"
+           onkeydown="if(event.key==='Enter'){olSendChat();}">
+    <button type="button" onclick="olSendChat()">送信</button>
+  </div>
+
+  <!-- オンライン対戦: 再接続中のオーバーレイ (v131) -->
+  <div id="ol-reconnect-modal" style="display:none;">
+    <div class="ol-notice-content">
+      <div class="ol-reconnect-spinner"></div>
+      <p id="ol-reconnect-text"></p>
+      <p id="ol-reconnect-sub" class="ol-reconnect-sub">つながり次第、自動で続きから再開します</p>
+      <button type="button" id="ol-reconnect-cancel" class="ol-format-alt" onclick="olCancelReconnect()">あきらめる</button>
+    </div>
+  </div>
+
+  <!-- オンライン対戦: 対戦形式の確認 (v131) -->
+  <div id="ol-format-modal" style="display:none;">
+    <div class="ol-notice-content">
+      <p id="ol-format-text"></p>
+      <button type="button" id="ol-format-ok"></button>
+      <button type="button" id="ol-format-alt" class="ol-format-alt"></button>
+    </div>
+  </div>
+
+  <!-- オンライン対戦: 退室・切断の常設通知 (v131) -->
+  <div id="ol-notice-modal" style="display:none;">
+    <div class="ol-notice-content">
+      <p id="ol-notice-text"></p>
+      <button type="button" onclick="olNoticeClose()">ゲーム設定に戻る</button>
+    </div>
+  </div>
+
   <!-- 2人対戦 対戦成績モーダル (v101) -->
   <div id="tp-records-modal" style="display:none;">
     <div class="tp-records-content">
@@ -847,6 +907,9 @@
 
   <script src="js/records.js"></script>
   <script src="js/twoplayer.js"></script>
+  <script src="js/clock.js"></script>
+  <script src="js/peerjs.min.js"></script>
+  <script src="js/online.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/daily.js"></script>
   <script src="js/settings.js"></script>
