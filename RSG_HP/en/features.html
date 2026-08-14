@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 保管用のコピー。公開は reverstargo.com が正なので検索避け -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>Features | ReverStarGo</title>
+  <meta name="description" content="ReverStarGo features: 7 CPU levels, daily challenges, theme colors, 30-tier rank system, and more.">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+    body{font-family:'Helvetica Neue',Arial,sans-serif;background:#0a1f14;color:#e0d8c0;line-height:1.7;overflow-x:hidden;padding-top:56px}
+    a{color:#d4b860;text-decoration:none}a:hover{color:#f0d878}
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,31,20,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(192,168,88,0.2);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between}
+    .site-header-logo{display:flex;align-items:center;gap:8px}.site-header-logo img{height:32px}
+    .site-nav{display:flex;gap:4px}.site-nav a{padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:bold;color:rgba(224,216,192,0.75);transition:all 0.2s}.site-nav a:hover,.site-nav a.active{color:#d4b860;background:rgba(192,168,88,0.12)}
+    .lang-switch{font-size:0.78rem;color:rgba(224,216,192,0.5);padding:4px 10px;border:1px solid rgba(192,168,88,0.3);border-radius:6px;margin-left:8px}.lang-switch:hover{color:#d4b860;border-color:#d4b860}
+    .hamburger{display:none;background:none;border:none;color:#d4b860;font-size:1.5rem;cursor:pointer;padding:4px}
+    .mobile-nav{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(10,31,20,0.97);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .mobile-nav.open{display:flex}.mobile-nav a{font-size:1.15rem;padding:12px 32px;border-radius:12px;color:#e0d8c0;font-weight:bold;transition:background 0.2s}.mobile-nav a:hover{background:rgba(192,168,88,0.15);color:#d4b860}
+    @media(max-width:768px){.site-nav{display:none}.hamburger{display:block}}
+    .site-footer{background:#070f0a;text-align:center;padding:36px 20px;border-top:1px solid rgba(192,168,88,0.15)}
+    .site-footer-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;margin-bottom:16px}.site-footer-nav a{font-size:0.85rem;color:rgba(224,216,192,0.6)}.site-footer-nav a:hover{color:#d4b860}
+    .site-footer-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+    .btn{display:inline-block;padding:14px 36px;border-radius:12px;font-size:1.05rem;font-weight:bold;cursor:pointer;transition:all 0.25s;border:none;text-align:center}
+    .btn-primary{background:linear-gradient(135deg,#c09020,#a07818);color:#fff;box-shadow:0 4px 20px rgba(192,144,32,0.35)}.btn-primary:hover{background:linear-gradient(135deg,#d4a830,#b08820);transform:translateY(-2px);color:#fff}
+    .btn-outline{background:transparent;color:#d4b860;border:2px solid rgba(192,168,88,0.6)}.btn-outline:hover{background:rgba(192,168,88,0.15);border-color:#d4b860;color:#f0d878}
+    .site-footer-buttons .btn{padding:10px 24px;font-size:0.9rem}
+    .site-footer-copy{font-size:0.75rem;color:rgba(224,216,192,0.3)}
+    .page-hero{background:linear-gradient(180deg,#0d2818,#1a3a2a);text-align:center;padding:48px 20px 36px}
+    .page-hero h1{font-size:1.8rem;color:#d4b860;letter-spacing:0.05em;margin-bottom:8px}
+    .page-hero p{font-size:0.95rem;color:rgba(224,216,192,0.6)}
+    .content{max-width:800px;margin:0 auto;padding:40px 20px 60px}
+    .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-bottom:36px}
+    .feat-card{background:rgba(255,255,255,0.05);border:1.5px solid rgba(192,168,88,0.25);border-radius:16px;padding:24px 20px;text-align:center;transition:all 0.3s}
+    .feat-card:hover{border-color:rgba(212,184,96,0.5);background:rgba(255,255,255,0.08);transform:translateY(-3px);box-shadow:0 6px 24px rgba(0,0,0,0.3)}
+    .feat-card-icon{font-size:2.4rem;margin-bottom:8px}
+    .feat-card h3{font-size:1.05rem;color:#d4b860;margin-bottom:8px}
+    .feat-card p{font-size:0.88rem;color:rgba(224,216,192,0.75);line-height:1.6}
+    .section-title{text-align:center;font-size:1.3rem;color:#d4b860;margin-bottom:24px}
+    .gold-line{width:60px;height:2px;background:linear-gradient(90deg,transparent,#c0a858,transparent);margin:0 auto 28px}
+    .theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin:16px 0}
+    .theme-swatch{height:48px;border-radius:10px;border:2px solid rgba(192,168,88,0.3);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+    .info-card{background:rgba(255,255,255,0.04);border:1.5px solid rgba(192,168,88,0.2);border-radius:16px;padding:24px;margin-bottom:28px}
+    .info-card h2{font-size:1.15rem;color:#d4b860;margin-bottom:12px}
+    .info-card p{font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.8;margin-bottom:8px}
+    .info-card strong{color:#d4b860}
+    @media(max-width:600px){.page-hero h1{font-size:1.4rem}.feat-grid{grid-template-columns:1fr}}
+    /* カードが4枚のときは2×2に揃える（3枚＋1枚だと右下が空いて見えるため） */
+    .feat-grid-4{grid-template-columns:repeat(2,1fr)}
+    @media(max-width:600px){.feat-grid-4{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a href="index.html" class="site-header-logo"><img src="../logo.png" alt="ReverStarGo"></a>
+  <nav class="site-nav">
+    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html" class="active">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+    <a href="../features.html" class="lang-switch">JP</a>
+  </nav>
+  <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='&#9776;'?'&#10005;':'&#9776;';" aria-label="Menu">&#9776;</button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+  <a href="https://play.reverstargo.com/en/" target="_blank">Play the App</a>
+  <a href="../features.html">Japanese</a>
+</nav>
+
+<div class="page-hero">
+  <h1>&#9881; Features</h1>
+  <p>Everything ReverStarGo has to offer</p>
+</div>
+
+<div class="content">
+
+  <h2 class="section-title">4 Unique Features of ReverStarGo</h2>
+  <div class="gold-line"></div>
+  <p style="text-align:center;color:rgba(224,216,192,0.7);margin-bottom:28px;font-size:0.95rem;">Not Reversi, not Go &mdash; a unique experience only RSG offers.</p>
+
+  <!-- 1. Quick Matches -->
+  <div class="info-card" id="quick">
+    <h2>&#9889; Quick Matches on 37 Cells</h2>
+    <p>ReverStarGo is played on a <strong>compact 37-cell star-shaped board</strong>, far smaller than Go's 19x19 (361 cells) or Reversi's 8x8 (64 cells).</p>
+    <p>Each game takes <strong>just 1 to 3 minutes</strong>. Perfect for a commute, a break, or a quick match before bed.</p>
+    <p>"I don't have time" is no longer a reason to skip a game.</p>
+  </div>
+
+  <!-- 2. 6 Corners, Wider Strategy -->
+  <div class="info-card" id="corners">
+    <h2>&#127919; 6 Corners, Wider Strategy</h2>
+    <p>Reversi has just <strong>4 corners</strong>. In contrast, the RSG star board has <strong>6</strong>.</p>
+    <p>And because of the star's structure, there are <strong>no long straight edges</strong>. The edges cross one another, so the classic "edge control" strategies from Reversi simply don't apply. RSG demands its own strategic thinking.</p>
+    <p>All 6 corners become focal points from the opening moves &mdash; a condensed, intense battle with no waiting around for the mid-game.</p>
+  </div>
+
+  <!-- 3. Zero-to-Hero Comeback -->
+  <div class="info-card" id="comeback">
+    <h2>&#128260; Zero-to-Hero Comeback</h2>
+    <p style="font-size:1.02rem;"><strong>Even when all your stones are taken, restart from the central Core Point.<br>Take a single corner &mdash; and despair turns into triumph.</strong></p>
+    <p>ReverStarGo features the <strong>Core Point (CP)</strong>, a special cell at the board's center. Even in the most desperate situation, with every stone removed, you can place on the CP and restart.</p>
+    <p>From a sparse board, capturing a single corner can flip the entire balance of power. <strong>From zero to victory</strong> &mdash; an experience only RSG offers.</p>
+    <blockquote style="border-left:3px solid #d4b860;padding:10px 16px;margin:16px 0;color:rgba(224,216,192,0.85);font-style:italic;background:rgba(212,184,96,0.06);border-radius:0 8px 8px 0;">
+      "The comeback after losing all your stones &mdash; it's genuinely exhilarating. This kind of moment exists only in RSG."<br>
+      <span style="font-size:0.85em;color:rgba(224,216,192,0.6);">&mdash; from the developer</span>
+    </blockquote>
+  </div>
+
+  <!-- 4. No Move Limit -->
+  <div class="info-card" id="infinite">
+    <h2>&#9854; No Move Limit</h2>
+    <p>In Reversi, the game ends once the board fills up &mdash; at most 60 moves. But RSG borrows Go's <strong>"capture by surrounding"</strong> mechanic, which <strong>removes stones from the board</strong>.</p>
+    <p>Cells cleared this way become available again. As a result, <strong>there is no theoretical cap on the number of moves</strong>.</p>
+    <p>Paired with the ko rule (which forbids exact board repetition), RSG offers a vast and intricate strategic space.</p>
+  </div>
+
+  <div style="text-align:center;margin:40px 0;">
+    <a href="https://play.reverstargo.com/en/" target="_blank" class="btn btn-primary">Try It Now</a>
+  </div>
+
+  <h2 class="section-title">Game Modes</h2>
+  <div class="gold-line"></div>
+  <div class="feat-grid feat-grid-4">
+    <div class="feat-card">
+      <div class="feat-card-icon">&#129302;</div>
+      <h3>CPU Battle (7 Levels)</h3>
+      <p>From beginner-friendly Lv.1 to punishingly strong FINAL. New levels unlock as you rank up.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128101;</div>
+      <h3>2-Player Mode</h3>
+      <p>Pass-and-play on a single device. Enter names to keep head-to-head records, with a turn overlay to keep things fair.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#127760;</div>
+      <h3>Play a Remote Opponent</h3>
+      <p>Share a 4-digit room code and play someone far away. No sign-up, no extra cost.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128218;</div>
+      <h3>Tutorial</h3>
+      <p>Two modes: "Learn by Playing" and "Learn by Watching." Beginners can understand the rules in minutes.</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">Play a Remote Opponent</h2>
+  <div class="gold-line"></div>
+
+  <div class="info-card" id="online">
+    <h2>&#127760; Just share a 4-digit room code</h2>
+    <p>Tap "Create room" and a <strong>4-digit number</strong> appears. Give it to your opponent, they type it in, and the game begins. No sign-up, no extra cost.</p>
+    <p>You can send <strong>short messages</strong> during the game. Your opponent's stone appears on your board in real time &mdash; even before the Core Point colour is settled &mdash; so it feels like sitting across the same board.</p>
+    <p>If the connection drops, it <strong>reconnects automatically</strong>. Even if you close the app, "Reconnect to last game" will pick up right where you left off.</p>
+  </div>
+
+  <div class="info-card" id="clock">
+    <h2>&#9201; Game Clock (main time + byoyomi)</h2>
+    <p>Play with proper tournament timing. Choose from <strong>30s per move</strong>, <strong>3m + 30s</strong>, <strong>10m + 30s</strong> or <strong>15m + 60s</strong>.</p>
+    <p>Just like in Go, <strong>the byoyomi count resets after every move</strong>. Main time is per game, so it resets for game 2 of a Reverse Match.</p>
+    <p>Running out of time only shows a notice &mdash; the game continues. Stepping away or losing signal will never cost you the match on its own.</p>
+  </div>
+
+  <h2 class="section-title">Challenges &amp; Collection</h2>
+  <div class="gold-line"></div>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128197;</div>
+      <h3>Daily Challenges</h3>
+      <p>Beat the CPU each day to mark your calendar. You can go back and attempt past dates too.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#127942;</div>
+      <h3>Trophies</h3>
+      <p>Complete an entire month to earn a beautiful trophy. Collect all 12 to unlock the annual trophy.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#127941;</div>
+      <h3>30-Tier Ranks</h3>
+      <p>From Paper to Zeus &mdash; 30 ranks to conquer. Pass promotion exams to unlock new levels.</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">Customization</h2>
+  <div class="gold-line"></div>
+
+  <div class="info-card">
+    <h2>&#127912; Board Themes</h2>
+    <p>Choose from 9 board color themes to match your style.</p>
+    <div class="theme-grid">
+      <div class="theme-swatch" style="background:#2d7a45;">Green</div>
+      <div class="theme-swatch" style="background:#1a5a8a;">Blue</div>
+      <div class="theme-swatch" style="background:#7a5028;">Brown</div>
+      <div class="theme-swatch" style="background:#1e2850;">Night</div>
+      <div class="theme-swatch" style="background:#b84878;">Pink</div>
+      <div class="theme-swatch" style="background:#c06020;">Orange</div>
+      <div class="theme-swatch" style="background:#9a1818;">Red</div>
+      <div class="theme-swatch" style="background:#808080;">Grey</div>
+      <div class="theme-swatch" style="background:#484848;">Dark</div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h2>&#127912; Backgrounds</h2>
+    <p>9 background colors to change the atmosphere around the board.</p>
+    <div class="theme-grid">
+      <div class="theme-swatch" style="background:#e8d8a8;color:#333;">Cream</div>
+      <div class="theme-swatch" style="background:#f0ead8;color:#333;">Ivory</div>
+      <div class="theme-swatch" style="background:#c8e8b8;color:#333;">Lime</div>
+      <div class="theme-swatch" style="background:#b8d8f0;color:#333;">Sky</div>
+      <div class="theme-swatch" style="background:#d8c8f0;color:#333;">Lavender</div>
+      <div class="theme-swatch" style="background:#f0c8d8;color:#333;">Peach</div>
+      <div class="theme-swatch" style="background:#f0e898;color:#333;">Yellow</div>
+      <div class="theme-swatch" style="background:#f0d090;color:#333;">Orange</div>
+      <div class="theme-swatch" style="background:#252540;">Dark</div>
+    </div>
+  </div>
+
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128264;</div>
+      <h3>Sound Effects</h3>
+      <p>Place, flip, capture, and win/lose sounds. Toggle ON/OFF anytime.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#128161;</div>
+      <h3>Hint Dots</h3>
+      <p>Show valid moves with colored dots. Yellow = normal, Orange = CP restricted, Red = ko blocked. Beginners: ON. Experts: OFF.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-icon">&#9889;</div>
+      <h3>CPU Speed</h3>
+      <p>Adjust CPU thinking speed: Slow, Normal, or Fast.</p>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h2>&#128241; PWA Support</h2>
+    <p>ReverStarGo is a browser-based web app, but you can <strong>add it to your home screen</strong> to use it like a native app. No install needed, completely free. Works great on both mobile and desktop.</p>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="https://play.reverstargo.com/en/" target="_blank" class="btn btn-primary">Play Now</a>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <nav class="site-footer-nav">
+    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+    <a href="../index.html">Japanese</a>
+  </nav>
+  <div class="site-footer-buttons">
+    <a href="https://play.reverstargo.com/en/" target="_blank" class="btn btn-primary">Play the App</a>
+  </div>
+  <p class="site-footer-copy">&copy; 2026 ReverStarGo. All rights reserved.</p>
+</footer>
+</body>
+</html>

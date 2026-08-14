@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 保管用のコピー。公開は reverstargo.com が正なので検索避け -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>How to Play | ReverStarGo</title>
+  <meta name="description" content="How to play ReverStarGo. A step-by-step guide for beginners.">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+    body{font-family:'Helvetica Neue',Arial,sans-serif;background:#0a1f14;color:#e0d8c0;line-height:1.7;overflow-x:hidden;padding-top:56px}
+    a{color:#d4b860;text-decoration:none}a:hover{color:#f0d878}
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,31,20,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(192,168,88,0.2);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between}
+    .site-header-logo{display:flex;align-items:center;gap:8px}.site-header-logo img{height:32px}
+    .site-nav{display:flex;gap:4px}.site-nav a{padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:bold;color:rgba(224,216,192,0.75);transition:all 0.2s}.site-nav a:hover,.site-nav a.active{color:#d4b860;background:rgba(192,168,88,0.12)}
+    .lang-switch{font-size:0.78rem;color:rgba(224,216,192,0.5);padding:4px 10px;border:1px solid rgba(192,168,88,0.3);border-radius:6px;margin-left:8px}.lang-switch:hover{color:#d4b860;border-color:#d4b860}
+    .hamburger{display:none;background:none;border:none;color:#d4b860;font-size:1.5rem;cursor:pointer;padding:4px}
+    .mobile-nav{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(10,31,20,0.97);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .mobile-nav.open{display:flex}.mobile-nav a{font-size:1.15rem;padding:12px 32px;border-radius:12px;color:#e0d8c0;font-weight:bold;transition:background 0.2s}.mobile-nav a:hover{background:rgba(192,168,88,0.15);color:#d4b860}
+    @media(max-width:768px){.site-nav{display:none}.hamburger{display:block}}
+    .site-footer{background:#070f0a;text-align:center;padding:36px 20px;border-top:1px solid rgba(192,168,88,0.15)}
+    .site-footer-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;margin-bottom:16px}.site-footer-nav a{font-size:0.85rem;color:rgba(224,216,192,0.6)}.site-footer-nav a:hover{color:#d4b860}
+    .site-footer-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+    .btn{display:inline-block;padding:14px 36px;border-radius:12px;font-size:1.05rem;font-weight:bold;cursor:pointer;transition:all 0.25s;border:none;text-align:center}
+    .btn-primary{background:linear-gradient(135deg,#c09020,#a07818);color:#fff;box-shadow:0 4px 20px rgba(192,144,32,0.35)}.btn-primary:hover{background:linear-gradient(135deg,#d4a830,#b08820);transform:translateY(-2px);color:#fff}
+    .btn-outline{background:transparent;color:#d4b860;border:2px solid rgba(192,168,88,0.6)}.btn-outline:hover{background:rgba(192,168,88,0.15);border-color:#d4b860;color:#f0d878}
+    .site-footer-buttons .btn{padding:10px 24px;font-size:0.9rem}
+    .site-footer-copy{font-size:0.75rem;color:rgba(224,216,192,0.3)}
+    .page-hero{background:linear-gradient(180deg,#0d2818,#1a3a2a);text-align:center;padding:48px 20px 36px}
+    .page-hero h1{font-size:1.8rem;color:#d4b860;letter-spacing:0.05em;margin-bottom:8px}
+    .page-hero p{font-size:0.95rem;color:rgba(224,216,192,0.6)}
+    .content{max-width:720px;margin:0 auto;padding:40px 20px 60px}
+    .step{display:flex;gap:20px;margin-bottom:32px;align-items:flex-start}
+    .step-num{flex-shrink:0;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#c09020,#a07818);color:#fff;font-size:1.3rem;font-weight:bold;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(192,144,32,0.3)}
+    .step-body{flex:1}
+    .step-body h3{font-size:1.1rem;color:#d4b860;margin-bottom:6px}
+    .step-body p{font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.7}
+    .step-body a{font-weight:bold}
+    .tip-box{background:rgba(192,168,88,0.08);border:1.5px solid rgba(192,168,88,0.25);border-radius:12px;padding:20px;margin:32px 0}
+    .tip-box h3{font-size:1rem;color:#d4b860;margin-bottom:8px}
+    .tip-box p{font-size:0.9rem;color:rgba(224,216,192,0.75);line-height:1.7;margin-bottom:6px}
+    @media(max-width:600px){.page-hero h1{font-size:1.4rem}.step{flex-direction:column;align-items:center;text-align:center}.step-body{text-align:left}}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a href="index.html" class="site-header-logo"><img src="../logo.png" alt="ReverStarGo"></a>
+  <nav class="site-nav">
+    <a href="index.html">Home</a><a href="guide.html" class="active">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+    <a href="../guide.html" class="lang-switch">JP</a>
+  </nav>
+  <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='&#9776;'?'&#10005;':'&#9776;';" aria-label="Menu">&#9776;</button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+  <a href="https://play.reverstargo.com/en/" target="_blank">Play the App</a>
+  <a href="../guide.html">Japanese</a>
+</nav>
+
+<div class="page-hero">
+  <h1>&#128218; How to Play</h1>
+  <p>Get started in minutes &mdash; no install required</p>
+</div>
+
+<div class="content">
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h3>Open the App</h3>
+      <p>Visit <a href="https://play.reverstargo.com/en/" target="_blank">play.reverstargo.com</a> in your browser. No installation or registration needed. Works on any device &mdash; phone, tablet, or PC.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h3>Set Your Name</h3>
+      <p>Tap your name on the main screen to set a player name (up to 7 characters). You can skip this and play as "Player."</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h3>Learn the Rules</h3>
+      <p>From the main screen, tap "Rules" to read the rulebook or try the <strong>Tutorial</strong> (interactive or watch mode). You can also check the <a href="rules.html">Rules page</a>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h3>Game Settings</h3>
+      <p>Tap "Start Game" and choose:</p>
+      <p><strong>Your color</strong> &mdash; Black (first) or White (second)<br>
+      <strong>Mode</strong> &mdash; vs CPU or vs 2 Players<br>
+      <strong>CPU Level</strong> &mdash; Lv.1 to FINAL (unlocked through ranks)</p>
+      <p>Choosing "vs 2 Players" also lets you set player names, the match format, a <strong>game clock</strong>, and play <strong>a remote opponent</strong>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h3>Play</h3>
+      <p><span style="color:#c8b832;font-weight:bold;">Yellow dots</span> mark placeable cells. Background colors mean: <span style="color:#ee5511;font-weight:bold;">orange + white border</span> = CP call restricted, <span style="color:#e30909;font-weight:bold;">red + white border</span> = blocked by ko (playable as exception if a yellow dot is also shown). Tap to place a stone and flip your opponent's pieces. Don't forget you can also capture by surrounding!</p>
+      <p>When your move involves the Core Point (CP), you'll be asked to "call" Black or White.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">6</div>
+    <div class="step-body">
+      <h3>Rank Up</h3>
+      <p>Win against the CPU to climb the ranks. Higher ranks unlock stronger CPU levels and promotion exams. <a href="ranks.html">See the full rank system</a></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">7</div>
+    <div class="step-body">
+      <h3>Daily Challenges</h3>
+      <p>Complete daily challenges to fill your calendar. Finish an entire month to earn a beautiful trophy! You can also go back and attempt past dates.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">8</div>
+    <div class="step-body">
+      <h3>Play a Remote Opponent</h3>
+      <p>Tap "Start Game" &rarr; "2-Player", and you'll find <strong>Play a Remote Opponent (Beta)</strong>.</p>
+      <p><strong>If you're inviting</strong> &mdash; tap "Create room" and a <strong>4-digit number</strong> appears. Read it out over the phone or send it in a message.<br>
+      <strong>If you're joining</strong> &mdash; tap "Join room" and type in the 4 digits you were given.</p>
+      <p>The game starts automatically once you connect. Whoever created the room plays Black (first). You can send short messages during the game, and if the connection drops, reconnecting picks up right where you left off.</p>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    <h3>&#9201; Using the Game Clock</h3>
+    <p><strong>Options:</strong> 30s per move / 3m + 30s / 10m + 30s / 15m + 60s. Leave it on "None" if you'd rather not use one.</p>
+    <p><strong>How byoyomi works:</strong> Just like in Go, the count resets after every move. Main time is per game, so it resets for game 2 of a Reverse Match.</p>
+    <p><strong>If you run out:</strong> You only get a notice &mdash; the game continues. You never lose on time alone.</p>
+    <p><strong>Playing remotely:</strong> The clock follows whoever created the room. The other player is asked to confirm the format before the game starts.</p>
+  </div>
+
+  <div class="tip-box">
+    <h3>&#128161; Beginner Tips</h3>
+    <p><strong>Grab the tips:</strong> The star's points (corners) are the hardest cells to take back &mdash; prioritize them.</p>
+    <p><strong>Capture by surrounding:</strong> Don't just flip &mdash; surrounding and capturing stones earns extra points.</p>
+    <p><strong>Master the CP:</strong> The Core Point call is tricky at first, but a well-timed call can turn the game around.</p>
+    <p><strong>Use hints:</strong> Keep hint dots ON while learning. Pay attention to the different colors!</p>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="https://play.reverstargo.com/en/" target="_blank" class="btn btn-primary">Play Now</a>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <nav class="site-footer-nav">
+    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+    <a href="../index.html">Japanese</a>
+  </nav>
+  <div class="site-footer-buttons">
+    <a href="https://play.reverstargo.com/en/" target="_blank" class="btn btn-primary">Play the App</a>
+  </div>
+  <p class="site-footer-copy">&copy; 2026 ReverStarGo. All rights reserved.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 保管用のコピー。公開は reverstargo.com が正なので検索避け -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>遊び方ガイド | ReverStarGo</title>
+  <meta name="description" content="ReverStarGoの遊び方ガイド。初めての方への手順を分かりやすく解説。">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+    body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',Meiryo,sans-serif;background:#0a1f14;color:#e0d8c0;line-height:1.7;overflow-x:hidden;padding-top:56px}
+    a{color:#d4b860;text-decoration:none}a:hover{color:#f0d878}
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,31,20,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(192,168,88,0.2);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between}
+    .site-header-logo{display:flex;align-items:center;gap:8px}.site-header-logo img{height:32px}
+    .site-nav{display:flex;gap:4px}.site-nav a{padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:bold;color:rgba(224,216,192,0.75);transition:all 0.2s}.site-nav a:hover,.site-nav a.active{color:#d4b860;background:rgba(192,168,88,0.12)}
+    .hamburger{display:none;background:none;border:none;color:#d4b860;font-size:1.5rem;cursor:pointer;padding:4px}
+    .mobile-nav{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(10,31,20,0.97);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .mobile-nav.open{display:flex}.mobile-nav a{font-size:1.15rem;padding:12px 32px;border-radius:12px;color:#e0d8c0;font-weight:bold;transition:background 0.2s}.mobile-nav a:hover{background:rgba(192,168,88,0.15);color:#d4b860}
+    @media(max-width:768px){.site-nav{display:none}.hamburger{display:block}}
+    .lang-switch{font-size:0.78rem;color:rgba(224,216,192,0.5);padding:4px 10px;border:1px solid rgba(192,168,88,0.3);border-radius:6px;margin-left:8px}.lang-switch:hover{color:#d4b860;border-color:#d4b860}
+    .site-footer{background:#070f0a;text-align:center;padding:36px 20px;border-top:1px solid rgba(192,168,88,0.15)}
+    .site-footer-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;margin-bottom:16px}.site-footer-nav a{font-size:0.85rem;color:rgba(224,216,192,0.6)}.site-footer-nav a:hover{color:#d4b860}
+    .site-footer-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+    .btn{display:inline-block;padding:14px 36px;border-radius:12px;font-size:1.05rem;font-weight:bold;cursor:pointer;transition:all 0.25s;border:none;text-align:center}
+    .btn-primary{background:linear-gradient(135deg,#c09020,#a07818);color:#fff;box-shadow:0 4px 20px rgba(192,144,32,0.35)}.btn-primary:hover{background:linear-gradient(135deg,#d4a830,#b08820);transform:translateY(-2px);color:#fff}
+    .btn-outline{background:transparent;color:#d4b860;border:2px solid rgba(192,168,88,0.6)}.btn-outline:hover{background:rgba(192,168,88,0.15);border-color:#d4b860;color:#f0d878}
+    .site-footer-buttons .btn{padding:10px 24px;font-size:0.9rem}
+    .site-footer-copy{font-size:0.75rem;color:rgba(224,216,192,0.3)}
+    .page-hero{background:linear-gradient(180deg,#0d2818,#1a3a2a);text-align:center;padding:48px 20px 36px}
+    .page-hero h1{font-size:1.8rem;color:#d4b860;letter-spacing:0.08em;margin-bottom:8px}
+    .page-hero p{font-size:0.95rem;color:rgba(224,216,192,0.6)}
+    .content{max-width:720px;margin:0 auto;padding:40px 20px 60px}
+    .step{display:flex;gap:20px;margin-bottom:32px;align-items:flex-start}
+    .step-num{flex-shrink:0;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#c09020,#a07818);color:#fff;font-size:1.3rem;font-weight:bold;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(192,144,32,0.3)}
+    .step-body{flex:1}
+    .step-body h3{font-size:1.1rem;color:#d4b860;margin-bottom:6px}
+    .step-body p{font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.7}
+    .step-body a{font-weight:bold}
+    .tip-box{background:rgba(192,168,88,0.08);border:1.5px solid rgba(192,168,88,0.25);border-radius:12px;padding:20px;margin:32px 0}
+    .tip-box h3{font-size:1rem;color:#d4b860;margin-bottom:8px}
+    .tip-box p{font-size:0.9rem;color:rgba(224,216,192,0.75);line-height:1.7;margin-bottom:6px}
+    @media(max-width:600px){.page-hero h1{font-size:1.4rem}.step{flex-direction:column;align-items:center;text-align:center}.step-body{text-align:left}}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a href="index.html" class="site-header-logo"><img src="logo.png" alt="ReverStarGo"></a>
+  <nav class="site-nav">
+    <a href="index.html">ホーム</a><a href="guide.html" class="active">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+    <a href="en/guide.html" class="lang-switch">EN</a>
+  </nav>
+  <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='☰'?'✕':'☰';" aria-label="メニュー">☰</button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="index.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  <a href="https://play.reverstargo.com" target="_blank">アプリ版で遊ぶ</a>
+  <a href="en/guide.html">English</a>
+</nav>
+
+<div class="page-hero">
+  <h1>&#128218; 遊び方ガイド</h1>
+  <p>初めての方でもすぐに始められます</p>
+</div>
+
+<div class="content">
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h3>アクセスする</h3>
+      <p><a href="https://play.reverstargo.com" target="_blank">play.reverstargo.com</a> にアクセスするだけ。インストール不要、会員登録不要。ブラウザがあればスマホでもPCでもすぐに遊べます。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h3>名前を設定する</h3>
+      <p>メイン画面で自分の名前をタップして、プレイヤー名を入力します（7文字以内）。設定しなくても「あなた」として遊べます。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h3>ルールを学ぶ</h3>
+      <p>メイン画面の「ルール」から、<strong>ルール説明書を読む</strong>か<strong>チュートリアル</strong>（体験/見るの2モード）でルールを学べます。<a href="rules.html">こちら</a>でもルールを確認できます。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h3>ゲーム設定</h3>
+      <p>「ゲーム開始」をタップして、以下を選びます：</p>
+      <p><strong>あなたの色</strong> ─ 黒（先手）または白（後手）<br>
+      <strong>対戦モード</strong> ─ CPUと対戦 / 2人で対戦<br>
+      <strong>CPUレベル</strong> ─ Lv.1〜FINAL（ランクで順次解放）</p>
+      <p>「2人で対戦」を選ぶと、プレイヤー名・対戦形式・<strong>対局時計</strong>、そして<strong>離れた相手との対戦</strong>も設定できます。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h3>対局する</h3>
+      <p><span style="color:#c8b832;font-weight:bold;">黄色ドット</span>が置ける場所の目印です。背景色の意味は、<span style="color:#ee5511;font-weight:bold;">オレンジ＋白枠</span>＝CPコール制限、<span style="color:#e30909;font-weight:bold;">赤＋白枠</span>＝コウで禁止（黄色ドットが重なっていれば例外で置ける）。タップして石を置き、相手の石を挟んでひっくり返しましょう。囲んで取ることもお忘れなく！</p>
+      <p>盤面中央のCPを使う場面では「黒」か「白」のコールが求められます。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">6</div>
+    <div class="step-body">
+      <h3>ランクアップ</h3>
+      <p>CPUに勝つとランクが上がります。ランクが上がると新しいCPUレベルが解放。昇格試験にも挑戦できるように。<a href="ranks.html">ランクシステムの詳細はこちら</a></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">7</div>
+    <div class="step-body">
+      <h3>デイリーチャレンジ</h3>
+      <p>毎日のチャレンジをクリアしてカレンダーを埋めよう。月間コンプリートで美しいトロフィーを獲得！過去の日付にもさかのぼって挑戦できます。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">8</div>
+    <div class="step-body">
+      <h3>離れた相手と対戦する</h3>
+      <p>「ゲーム開始」→「2人で対戦」を選ぶと、<strong>離れた相手と対戦（ベータ）</strong>が出てきます。</p>
+      <p><strong>誘う側</strong> ─「部屋を作る」を押すと<strong>4桁の数字</strong>が表示されます。それを電話やメッセージで相手に伝えてください。<br>
+      <strong>入る側</strong> ─「部屋に入る」を押して、聞いた4桁の数字を入力します。</p>
+      <p>つながると自動で対局が始まります。部屋を作った側が黒（先手）です。対局中は一言メッセージも送れます。電波が切れても、つながり直せば続きから再開できます。</p>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    <h3>&#9201; 対局時計を使うとき</h3>
+    <p><strong>選べる時間：</strong>秒読み30秒 / 3分＋30秒 / 10分＋30秒 / 15分＋60秒。使わないときは「なし」のままで大丈夫です。</p>
+    <p><strong>秒読みのしくみ：</strong>囲碁と同じで、1手打つたびに秒読みが元に戻ります。持ち時間は1局あたりなので、リバースマッチでは2局目にリセットされます。</p>
+    <p><strong>時間切れになっても：</strong>お知らせが出るだけで、対局はそのまま続けられます。負けにはなりません。</p>
+    <p><strong>離れた相手と対戦するとき：</strong>時計は部屋を作った側の設定に合わせます。つないだ相手には「この形式で対戦しますか？」と確認が出ます。</p>
+  </div>
+
+  <div class="tip-box">
+    <h3>&#128161; 初心者のコツ</h3>
+    <p><strong>角を取ろう：</strong>星の先端（角）は取られにくい最重要マスです。</p>
+    <p><strong>囲み取りを狙おう：</strong>ひっくり返すだけでなく、囲んで取ることで大きなポイント差をつけられます。</p>
+    <p><strong>CPの使い方：</strong>コアポイントのコールは慣れるまで難しいですが、うまく使えば一発逆転のチャンス。</p>
+    <p><strong>ヒントを活用：</strong>ドット（置ける場所）をONにして、まずはゲームに慣れましょう。色の違いにも注目！</p>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="https://play.reverstargo.com" target="_blank" class="btn btn-primary">今すぐ遊んでみる</a>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <nav class="site-footer-nav">
+    <a href="index.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+    <a href="en/guide.html">English</a>
+  </nav>
+  <div class="site-footer-buttons">
+    <a href="https://play.reverstargo.com" target="_blank" class="btn btn-primary">アプリ版で遊ぶ</a>
+    <a href="https://forms.gle/tNdF9em345JM5Ahw5" target="_blank" class="btn btn-outline">フィードバック</a>
+  </div>
+  <p class="site-footer-copy">&copy; 2026 ReverStarGo. All rights reserved.</p>
+</footer>
+</body>
+</html>
