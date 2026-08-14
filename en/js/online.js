@@ -299,7 +299,7 @@ function _olWatchHostRoom(code) {
       _olStatus('');
       olTeardown(false);
       olUpdateLobbyButtons();
-      _olShowNotice('⚠ Could not open the room\nWe cannot reach the relay server. Your current network may be blocking it.\nTurning Wi-Fi off and using mobile data often works.' + diag);
+      _olShowNotice('⚠ Could not open the room\nWe could not reach the relay server. This usually clears up after a short while.\nIf you are in a hurry, turning Wi-Fi off and using mobile data sometimes works.' + diag);
       _olProbeServer();   // v135
       return;
     }

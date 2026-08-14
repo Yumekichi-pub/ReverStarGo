@@ -299,7 +299,7 @@ function _olWatchHostRoom(code) {
       _olStatus('');
       olTeardown(false);
       olUpdateLobbyButtons();
-      _olShowNotice('⚠ 部屋を開けませんでした\n中継サーバーに届いていません。お使いのネットワークが通信を止めている可能性があります。\nWi-Fiを切ってモバイル通信で試すと、つながることがあります。' + diag);
+      _olShowNotice('⚠ 部屋を開けませんでした\n中継サーバーに届きませんでした。少し時間をおくと直ることが多いです。\n急ぐときは、Wi-Fiを切ってモバイル通信で試すとつながることがあります。' + diag);
       _olProbeServer();   // v135
       return;
     }

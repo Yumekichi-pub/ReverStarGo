@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reverstargo-en-v136';
+const CACHE_NAME = 'reverstargo-en-v137';
 const ASSETS = [
   '/en/',
   '/en/index.html',
