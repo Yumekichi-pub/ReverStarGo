@@ -3633,5 +3633,10 @@
       animation: none;
     }
     @keyframes clockPulse { 50% { opacity: 0.45; } }
-    .clock-btn-row { margin-bottom: 6px; }
-    .clock-btn-row .setup-btn { font-size: 0.85rem; padding: 8px 10px; }
+    /* v132: 行間をはっきり空け、3つ並ぶ行が折り返さないよう詰める */
+    .clock-btn-row { margin-bottom: 10px; gap: 8px; }
+    .clock-btn-row .setup-btn { font-size: 0.78rem; padding: 8px 4px; }
+    /* 小さい画面でも3つが1行に収まるように */
+    @media (max-width: 359px) {
+      .clock-btn-row .setup-btn { font-size: 0.66rem; padding: 8px 1px; }
+    }

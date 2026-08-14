@@ -47,7 +47,7 @@ function selectClock(key) {
     desc.textContent = key === 'off'
       ? 'Play without a clock'
       : (p.main > 0
-          ? `When your ${Math.floor(p.main / 60)}-minute main time runs out, you get ${p.byo} seconds per move`
+          ? `${Math.floor(p.main / 60)} minutes per game. When it runs out, you get ${p.byo} seconds per move`
           : `${p.byo} seconds per move, reset every time you play`);
   }
   try { localStorage.setItem(CLOCK_KEY, key); } catch (e) {}

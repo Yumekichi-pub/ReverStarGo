@@ -47,7 +47,7 @@ function selectClock(key) {
     desc.textContent = key === 'off'
       ? '時間を計らずに対局します'
       : (p.main > 0
-          ? `持ち時間${Math.floor(p.main / 60)}分を使い切ると、1手${p.byo}秒の秒読みになります`
+          ? `1局あたり持ち時間${Math.floor(p.main / 60)}分。使い切ると1手${p.byo}秒の秒読みになります`
           : `1手ごとに${p.byo}秒。打つたびにリセットされます`);
   }
   try { localStorage.setItem(CLOCK_KEY, key); } catch (e) {}
