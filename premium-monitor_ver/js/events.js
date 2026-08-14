@@ -107,7 +107,8 @@ async function onCellClick(q, r, s) {
     document.getElementById('gp-modal').style.display = 'flex';
     document.getElementById('controls').style.display = 'none';
     // Premium-v114: オンライン対戦なら相手に「CPコール待ち」を通知
-    if (typeof olNotifyGpWait === 'function') olNotifyGpWait();
+    // Premium-v126: 置いた場所も伝えて、相手の画面にも仮マーカーを出す
+    if (typeof olNotifyGpWait === 'function') olNotifyGpWait(q, r, s);
   } else {
     executeMove(q,r,s, bestGPColor(q,r,s,current));
   }

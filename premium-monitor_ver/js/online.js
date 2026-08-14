@@ -313,12 +313,21 @@ function _olOnMessage(m) {
       _olBubble(`💬 ${online.oppName}「${String(m.text || '').slice(0, 30)}」`, 'chat');
       break;
     case 'gpwait':
-      // Premium-v114: 相手がCPコールの選択画面を開いた（選ぶまで表示し続ける）
+      // Premium-v126: 相手が石を置いた場所を先に見せる（色の確定を待つ間も
+      // どこに打たれたか分かるように）。以前は選択が終わるまで盤面が動かず、
+      // 待っている側は打たれた場所が分からなかった
+      if (typeof m.q === 'number' && typeof m.r === 'number') {
+        pendingMoveMarker = [m.q, m.r, m.s];
+        lastMove = null;
+        render([]);
+      }
       _olBubble('💠 CPコール待ち…', 'cp', { id: 'gpwait', sticky: true });
       break;
     case 'gpsel':
       // Premium-v114: 相手がCPコールの色を選んだ（待ち表示を置き換え）
       _olRemoveBubble('gpwait');
+      // Premium-v126: 直後に本物の着手が届くので仮マーカーは片付ける
+      pendingMoveMarker = null;
       _olBubble(m.c === 'black' ? '💠 CPコール黒' : '💠 CPコール白', 'cp');
       break;
     case 'ping':
@@ -388,6 +397,7 @@ async function _olApplySync(p) {
     const _pm = document.getElementById('pass-modal');
     if (_pm) _pm.style.display = 'none';
     pendingMove = null;
+    pendingMoveMarker = null; // Premium-v126: 復元時に仮マーカーを持ち越さない
     initGame();
     for (const mv of online.moveLog) {
       // onCellClick と同じコウ例外の帳簿づけ（判定を一致させる）
@@ -590,9 +600,10 @@ function olMaybeSendMove(q, r, s, gpColor) {
 }
 
 // Premium-v114: CPコール選択画面を開いた/選んだことを相手に知らせる
-function olNotifyGpWait() {
+function olNotifyGpWait(q, r, cs) {
   if (!olActive() || online.applyingRemote) return;
-  online.transport.send({ t: 'gpwait' });
+  // Premium-v126: 置いた場所も一緒に送り、相手の画面にも仮マーカーを出す
+  online.transport.send({ t: 'gpwait', q, r, s: cs, c: current });
 }
 function olNotifyGpSelect(color) {
   if (!olActive() || online.applyingRemote) return;
