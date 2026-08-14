@@ -179,6 +179,9 @@ function endGame() {
   console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
   let _dailyCelebrateKind = null; // v83: デイリー達成お祝いの種類 ('day'|'month'|null)
   let _dailyCelebrateMonth = null; // v83: 月コンプ時の月番号（トロフィー登場用）
+  // Premium-v127: 「これで終了」は完全終局のときだけ出す（既定は表示）
+  const _finishBtn = document.getElementById('finish-btn');
+  if (_finishBtn) _finishBtn.style.display = '';
   // Premium-v108: 棋譜用に「この対局の黒/白の名前」を控える（この後の自動交代より前に）
   if (battleMode === 'two' && typeof tpMarkGameNames === 'function') tpMarkGameNames();
   // Premium-v102: 2人対戦用の結果ボタン・交代案内はいったん隠す（2人対戦の枝で再表示）
@@ -230,6 +233,8 @@ function endGame() {
     if (typeof tpSwapNames === 'function') tpSwapNames();
     const _paBtn = document.getElementById('play-again-btn');
     if (_paBtn) _paBtn.textContent = '2局目へ ▶';
+    // Premium-v127: まだ対局の途中なので「これで終了」は出さない
+    if (_finishBtn) _finishBtn.style.display = 'none';
     // 中間結果では保存・シェア・成績ボタンは出さない
     document.getElementById('back-to-daily-btn').style.display = 'none';
     document.getElementById('kifu-btn-row').style.display = 'none';
@@ -338,6 +343,8 @@ function endGame() {
       document.getElementById('result-text').textContent = msg;
       const playAgainBtn1 = document.getElementById('play-again-btn');
       playAgainBtn1.textContent = '2局目へ ▶';
+      // Premium-v127: RM 1局目の中間結果では「これで終了」を出さない
+      if (_finishBtn) _finishBtn.style.display = 'none';
       // デイリーボタン・シェアボタン非表示（1局目は中間結果のため）
       document.getElementById('back-to-daily-btn').style.display = 'none';
       // Premium-v41: RM 1局目終了時にも棋譜の保存ボタンを表示する

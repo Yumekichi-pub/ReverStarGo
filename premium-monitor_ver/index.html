@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v126</p>
+    <p class="app-version">Premium-v127</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -821,6 +821,8 @@
       <button class="result-sub-btn" id="goto-kifu-btn" style="display:none;" onclick="document.getElementById('result-modal').style.display='none';showPage('kifu')">📋 棋譜一覧へ</button>
     </div>
     <p id="tp-swap-note" style="display:none;">⇄ 次の1局は先手・後手が入れ替わります</p>
+    <!-- Premium-v127: 対局をはっきり終わらせる導線 -->
+    <button class="result-sub-btn result-finish-btn" id="finish-btn" onclick="finishSession()">🏁 これで終了</button>
   </div>
 
   <!-- コピー完了トースト -->

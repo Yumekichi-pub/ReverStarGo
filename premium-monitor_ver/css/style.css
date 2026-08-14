@@ -3598,3 +3598,12 @@
       color: #8a6a30 !important;
       margin-bottom: 14px !important;
     }
+
+    /* Premium-v127: 「これで終了」ボタン（もう1局と役割が違うので控えめな配色） */
+    .result-finish-btn {
+      background: #fdf6e8;
+      color: #7a5a20;
+      border: 1.5px solid #c8a868;
+      margin-top: 4px;
+    }
+    .result-finish-btn:hover { background: #f5e6c8; }
