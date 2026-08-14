@@ -300,6 +300,7 @@ function _olWatchHostRoom(code) {
       olTeardown(false);
       olUpdateLobbyButtons();
       _olShowNotice('⚠ Could not open the room\nThe network looks busy. Please wait a moment and press "Create room" again' + diag);
+      _olProbeServer();   // v135
       return;
     }
     _olStatus(first ? `Opening room 【 ${code} 】…` : `Opening room 【 ${code} 】… (${Math.ceil((LIMIT - waited) / 1000)}s)`);
@@ -313,6 +314,26 @@ function _olStopHostWatch() {
 }
 
 // v134: add a short hint about what went wrong (helps narrow down the cause)
+// v135: on failure, check whether plain HTTP still reaches the server and append
+// the result. "server responds" while the room will not open means the
+// WebSocket (wss) path is blocked; "unreachable" means the whole route is.
+function _olProbeServer() {
+  const el = document.getElementById('ol-notice-text');
+  if (!el || typeof fetch !== 'function') return;
+  const base = el.textContent;
+  let done = false;
+  const show = (s) => {
+    if (done) return;
+    done = true;
+    if (el.textContent === base) el.textContent = base + s;
+  };
+  setTimeout(() => show('\n(server check: no response)'), 8000);
+  fetch('https://0.peerjs.com/peerjs/id?ts=' + Date.now(), { cache: 'no-store' })
+    .then((r) => show(r.ok ? '\n(server check: responds → the connection path may be blocked)'
+                           : '\n(server check: ' + r.status + ')'))
+    .catch(() => show('\n(server check: unreachable)'));
+}
+
 function _olDiagText() {
   try {
     const d = online && online.transport && online.transport.diag && online.transport.diag();
@@ -389,6 +410,7 @@ function _olConnect() {
         olTeardown(false);
         olUpdateLobbyButtons();
         _olShowNotice(`⚠ Room 【 ${_c} 】 was not found\nPlease check the 4-digit room code and try again${_d}`);
+        _olProbeServer();   // v135
       } else if (!olActive()) {
         _olStatus('A connection error occurred. Try again on a different network');
         olTeardown(false);

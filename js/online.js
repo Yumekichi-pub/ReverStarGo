@@ -300,6 +300,7 @@ function _olWatchHostRoom(code) {
       olTeardown(false);
       olUpdateLobbyButtons();
       _olShowNotice('⚠ 部屋を開けませんでした\n通信が混み合っているようです。少し待ってから、もう一度「部屋を作る」を押してください' + diag);
+      _olProbeServer();   // v135
       return;
     }
     _olStatus(first ? `部屋コード【 ${code} 】を用意しています…` : `部屋コード【 ${code} 】を用意しています…（あと${Math.ceil((LIMIT - waited) / 1000)}秒）`);
@@ -313,6 +314,26 @@ function _olStopHostWatch() {
 }
 
 // v134: つながらないときに何が起きているかを短く添える（原因の切り分け用）
+// v135: 失敗したとき、HTTP だけは通るのかを確かめて通知に書き足す。
+// 「サーバー応答あり」なのに部屋が開けない＝WebSocket(wss) が塞がれている、
+// と切り分けられる。逆に「届きません」なら経路ごと遮断されている。
+function _olProbeServer() {
+  const el = document.getElementById('ol-notice-text');
+  if (!el || typeof fetch !== 'function') return;
+  const base = el.textContent;
+  let done = false;
+  const show = (s) => {
+    if (done) return;
+    done = true;
+    if (el.textContent === base) el.textContent = base + s;
+  };
+  setTimeout(() => show('\n（サーバー確認: 応答なし）'), 8000);
+  fetch('https://0.peerjs.com/peerjs/id?ts=' + Date.now(), { cache: 'no-store' })
+    .then((r) => show(r.ok ? '\n（サーバー確認: 応答あり → 通路が塞がれている可能性）'
+                           : '\n（サーバー確認: ' + r.status + '）'))
+    .catch(() => show('\n（サーバー確認: 届きません）'));
+}
+
 function _olDiagText() {
   try {
     const d = online && online.transport && online.transport.diag && online.transport.diag();
@@ -389,6 +410,7 @@ function _olConnect() {
         olTeardown(false);
         olUpdateLobbyButtons();
         _olShowNotice(`⚠ 部屋【 ${_c} 】が見つかりませんでした\n部屋コード（数字4桁）をもう一度ご確認ください${_d}`);
+        _olProbeServer();   // v135
       } else if (!olActive()) {
         _olStatus('接続エラーが発生しました。通信環境を変えて再度お試しください');
         olTeardown(false);

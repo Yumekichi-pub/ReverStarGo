@@ -3060,6 +3060,7 @@
       color: #3a2a1a;
       margin-bottom: 18px;
       line-height: 1.6;
+      white-space: pre-line;   /* v135: 通知の改行を活かす（1行につながって読みにくかった） */
     }
     .ol-notice-content button {
       padding: 12px 26px;
