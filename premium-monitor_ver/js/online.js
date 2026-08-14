@@ -52,9 +52,23 @@ function _olSetLobbyButtons(disabled) {
   if (j) j.disabled = disabled;
 }
 
+// v133: 名前欄から読み戻す規則(trim → 7文字 → trim)と完全に同じ形にそろえる。
+// 以前は trim を通していなかったため、名前の前後に空白がある人がホストになると
+// 「黒の名前欄 === 自分の名前」が成立せず、両者とも白と判定されて誰も石を
+// 置けなくなっていた。
+function _olNorm(s) {
+  return String(s == null ? '' : s).trim().slice(0, 7).trim();
+}
+
+// 同名対策の印を付けても7文字を超えないようにする
+// （超えると名前欄に入れた値と読み戻した値がずれて、色の判定が壊れる）
+function _olTagName(s) {
+  return _olNorm(s.length >= 7 ? s.slice(0, 6) + '２' : s + '２');
+}
+
 function _olMyName() {
   const n = (typeof getPlayerName === 'function' && getPlayerName()) || '';
-  return (n || 'プレイヤー').slice(0, 7);
+  return _olNorm(n) || 'プレイヤー';
 }
 
 // ===== トランスポート =====
@@ -79,6 +93,7 @@ function _olCreateTransport(code, isHost, cb) {
       // Premium-v121: 再接続の再試行（ゲストが名乗り直す。ホストは待つだけ）
       retry: () => { try { if (!chClosed && !isHost) ch.postMessage({ sys: 'join' }); } catch (e) {} },
       dead: () => chClosed,
+      isOpen: () => !chClosed,   // v133
       close: () => { try { ch.postMessage({ sys: 'close' }); ch.close(); } catch (e) {} chClosed = true; }
     };
   }
@@ -93,6 +108,19 @@ function _olCreateTransport(code, isHost, cb) {
   let peer = null;
   let destroyed = false;
   let opening = false;
+  // v133: 電話機の作り直しを自前で予約する。以前は「作り直す」と書きながら
+  // peer を捨てるだけで、外から retry() が呼ばれるのを待っていた。ところが
+  // retry() を回すのは対局中の再接続ループだけなので、部屋を作った直後に
+  // 失敗すると誰も作り直さず、画面には「接続を待っています」と出たまま
+  // 待ち受けが存在しない状態になっていた（2部屋目以降で起きやすい）。
+  let remakeTimer = null;
+  let dialTimer = null;
+  let attempts = 0;
+  let dialFails = 0;
+  const scheduleRemake = (ms) => {
+    if (destroyed || remakeTimer) return;
+    remakeTimer = setTimeout(() => { remakeTimer = null; makePeer(); }, ms);
+  };
 
   const attach = (c) => {
     conn = c;
@@ -117,7 +145,7 @@ function _olCreateTransport(code, isHost, cb) {
     try {
       peer = isHost ? new Peer(peerId) : new Peer();
     } catch (e) { opening = false; peer = null; return; }
-    peer.on('open', () => { opening = false; dial(); });
+    peer.on('open', () => { opening = false; attempts = 0; dialFails = 0; dial(); });  // v133
     peer.on('error', (e) => {
       const t = e && e.type;
       // 窓口がまだ古い登録を手放していない → 少し置いて作り直す（次の再試行に任せる）
@@ -125,6 +153,8 @@ function _olCreateTransport(code, isHost, cb) {
         opening = false;
         try { peer.destroy(); } catch (x) {}
         peer = null;
+        attempts++;
+        scheduleRemake(Math.min(1200 * attempts, 5000));  // v133: 古い登録が消えるのを待って作り直す
         return;
       }
       // Premium-v129: 対局中の再接続なら相手がまだ戻っていないだけなので再試行に任せる。
@@ -132,6 +162,12 @@ function _olCreateTransport(code, isHost, cb) {
       if (t === 'peer-unavailable') {
         opening = false;
         if (online && online.started) return;  // 再接続中は黙って再試行
+        // v133: 相手がまだ部屋を開け終えていないだけのことがあるので数回試す
+        dialFails++;
+        if (dialFails < 4) {
+          if (!dialTimer) dialTimer = setTimeout(() => { dialTimer = null; dial(); }, 2500);
+          return;
+        }
         cb.onError(e);
         return;
       }
@@ -140,6 +176,8 @@ function _olCreateTransport(code, isHost, cb) {
         opening = false;
         try { peer.destroy(); } catch (x) {}
         peer = null;
+        attempts++;
+        scheduleRemake(Math.min(1500 * attempts, 8000));  // v133
         return;
       }
       opening = false;
@@ -186,8 +224,12 @@ function _olCreateTransport(code, isHost, cb) {
     // Premium-v125: 閉じられた通信路は retry も hardRetry も効かないため、
     // 外から作り直せるよう死活を公開する
     dead: () => destroyed,
+    // v133: 部屋がほんとうに開けたかを外から確かめられるように
+    isOpen: () => healthy(),
     close: () => {
       destroyed = true;
+      if (remakeTimer) { clearTimeout(remakeTimer); remakeTimer = null; }  // v133
+      if (dialTimer) { clearTimeout(dialTimer); dialTimer = null; }
       try { if (conn) conn.close(); } catch (e) {}
       try { if (peer) peer.destroy(); } catch (e) {}
       conn = null; peer = null;
@@ -203,7 +245,42 @@ function olHost() {
   let code = '';
   for (let i = 0; i < 4; i++) code += OL_CODE_CHARS[Math.floor(Math.random() * OL_CODE_CHARS.length)];
   _olBegin(code, true);
-  _olStatus(`部屋コード【 ${code} 】を相手に伝えてください（接続を待っています…もう一度押すと中止）`);
+  _olStatus(`部屋コード【 ${code} 】を用意しています…`);
+  _olWatchHostRoom(code);   // v133
+}
+
+// v133: 窓口の登録に失敗しても「接続を待っています」と出し続けていたため、
+// 相手が正しいコードを入れても永遠に見つからない状態になっていた。
+// 実際に部屋が開けたかを見張り、開けたら案内を出し、駄目ならはっきり知らせる。
+function _olWatchHostRoom(code) {
+  _olStopHostWatch();
+  if (!online) return;
+  const LIMIT = 30000;
+  let waited = 0;
+  const tick = (first) => {
+    if (!online || !online.isHost) { _olStopHostWatch(); return; }
+    if (online.connected || online.started) { _olStopHostWatch(); return; }
+    if (online.transport && online.transport.isOpen && online.transport.isOpen()) {
+      _olStatus(`部屋コード【 ${code} 】を相手に伝えてください（接続を待っています…もう一度押すと中止）`);
+      return;
+    }
+    if (!first) waited += 1000;
+    if (waited >= LIMIT) {
+      _olStopHostWatch();
+      _olStatus('');
+      olTeardown(false);
+      olUpdateLobbyButtons();
+      _olShowNotice('⚠ 部屋を開けませんでした\n通信が混み合っているようです。少し待ってから、もう一度「部屋を作る」を押してください');
+      return;
+    }
+    _olStatus(first ? `部屋コード【 ${code} 】を用意しています…` : `部屋コード【 ${code} 】を用意しています…（あと${Math.ceil((LIMIT - waited) / 1000)}秒）`);
+  };
+  tick(true);                                   // 開通済みならその場で案内を出す
+  online.hostWatch = setInterval(() => tick(false), 1000);
+}
+
+function _olStopHostWatch() {
+  if (online && online.hostWatch) { clearInterval(online.hostWatch); online.hostWatch = null; }
 }
 
 function olJoinPrompt() {
@@ -284,7 +361,7 @@ function _olOnMessage(m) {
 
   switch (m.t) {
     case 'hello':
-      online.oppName = String(m.name || '相手').slice(0, 7);
+      online.oppName = _olNorm(m.name) || '相手';  // v133
       online.helloReceived = true;
       // Premium-v122: すでに対局中なら新規開始せず、状態を送り返して復元させる
       // （片方が「前回の対局に再接続」、もう片方が新規接続だと、以前は
@@ -588,8 +665,8 @@ function _olStartGame() {
   // 同名対策: 両者が同じアカウント名だと色の対応付けが崩れるため、ゲスト側に「２」を付ける
   // （両端末で同じ規則を適用するので表示・記録が一致する）
   if (online.oppName === online.myName) {
-    if (online.isHost) online.oppName = online.oppName + '２';
-    else online.myName = online.myName + '２';
+    if (online.isHost) online.oppName = _olTagName(online.oppName);   // v133
+    else online.myName = _olTagName(online.myName);
   }
   // 名前: ホスト=1局目の黒、ゲスト=白（既存の名前表示・成績・棋譜がそのまま機能する）
   const b = document.getElementById('tp-black-name');
@@ -903,7 +980,7 @@ async function olResumeSession() {
   // （started を立てる前に開通すると hello が飛んで新規対局扱いになるため）
   online = {
     code: p.code, isHost: !!p.isHost, transport: null,
-    myColor: 'black', myName: p.name || _olMyName(), oppName: p.oppName || '相手',
+    myColor: 'black', myName: _olNorm(p.name) || _olMyName(), oppName: _olNorm(p.oppName) || '相手',  // v133
     connected: false, started: true,
     applyingRemote: false, rematchLocal: false, rematchRemote: false,
     helloReceived: true, moveLog: [], gameSeq: p.seq || 0,
@@ -942,6 +1019,7 @@ document.addEventListener('visibilitychange', () => {
 // 退室処理。sendBye=true なら相手に通知してから切る
 function olTeardown(sendBye) {
   if (!online) return;
+  _olStopHostWatch();  // v133
   if (online.joinTimer) { clearTimeout(online.joinTimer); online.joinTimer = null; } // Premium-v129
   _olStopHeartbeat();
   _olStopReconnect();

@@ -66,7 +66,7 @@ function saveTpData(data) {
 function tpNameFor(color) {
   const el = document.getElementById(color === 'black' ? 'tp-black-name' : 'tp-white-name');
   if (!el) return '';
-  return el.value.trim().slice(0, 7);
+  return el.value.trim().slice(0, 7).trim();  // v133: 7文字で切った末尾の空白も落とす
 }
 
 function tpSwapNames() {
