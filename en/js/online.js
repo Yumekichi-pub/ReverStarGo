@@ -115,6 +115,8 @@ function _olCreateTransport(code, isHost, cb) {
   // 待ち受けが存在しない状態になっていた（2部屋目以降で起きやすい）。
   let remakeTimer = null;
   let dialTimer = null;
+  let openTimer = null;   // v134
+  let lastErr = '';       // v134
   let attempts = 0;
   let dialFails = 0;
   const scheduleRemake = (ms) => {
@@ -139,15 +141,38 @@ function _olCreateTransport(code, isHost, cb) {
     try { attach(peer.connect(peerId, { reliable: true })); } catch (e) {}
   };
 
+  // v134: 窓口が混み合っていると、開通も失敗もしないまま黙り込むことがある。
+  // その間 opening が立ちっぱなしになり、makePeer() の冒頭で弾かれるため、
+  // 以後どの再試行も素通りしていた（結果、30秒待って「開けませんでした」）。
+  // 一定時間で見切って電話機ごと作り直す。
+  const OPEN_TIMEOUT = 6000;
+  const clearOpenTimer = () => { if (openTimer) { clearTimeout(openTimer); openTimer = null; } };
+
   const makePeer = () => {
     if (destroyed || opening) return;
     opening = true;
     try {
       peer = isHost ? new Peer(peerId) : new Peer();
-    } catch (e) { opening = false; peer = null; return; }
-    peer.on('open', () => { opening = false; attempts = 0; dialFails = 0; dial(); });  // v133
+    } catch (e) {
+      opening = false; peer = null; lastErr = 'construct';
+      attempts++; scheduleRemake(1500);
+      return;
+    }
+    clearOpenTimer();
+    openTimer = setTimeout(() => {
+      openTimer = null;
+      if (destroyed || !opening) return;
+      lastErr = 'timeout';
+      try { if (peer) peer.destroy(); } catch (x) {}
+      peer = null; opening = false;
+      attempts++;
+      scheduleRemake(600);
+    }, OPEN_TIMEOUT);
+    peer.on('open', () => { clearOpenTimer(); opening = false; attempts = 0; dialFails = 0; lastErr = ''; dial(); });
     peer.on('error', (e) => {
       const t = e && e.type;
+      lastErr = t || 'unknown';   // v134
+      clearOpenTimer();
       // 窓口がまだ古い登録を手放していない → 少し置いて作り直す（次の再試行に任せる）
       if (t === 'unavailable-id') {
         opening = false;
@@ -226,10 +251,13 @@ function _olCreateTransport(code, isHost, cb) {
     dead: () => destroyed,
     // v133: 部屋がほんとうに開けたかを外から確かめられるように
     isOpen: () => healthy(),
+    // v134: つながらない原因の切り分け用
+    diag: () => ({ err: lastErr, tries: attempts }),
     close: () => {
       destroyed = true;
       if (remakeTimer) { clearTimeout(remakeTimer); remakeTimer = null; }  // v133
       if (dialTimer) { clearTimeout(dialTimer); dialTimer = null; }
+      clearOpenTimer();   // v134
       try { if (conn) conn.close(); } catch (e) {}
       try { if (peer) peer.destroy(); } catch (e) {}
       conn = null; peer = null;
@@ -266,11 +294,12 @@ function _olWatchHostRoom(code) {
     }
     if (!first) waited += 1000;
     if (waited >= LIMIT) {
+      const diag = _olDiagText();   // v134: olTeardown で online が消える前に控える
       _olStopHostWatch();
       _olStatus('');
       olTeardown(false);
       olUpdateLobbyButtons();
-      _olShowNotice('⚠ Could not open the room\nThe network looks busy. Please wait a moment and press "Create room" again');
+      _olShowNotice('⚠ Could not open the room\nThe network looks busy. Please wait a moment and press "Create room" again' + diag);
       return;
     }
     _olStatus(first ? `Opening room 【 ${code} 】…` : `Opening room 【 ${code} 】… (${Math.ceil((LIMIT - waited) / 1000)}s)`);
@@ -281,6 +310,19 @@ function _olWatchHostRoom(code) {
 
 function _olStopHostWatch() {
   if (online && online.hostWatch) { clearInterval(online.hostWatch); online.hostWatch = null; }
+}
+
+// v134: add a short hint about what went wrong (helps narrow down the cause)
+function _olDiagText() {
+  try {
+    const d = online && online.transport && online.transport.diag && online.transport.diag();
+    if (!d) return '';
+    const r = d.err === 'timeout' ? 'no response'
+            : d.err === 'network' ? 'network error'
+            : d.err === 'server-error' ? 'server not responding'
+            : (d.err || 'unknown');
+    return `\n(diagnostic: ${r} / ${d.tries} retries)`;
+  } catch (e) { return ''; }
 }
 
 function olJoinPrompt() {
@@ -342,10 +384,11 @@ function _olConnect() {
       if (type === 'peer-unavailable') {
         // Premium-v129: 打ち間違いに気づけるよう、はっきり知らせる
         const _c = online ? online.code : '';
+        const _d = _olDiagText();   // v134
         _olStatus('');
         olTeardown(false);
         olUpdateLobbyButtons();
-        _olShowNotice(`⚠ Room 【 ${_c} 】 was not found\nPlease check the 4-digit room code and try again`);
+        _olShowNotice(`⚠ Room 【 ${_c} 】 was not found\nPlease check the 4-digit room code and try again${_d}`);
       } else if (!olActive()) {
         _olStatus('A connection error occurred. Try again on a different network');
         olTeardown(false);
