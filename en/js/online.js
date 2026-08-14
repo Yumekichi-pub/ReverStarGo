@@ -299,7 +299,7 @@ function _olWatchHostRoom(code) {
       _olStatus('');
       olTeardown(false);
       olUpdateLobbyButtons();
-      _olShowNotice('⚠ Could not open the room\nThe network looks busy. Please wait a moment and press "Create room" again' + diag);
+      _olShowNotice('⚠ Could not open the room\nWe cannot reach the relay server. Your current network may be blocking it.\nTurning Wi-Fi off and using mobile data often works.' + diag);
       _olProbeServer();   // v135
       return;
     }
