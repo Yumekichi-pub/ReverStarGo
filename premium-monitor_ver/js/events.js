@@ -106,8 +106,9 @@ async function onCellClick(q, r, s) {
     }
     document.getElementById('gp-modal').style.display = 'flex';
     document.getElementById('controls').style.display = 'none';
-    // Premium-v128: CPコールの選択中は時計を止める（色を選ぶ時間は消費しない）
-    if (typeof clockPause === 'function') clockPause();
+    // Premium-v130: CPコール中も時計は動かす。「石を置く→色を決める」までが
+    // ひとつの着手なので、その時間は打つ人の持ち時間から引く。
+    // 両端末で同じ扱いになるため表示のズレも起きない
     // Premium-v114: オンライン対戦なら相手に「CPコール待ち」を通知
     // Premium-v126: 置いた場所も伝えて、相手の画面にも仮マーカーを出す
     if (typeof olNotifyGpWait === 'function') olNotifyGpWait(q, r, s);

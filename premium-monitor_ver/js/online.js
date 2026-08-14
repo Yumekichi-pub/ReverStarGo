@@ -545,9 +545,14 @@ function _olAskFormat(hostMode) {
     return;
   }
   const isRm = hostMode === 'reverse';
-  text.innerHTML = isRm
-    ? `${_olEsc(online.oppName)}さんの部屋は<br><strong>リバースマッチ（2局勝負）</strong>です。<br>この形式で対戦しますか？`
-    : `${_olEsc(online.oppName)}さんの部屋は<br><strong>1局勝負</strong>です。<br>この形式で対戦しますか？`;
+  // Premium-v130: 対局時計も勝負を左右する条件なので必ず知らせる
+  const _clockLabel = (typeof CLOCK_PRESETS !== 'undefined' && typeof clockPreset !== 'undefined'
+    && CLOCK_PRESETS[clockPreset]) ? CLOCK_PRESETS[clockPreset].label : 'なし';
+  const _clockLine = `<br><strong>⏱ 対局時計：${_olEsc(_clockLabel)}</strong>`;
+  text.innerHTML = (isRm
+    ? `${_olEsc(online.oppName)}さんの部屋は<br><strong>リバースマッチ（2局勝負）</strong>です。`
+    : `${_olEsc(online.oppName)}さんの部屋は<br><strong>1局勝負</strong>です。`)
+    + _clockLine + `<br>この内容で対戦しますか？`;
   okBtn.textContent = isRm ? '⚔ リバースマッチでOK' : '⚔ 1局勝負でOK';
   altBtn.textContent = isRm ? '1局勝負がいい' : 'リバースマッチがいい';
   okBtn.onclick = () => { modal.style.display = 'none'; _olFinishFormat(hostMode, false); };
