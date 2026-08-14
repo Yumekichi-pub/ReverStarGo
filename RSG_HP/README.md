@@ -34,13 +34,22 @@ reverstargo.com は GitHub ではなく **WADAX のレンタルサーバー**で
 | `index.html` | トップ |
 | `features.html` | 機能紹介 |
 | `guide.html` | 遊び方 |
-| `en/index.html` | Home（英語） |
-| `en/features.html` | Features（英語） |
-| `en/guide.html` | Guide（英語） |
+| `rules.html` | ルール説明 |
+| `ranks.html` | ランクシステム |
+| `faq.html` | よくある質問 |
+| `privacy.html` | プライバシーポリシー |
+| `en/` の同名6ファイル | 上記の英語版（`privacy.html` 含む） |
 
-まだ入っていないページ: `rules.html` `ranks.html` `faq.html` `privacy.html`
-と画像類（`logo.png` `bg.jpg` `favicon.png` `ogp.jpg` `icon/` `trophy/` `report/`）。
-必要になったときに追加してください。
+HTMLは12ページすべて揃っている。まだ入っていないのは画像類だけ
+（`logo.png` `bg.jpg` `favicon.png` `ogp.jpg` `icon/` `trophy/` `report/`）。
+これらは変更していないので、必要になったときに追加すればよい。
+
+### 改行コードに注意
+
+WADAX 側のファイルは日本語版が CRLF、英語版が LF で保存されている
+（`privacy.html` だけは日英とも LF）。編集時はこれを保つこと。
+Python の `io.open(p,'w')` は CRLF を LF に潰してしまうので、
+バイナリで読んで判定し、書き戻すときに元へ戻す。
 
 ## 検索避けについて
 
@@ -55,3 +64,8 @@ reverstargo.com は GitHub ではなく **WADAX のレンタルサーバー**で
 
 - 2026-08-14 v132: オンライン対戦・対局時計の紹介を追加して初回登録
   （このとき WADAX 側とデスクトップ側が完全一致していることを確認済み）
+- 2026-08-14 v132: 残り6ページも取り込み、内容の誤りを修正
+  - FAQ「2人で遊べますか」がオンライン非対応と書いてあった
+  - ルール/ランク「リバースマッチは2人対戦では適用されません」も現状と不一致
+  - プライバシーポリシーが「外部送信なし・第三者サービスなし」のままだった
+  - ランクの日本語版のみ Lv.5 解放が「アメジスト」（正しくはトパーズ）
