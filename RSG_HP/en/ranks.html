@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rank System | ReverStarGo</title>
+  <meta name="description" content="ReverStarGo's 30-tier rank system, promotion exams, and level unlock guide.">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+    body{font-family:'Helvetica Neue',Arial,sans-serif;background:#0a1f14;color:#e0d8c0;line-height:1.7;overflow-x:hidden;padding-top:56px}
+    a{color:#d4b860;text-decoration:none}a:hover{color:#f0d878}
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,31,20,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(192,168,88,0.2);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between}
+    .site-header-logo{display:flex;align-items:center;gap:8px}.site-header-logo img{height:32px}
+    .site-nav{display:flex;gap:4px}.site-nav a{padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:bold;color:rgba(224,216,192,0.75);transition:all 0.2s}.site-nav a:hover,.site-nav a.active{color:#d4b860;background:rgba(192,168,88,0.12)}
+    .lang-switch{font-size:0.78rem;color:rgba(224,216,192,0.5);padding:4px 10px;border:1px solid rgba(192,168,88,0.3);border-radius:6px;margin-left:8px}.lang-switch:hover{color:#d4b860;border-color:#d4b860}
+    .hamburger{display:none;background:none;border:none;color:#d4b860;font-size:1.5rem;cursor:pointer;padding:4px}
+    .mobile-nav{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(10,31,20,0.97);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .mobile-nav.open{display:flex}.mobile-nav a{font-size:1.15rem;padding:12px 32px;border-radius:12px;color:#e0d8c0;font-weight:bold;transition:background 0.2s}.mobile-nav a:hover{background:rgba(192,168,88,0.15);color:#d4b860}
+    @media(max-width:768px){.site-nav{display:none}.hamburger{display:block}}
+    .site-footer{background:#070f0a;text-align:center;padding:36px 20px;border-top:1px solid rgba(192,168,88,0.15)}
+    .site-footer-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;margin-bottom:16px}.site-footer-nav a{font-size:0.85rem;color:rgba(224,216,192,0.6)}.site-footer-nav a:hover{color:#d4b860}
+    .site-footer-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+    .btn{display:inline-block;padding:14px 36px;border-radius:12px;font-size:1.05rem;font-weight:bold;cursor:pointer;transition:all 0.25s;border:none;text-align:center}
+    .btn-primary{background:linear-gradient(135deg,#c09020,#a07818);color:#fff;box-shadow:0 4px 20px rgba(192,144,32,0.35)}.btn-primary:hover{background:linear-gradient(135deg,#d4a830,#b08820);transform:translateY(-2px);color:#fff}
+    .btn-outline{background:transparent;color:#d4b860;border:2px solid rgba(192,168,88,0.6)}.btn-outline:hover{background:rgba(192,168,88,0.15);border-color:#d4b860;color:#f0d878}
+    .site-footer-buttons .btn{padding:10px 24px;font-size:0.9rem}
+    .site-footer-copy{font-size:0.75rem;color:rgba(224,216,192,0.3)}
+    .page-hero{background:linear-gradient(180deg,#0d2818,#1a3a2a);text-align:center;padding:48px 20px 36px}
+    .page-hero h1{font-size:1.8rem;color:#d4b860;letter-spacing:0.05em;margin-bottom:8px}
+    .page-hero p{font-size:0.95rem;color:rgba(224,216,192,0.6)}
+    .content{max-width:760px;margin:0 auto;padding:40px 20px 60px}
+    .rank-table{width:100%;border-collapse:collapse;margin-bottom:36px}
+    .rank-table th{text-align:left;padding:8px 10px;font-size:0.78rem;color:#9a8060;border-bottom:2px solid rgba(192,168,88,0.3);background:rgba(192,168,88,0.08)}
+    .rank-table td{padding:8px 10px;font-size:0.88rem;border-bottom:1px solid rgba(192,168,88,0.1)}
+    .rank-table tr:hover{background:rgba(192,168,88,0.05)}
+    .rank-table .unlock-badge{font-size:0.75rem;background:rgba(192,168,88,0.2);color:#d4b860;padding:2px 8px;border-radius:6px;white-space:nowrap}
+    .info-card{background:rgba(255,255,255,0.04);border:1.5px solid rgba(192,168,88,0.2);border-radius:16px;padding:24px;margin-bottom:28px}
+    .info-card h2{font-size:1.15rem;color:#d4b860;margin-bottom:12px}
+    .info-card p{font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.8;margin-bottom:8px}
+    .info-card strong{color:#d4b860}
+    @media(max-width:600px){.page-hero h1{font-size:1.4rem}.rank-table{font-size:0.8rem}.rank-table td,.rank-table th{padding:6px 6px}}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a href="index.html" class="site-header-logo"><img src="../logo.png" alt="ReverStarGo"></a>
+  <nav class="site-nav">
+    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html" class="active">Ranks</a><a href="faq.html">FAQ</a>
+    <a href="../ranks.html" class="lang-switch">JP</a>
+  </nav>
+  <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='&#9776;'?'&#10005;':'&#9776;';" aria-label="Menu">&#9776;</button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+  <a href="https://play.reverstargo.com/en/" target="_blank">Play the App</a>
+  <a href="../ranks.html">Japanese</a>
+</nav>
+
+<div class="page-hero">
+  <h1>&#127941; Rank System</h1>
+  <p>Climb through 30 ranks from Paper to Zeus</p>
+</div>
+
+<div class="content">
+
+  <div class="info-card">
+    <h2>How Ranks Work</h2>
+    <p>Win against the CPU to gain experience and rank up. Higher ranks <strong>unlock new CPU levels</strong>.</p>
+    <p>At certain ranks, you must pass a <strong>Promotion Exam</strong> (win the majority in a series) to advance.</p>
+  </div>
+
+  <table class="rank-table">
+    <thead>
+      <tr><th></th><th>Rank</th><th>Condition</th><th>Unlock</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><img src="../icon/1.png" width="24" height="24"></td><td>1. Paper</td><td>Starting rank</td><td><span class="unlock-badge">Lv.1</span></td></tr>
+      <tr><td><img src="../icon/2.png" width="24" height="24"></td><td>2. Leather</td><td>First win vs Lv.1</td><td></td></tr>
+      <tr><td><img src="../icon/3.png" width="24" height="24"></td><td>3. Wood</td><td>3 wins vs Lv.1</td><td></td></tr>
+      <tr><td><img src="../icon/4.png" width="24" height="24"></td><td>4. Stone</td><td>5 wins vs Lv.1</td><td><span class="unlock-badge">Lv.2</span></td></tr>
+      <tr><td><img src="../icon/5.png" width="24" height="24"></td><td>5. Iron</td><td>5 wins vs Lv.2</td><td></td></tr>
+      <tr><td><img src="../icon/6.png" width="24" height="24"></td><td>6. Steel</td><td>10 wins vs Lv.2</td><td></td></tr>
+      <tr><td><img src="../icon/7.png" width="24" height="24"></td><td>7. Bronze</td><td>Best of 5 exam</td><td><span class="unlock-badge">Lv.3</span></td></tr>
+      <tr><td><img src="../icon/8.png" width="24" height="24"></td><td>8. Silver</td><td>5 wins vs Lv.3</td><td></td></tr>
+      <tr><td><img src="../icon/9.png" width="24" height="24"></td><td>9. Gold</td><td>10 wins vs Lv.3</td><td></td></tr>
+      <tr><td><img src="../icon/10.png" width="24" height="24"></td><td>10. Platinum</td><td>Best of 7 exam<br><small style="color:#e0a050;">or 20 career wins</small></td><td><span class="unlock-badge">Lv.4</span></td></tr>
+      <tr><td><img src="../icon/11.png" width="24" height="24"></td><td>11. Turquoise</td><td>2 wins vs Lv.4</td><td></td></tr>
+      <tr><td><img src="../icon/12.png" width="24" height="24"></td><td>12. Aquamarine</td><td>5 wins vs Lv.4</td><td></td></tr>
+      <tr><td><img src="../icon/13.png" width="24" height="24"></td><td>13. Garnet</td><td>10 wins vs Lv.4</td><td></td></tr>
+      <tr><td><img src="../icon/14.png" width="24" height="24"></td><td>14. Topaz</td><td>Best of 7 exam<br><small style="color:#e0a050;">or 20 career wins</small></td><td><span class="unlock-badge">Lv.5</span></td></tr>
+      <tr><td><img src="../icon/15.png" width="24" height="24"></td><td>15. Amethyst</td><td>2 RM wins vs Lv.5</td><td></td></tr>
+      <tr><td><img src="../icon/16.png" width="24" height="24"></td><td>16. Ruby</td><td>5 RM wins vs Lv.5</td><td></td></tr>
+      <tr><td><img src="../icon/17.png" width="24" height="24"></td><td>17. Sapphire</td><td>10 RM wins vs Lv.5</td><td></td></tr>
+      <tr><td><img src="../icon/18.png" width="24" height="24"></td><td>18. Emerald</td><td>20 RM wins vs Lv.5</td><td></td></tr>
+      <tr><td><img src="../icon/19.png" width="24" height="24"></td><td>19. Diamond</td><td>Best of 5 RM exam<br><small style="color:#e0a050;">or 20 RM career wins</small></td><td><span class="unlock-badge">MAX</span></td></tr>
+      <tr><td><img src="../icon/20.png" width="24" height="24"></td><td>20. Specialist</td><td>2 RM wins vs MAX</td><td></td></tr>
+      <tr><td><img src="../icon/21.png" width="24" height="24"></td><td>21. Expert</td><td>5 RM wins vs MAX</td><td></td></tr>
+      <tr><td><img src="../icon/22.png" width="24" height="24"></td><td>22. Champion</td><td>10 RM wins vs MAX</td><td></td></tr>
+      <tr><td><img src="../icon/23.png" width="24" height="24"></td><td>23. Master</td><td>20 RM wins vs MAX</td><td></td></tr>
+      <tr><td><img src="../icon/24.png" width="24" height="24"></td><td>24. Legend</td><td>Best of 7 RM exam<br><small style="color:#e0a050;">or 20 RM career wins</small></td><td></td></tr>
+      <tr><td><img src="../icon/25.png" width="24" height="24"></td><td>25. Grand Master</td><td>Best of 15 RM exam</td><td><span class="unlock-badge">FINAL</span></td></tr>
+      <tr><td><img src="../icon/26.png" width="24" height="24"></td><td>26. Arch Master</td><td>10 RM wins vs FINAL</td><td></td></tr>
+      <tr><td><img src="../icon/27.png" width="24" height="24"></td><td>27. Overlord</td><td>30 RM wins vs FINAL</td><td></td></tr>
+      <tr><td><img src="../icon/28.png" width="24" height="24"></td><td>28. Demigod</td><td>50 RM wins vs FINAL</td><td></td></tr>
+      <tr><td><img src="../icon/29.png" width="24" height="24"></td><td>29. God</td><td>Best of 11 RM exam</td><td></td></tr>
+      <tr><td><img src="../icon/30.png" width="24" height="24"></td><td>30. Zeus</td><td>Best of 21 RM exam</td><td></td></tr>
+    </tbody>
+  </table>
+  <p style="text-align:center;font-size:0.9rem;color:rgba(224,216,192,0.7);margin-top:-12px;margin-bottom:32px;">* RM = Reverse Match</p>
+
+  <div class="info-card">
+    <h2>&#9876;&#65039; Promotion Exams</h2>
+    <p>At certain ranks, you must pass a <strong>Promotion Exam</strong> to unlock the next CPU level.</p>
+    <p><strong>Stone promotion:</strong> Best of 3 (first to 2 wins)</p>
+    <p><strong>Bronze promotion:</strong> Best of 5 (first to 3 wins)</p>
+    <p><strong>Platinum / Topaz promotion:</strong> Best of 7 (first to 4 wins) *Can also pass with 20 career wins</p>
+    <p><strong>Diamond promotion:</strong> Best of 5 RM (first to 3 wins) *Can also pass with 20 career wins</p>
+    <p><strong>Legend promotion:</strong> Best of 7 RM (first to 4 wins) *Can also pass with 20 career wins</p>
+    <p><strong>Grand Master promotion:</strong> Best of 15 RM (first to 8 wins)</p>
+    <p><strong>God promotion:</strong> Best of 11 RM (first to 6 wins)</p>
+    <p><strong>Zeus promotion:</strong> Best of 21 RM (first to 11 wins)</p>
+    <p style="font-size:0.85rem;color:rgba(224,216,192,0.6);">* RM = Reverse Match</p>
+    <p>You can retry as many times as you like.</p>
+  </div>
+
+  <div class="info-card">
+    <h2>&#128275; Level Unlocks</h2>
+    <p>CPU levels are unlocked as you rank up.</p>
+    <p><strong>Lv.1 Beginner</strong> &mdash; Available from start<br>
+    <strong>Lv.2 Intermediate</strong> &mdash; Rank 4 (Stone)<br>
+    <strong>Lv.3 Advanced</strong> &mdash; Rank 7 (Bronze) *Exam<br>
+    <strong>Lv.4 Strong</strong> &mdash; Rank 10 (Platinum) *Exam<br>
+    <strong>Lv.5 Expert</strong> &mdash; Rank 14 (Topaz) *Exam<br>
+    <strong>MAX</strong> &mdash; Rank 19 (Diamond) *Exam<br>
+    <strong>FINAL</strong> &mdash; Rank 25 (Grand Master) *Exam</p>
+  </div>
+
+  <div class="info-card">
+    <h2>&#128260; Reverse Match</h2>
+    <p>To eliminate the advantage of going first or second, matches at Lv.5 or higher automatically use the "Reverse Match" format.</p>
+    <p><strong>① Two Games per Set</strong><br>You play the same opponent twice, with black and white swapped between the two games.</p>
+    <p><strong>② Total Score Decides the Winner</strong><br>The player with the higher combined score over the two games wins. Even if you lose the first game, a strong second game can turn it around.</p>
+    <p><strong>③ Colors Alternate Across Sets</strong><br>When playing multiple sets, the colors naturally alternate between sets:<br>&middot; Set 1: Black &rarr; White<br>&middot; Set 2: White &rarr; Black<br>&middot; Set 3: Black &rarr; White<br>(This pattern continues in regular matches as well, unless you change colors manually.)</p>
+    <p><strong>④ Scope</strong><br>All Lv.5+ matches (regular matches and rank-up exams) use it automatically.<br>In 2-player mode &mdash; whether on one device or with a remote opponent &mdash; you choose Single Game or Reverse Match yourself.<br>* Not applied in tutorials.</p>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="https://play.reverstargo.com/en/" target="_blank" class="btn btn-primary">Start Climbing</a>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <nav class="site-footer-nav">
+    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+    <a href="../index.html">Japanese</a>
+  </nav>
+  <div class="site-footer-buttons">
+    <a href="https://play.reverstargo.com/en/" target="_blank" class="btn btn-primary">Play the App</a>
+  </div>
+  <p class="site-footer-copy">&copy; 2026 ReverStarGo. All rights reserved.</p>
+</footer>
+</body>
+</html>

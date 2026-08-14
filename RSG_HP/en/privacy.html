@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - ReverStarGo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    header {
+      background-color: #1a1a2e;
+      color: #fff;
+      text-align: center;
+      padding: 2.5rem 1rem;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.3rem;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      color: #adb5bd;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .content {
+      background: #fff;
+      border-radius: 8px;
+      padding: 2rem 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      color: #1a1a2e;
+      margin-top: 1.8rem;
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    h2:first-of-type {
+      margin-top: 0.5rem;
+    }
+
+    p {
+      margin-bottom: 0.8rem;
+    }
+
+    ul {
+      margin: 0.5rem 0 1rem 1.5rem;
+    }
+
+    ul li {
+      margin-bottom: 0.4rem;
+    }
+
+    .contact-info {
+      background-color: #f1f3f5;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .contact-info a {
+      color: #1a1a2e;
+      font-weight: 600;
+    }
+
+    .contact-info .signature {
+      margin-top: 1rem;
+      color: #868e96;
+      font-size: 0.9rem;
+    }
+
+    .lang-switch {
+      text-align: right;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .lang-switch a {
+      color: #495057;
+      text-decoration: none;
+      padding: 0.3rem 0.8rem;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+    }
+
+    .lang-switch a:hover {
+      background: #f1f3f5;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem 2rem;
+      color: #868e96;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>ReverStarGo</h1>
+  <p>Privacy Policy</p>
+</header>
+
+<div class="container">
+
+  <div class="lang-switch">
+    <a href="../privacy.html">日本語</a>
+  </div>
+
+  <div class="content">
+
+    <h2>Introduction</h2>
+    <p>This privacy policy describes how ReverStarGo handles user information.</p>
+
+    <h2>Data Collection</h2>
+    <p>We do not collect any personal data whatsoever.</p>
+    <ul>
+      <li>No analytics or usage tracking</li>
+      <li>No advertisements</li>
+      <li>No cookies or tracking technologies</li>
+      <li>No account registration or login required</li>
+    </ul>
+
+    <h2>Data Storage</h2>
+    <p>All game data, including progress and scores, is stored exclusively on your device using local storage. We do not run a server of our own, and none of this data is sent to us.</p>
+
+    <h2>Network Communication</h2>
+    <p>This app functions as a PWA (Progressive Web App) and works fully offline. No network communication is required to play against the CPU, to play pass-and-play on one device, or to take on the daily challenge.</p>
+    <p>The one exception is the optional <strong>"Play a Remote Opponent"</strong> mode, described below. If you never use that mode, the app makes no network connection while you play.</p>
+
+    <h2>Play a Remote Opponent (online play)</h2>
+    <p>This optional mode lets you play someone on another device. It works as follows.</p>
+    <ul>
+      <li><strong>Setting up the connection.</strong> The app uses WebRTC through the PeerJS library. To introduce the two devices to each other it contacts the public PeerJS broker (<code>0.peerjs.com</code>) and a public STUN server (<code>stun.l.google.com</code>). These are used only to exchange the information needed to open the connection.</li>
+      <li><strong>What travels between you.</strong> Once connected, your moves, the player name you typed in (up to 7 characters), and any short messages you send go <strong>directly from one device to the other</strong>, encrypted by WebRTC. They do not pass through us.</li>
+      <li><strong>If a direct link is not possible.</strong> On some networks a direct connection cannot be opened. In that case the data may be relayed through the PeerJS TURN servers (<code>eu-0.turn.peerjs.com</code> / <code>us-0.turn.peerjs.com</code>).</li>
+      <li><strong>Room codes.</strong> The 4-digit code exists only while the room is open. It is not recorded anywhere.</li>
+      <li><strong>No account.</strong> No email address, login, or personal identifier is involved. The player name is whatever you choose to type and may be a nickname.</li>
+    </ul>
+    <p>We do not log, store, or have any access to the contents of these games. Please note that the PeerJS and STUN services are operated by third parties outside our control; refer to their own policies for how they handle connection information.</p>
+
+    <h2>Third-Party Services</h2>
+    <p>We use no ad networks, no analytics tools, and no social media integrations. The only external services involved are the connection services listed under "Play a Remote Opponent" above, and only while you are using that mode.</p>
+
+    <h2>Contact</h2>
+    <div class="contact-info">
+      <p>ReverStarGo is independently developed and operated by Takeshi Nishiguchi (Yumekichi Games).</p>
+      <p>For inquiries and feedback, please contact us by email:</p>
+      <p style="margin-top:0.8rem;">📧 <a href="mailto:hello@reverstargo.com">hello@reverstargo.com</a></p>
+      <p class="signature">Game Design by Takeshi Nishiguchi</p>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  <p>Last updated: August 2026</p>
+</footer>
+
+</body>
+</html>

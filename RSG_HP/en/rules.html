@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rules | ReverStarGo</title>
+  <meta name="description" content="Complete rules for ReverStarGo. Placing stones, flipping, capturing by surrounding, Core Point, ko rule, and more.">
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+    body{font-family:'Helvetica Neue',Arial,sans-serif;background:#0a1f14;color:#e0d8c0;line-height:1.7;overflow-x:hidden;padding-top:56px}
+    a{color:#d4b860;text-decoration:none}a:hover{color:#f0d878}
+    .site-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,31,20,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(192,168,88,0.2);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between}
+    .site-header-logo{display:flex;align-items:center;gap:8px}.site-header-logo img{height:32px}
+    .site-nav{display:flex;gap:4px}.site-nav a{padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:bold;color:rgba(224,216,192,0.75);transition:all 0.2s}.site-nav a:hover,.site-nav a.active{color:#d4b860;background:rgba(192,168,88,0.12)}
+    .lang-switch{font-size:0.78rem;color:rgba(224,216,192,0.5);padding:4px 10px;border:1px solid rgba(192,168,88,0.3);border-radius:6px;margin-left:8px}.lang-switch:hover{color:#d4b860;border-color:#d4b860}
+    .hamburger{display:none;background:none;border:none;color:#d4b860;font-size:1.5rem;cursor:pointer;padding:4px}
+    .mobile-nav{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(10,31,20,0.97);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .mobile-nav.open{display:flex}.mobile-nav a{font-size:1.15rem;padding:12px 32px;border-radius:12px;color:#e0d8c0;font-weight:bold;transition:background 0.2s}.mobile-nav a:hover{background:rgba(192,168,88,0.15);color:#d4b860}
+    @media(max-width:768px){.site-nav{display:none}.hamburger{display:block}}
+    .site-footer{background:#070f0a;text-align:center;padding:36px 20px;border-top:1px solid rgba(192,168,88,0.15)}
+    .site-footer-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;margin-bottom:16px}.site-footer-nav a{font-size:0.85rem;color:rgba(224,216,192,0.6)}.site-footer-nav a:hover{color:#d4b860}
+    .site-footer-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+    .btn{display:inline-block;padding:14px 36px;border-radius:12px;font-size:1.05rem;font-weight:bold;cursor:pointer;transition:all 0.25s;border:none;text-align:center}
+    .btn-primary{background:linear-gradient(135deg,#c09020,#a07818);color:#fff;box-shadow:0 4px 20px rgba(192,144,32,0.35)}.btn-primary:hover{background:linear-gradient(135deg,#d4a830,#b08820);transform:translateY(-2px);color:#fff}
+    .btn-outline{background:transparent;color:#d4b860;border:2px solid rgba(192,168,88,0.6)}.btn-outline:hover{background:rgba(192,168,88,0.15);border-color:#d4b860;color:#f0d878}
+    .site-footer-buttons .btn{padding:10px 24px;font-size:0.9rem}
+    .site-footer-copy{font-size:0.75rem;color:rgba(224,216,192,0.3)}
+    .page-hero{background:linear-gradient(180deg,#0d2818,#1a3a2a);text-align:center;padding:48px 20px 36px}
+    .page-hero h1{font-size:1.8rem;color:#d4b860;letter-spacing:0.05em;margin-bottom:8px}
+    .page-hero p{font-size:0.95rem;color:rgba(224,216,192,0.6)}
+    .content{max-width:720px;margin:0 auto;padding:40px 20px 60px}
+    .rule-section{margin-bottom:36px;padding:28px 24px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(192,168,88,0.2);border-radius:16px}
+    .rule-section h2{font-size:1.15rem;color:#d4b860;margin-bottom:12px}
+    .rule-section p{font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.8;margin-bottom:8px}
+    .rule-section strong{color:#d4b860}
+    .rule-section ul{padding-left:1.2em;font-size:0.92rem;color:rgba(224,216,192,0.8);line-height:1.8}
+    @media(max-width:600px){.page-hero h1{font-size:1.4rem}.rule-section{padding:20px 16px}}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <a href="index.html" class="site-header-logo"><img src="../logo.png" alt="ReverStarGo"></a>
+  <nav class="site-nav">
+    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html" class="active">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+    <a href="../rules.html" class="lang-switch">JP</a>
+  </nav>
+  <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='&#9776;'?'&#10005;':'&#9776;';" aria-label="Menu">&#9776;</button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+  <a href="https://play.reverstargo.com/en/" target="_blank">Play the App</a>
+  <a href="../rules.html">Japanese</a>
+</nav>
+
+<div class="page-hero">
+  <h1>&#128214; Rules</h1>
+  <p>Complete rules for ReverStarGo</p>
+</div>
+
+<div class="content">
+
+  <div class="rule-section">
+    <h2>&#127919; 1. Overview</h2>
+    <p>ReverStarGo is a two-player strategy board game played on a six-pointed star board. It combines Reversi's "flip by flanking" mechanic with Go's "capture by surrounding" mechanic, creating an entirely new strategic experience.</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#11043; 2. The Board</h2>
+    <ul>
+      <li>The board is shaped like a six-pointed star, consisting of <strong>37 hexagonal cells</strong></li>
+      <li>The center cell is a special cell called the <strong>Core Point (CP)</strong></li>
+    </ul>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#127922; 3. Setup</h2>
+    <ul>
+      <li>One player takes Black stones, the other takes White</li>
+      <li>Three Black and three White stones are placed alternately on the six cells surrounding the CP</li>
+      <li>Black plays first</li>
+    </ul>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#128204; 4. Basic Rules</h2>
+    <p><strong>① Placing Stones</strong><br>You can only place a stone where it <strong>flanks at least one opponent's stone</strong>. If you have no valid move, your turn is passed.</p>
+    <p><strong>② Flipping</strong><br>All flanked opponent stones are flipped to your color.</p>
+    <p><strong>③ Capturing by Surrounding</strong><br>When your stones <strong>completely surround</strong> opponent's stones, those stones are captured and added to your score. The captured cells become empty and can be played on again.<br>Unlike Go, the board edge (wall) does <strong>not</strong> count as part of a surrounding. You must surround entirely with <strong>your own stones</strong>.</p>
+    <p><strong>④ Existing Surroundings are Protected</strong><br>Opponent stones that were already surrounded before your move cannot be captured by an unrelated move. Only <strong>a new surrounding completed by your current move</strong> counts as a capture.</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#128142; 5. Core Point (CP) Rules</h2>
+    <p>The CP is the special center cell of the board.</p>
+    <p><strong>① Call Required</strong><br>When you play a move that flanks through the CP, you must "call" either Black or White immediately after placing your stone, before flipping.</p>
+    <p><strong>② Treated as Called Color</strong><br>The CP is then treated as containing a stone of the called color for the rest of the game (until the next call).</p>
+    <p><strong>③ Capturing the CP</strong><br>The CP can be captured by surrounding, just like any other stone. Surrounding only the CP also counts as a capture.</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#127942; 6. Winning</h2>
+    <p>The game ends when any of the following occurs:</p>
+    <ul>
+      <li>All 36 cells (excluding the CP) are filled with stones</li>
+      <li>Both players have no valid moves</li>
+      <li>A repeated ko situation makes the game unplayable</li>
+    </ul>
+    <p>Each player's score = <strong>stones remaining on the board</strong> + <strong>stones captured by surrounding</strong>. The player with the higher score wins.</p>
+    <p>If scores are tied, the player with more captured stones wins.<br>If both scores and captures are also tied, the game is a draw.</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#128260; 7. Ko Rule</h2>
+    <p>The ko rule prevents infinite repetition of the same board position.</p>
+    <p><strong>① Basic Rule</strong><br>You cannot make a move that returns the board to the exact same position as one move ago.<br>You also cannot make a move that returns the board to any previously seen position.</p>
+    <p><strong>② Exception</strong><br>If you have no other valid moves, you may play a ko move (one that returns to the same position).</p>
+    <p><strong>③ After the Exception</strong><br>Immediately after the exception is applied, the opponent cannot play a move that returns to the same position.</p>
+    <p><strong>④ Game End</strong><br>If both players can only play ko moves and the situation persists, the game ends and the winner is determined by the current scores.</p>
+    <p><strong>⑤ Visual Indicators</strong></p>
+    <ul>
+      <li><span style="color:#c8b832;font-weight:bold;">&#9679; Yellow Dot</span> &mdash; Marks a placeable cell (regardless of background color)</li>
+      <li><span style="color:#ee5511;font-weight:bold;">&#9679; Orange background + white border</span> &mdash; Placeable, but only one CP call color is allowed (other is ko-restricted)</li>
+      <li><span style="color:#e30909;font-weight:bold;">&#9679; Red background + white border</span> &mdash; Blocked by ko. Normally cannot be played.</li>
+      <li><span style="color:#e30909;font-weight:bold;">&#9679; Red + white border + yellow dot</span> &mdash; Exception: only red remains, so placing is allowed.</li>
+    </ul>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#128260; 8. Reverse Match</h2>
+    <p>To eliminate the advantage of going first or second, matches at Lv.5 or higher automatically use the "Reverse Match" format.</p>
+    <p><strong>① Two Games per Set</strong><br>You play the same opponent twice, with black and white swapped between the two games.</p>
+    <p><strong>② Total Score Decides the Winner</strong><br>The player with the higher combined score over the two games wins. Even if you lose the first game, a strong second game can turn it around.</p>
+    <p><strong>③ Colors Alternate Across Sets</strong><br>When playing multiple sets, the colors naturally alternate between sets:<br>&middot; Set 1: Black &rarr; White<br>&middot; Set 2: White &rarr; Black<br>&middot; Set 3: Black &rarr; White<br>(This pattern continues in regular matches as well, unless you change colors manually.)</p>
+    <p><strong>④ Scope</strong><br>All Lv.5+ matches (regular matches and rank-up exams) use it automatically.<br>In 2-player mode &mdash; whether on one device or with a remote opponent &mdash; you choose Single Game or Reverse Match yourself.<br>* Not applied in tutorials.</p>
+  </div>
+
+  <div class="rule-section">
+    <h2>&#9876;&#65039; 9. Rank-Up Match</h2>
+    <p>A special multi-game series to unlock the next CPU level. Separate from daily challenges.</p>
+    <p><strong>① When It Triggers</strong><br>When you reach a specific rank, the right to challenge the next promotion rank is automatically granted.</p>
+    <ul>
+      <li>Wood &rarr; Best of 3 (first to 2 wins) &rarr; Stone, <strong>Lv.2</strong> unlocked</li>
+      <li>Steel &rarr; Best of 5 (first to 3 wins) &rarr; Bronze, <strong>Lv.3</strong> unlocked</li>
+      <li>Gold &rarr; Best of 7 (first to 4 wins) &rarr; Platinum, <strong>Lv.4</strong> unlocked</li>
+      <li>Garnet &rarr; Best of 7 (first to 4 wins) &rarr; Topaz, <strong>Lv.5</strong> unlocked</li>
+      <li>Emerald &rarr; Best of 5 RM (first to 3 wins) &rarr; Diamond, <strong>MAX</strong> unlocked</li>
+      <li>Master &rarr; Best of 7 RM (first to 4 wins) &rarr; Legend</li>
+      <li>Legend &rarr; Best of 15 RM (first to 8 wins) &rarr; Grand Master, <strong>FINAL</strong> unlocked</li>
+      <li>Demigod &rarr; Best of 11 RM (first to 6 wins) &rarr; God</li>
+      <li>God &rarr; Best of 21 RM (first to 11 wins) &rarr; Zeus</li>
+    </ul>
+    <p style="font-size:0.85rem;color:rgba(224,216,192,0.6);">* RM = Reverse Match</p>
+    <p><strong>② Basic Rules</strong></p>
+    <ul>
+      <li>You must complete all games consecutively</li>
+      <li>Leaving the screen mid-series counts as a fail</li>
+      <li>Black and white auto-swap each game</li>
+      <li>Platinum to Legend exams can also be passed by reaching 20 career wins (for Diamond and Legend, this is the RM career count)</li>
+    </ul>
+    <p><strong>③ Don't Worry About Failing</strong><br>You can retry as many times as you like. Take your time until you're satisfied.</p>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="https://play.reverstargo.com/en/" target="_blank" class="btn btn-primary">Play Now</a>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <nav class="site-footer-nav">
+    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+    <a href="../index.html">Japanese</a>
+  </nav>
+  <div class="site-footer-buttons">
+    <a href="https://play.reverstargo.com/en/" target="_blank" class="btn btn-primary">Play the App</a>
+  </div>
+  <p class="site-footer-copy">&copy; 2026 ReverStarGo. All rights reserved.</p>
+</footer>
+</body>
+</html>
