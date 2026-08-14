@@ -1,0 +1,8 @@
+# play.reverstargo.com
+
+User-agent: *
+# RSG_HP/ は公式サイト reverstargo.com のHTMLの控え。
+# 中身が同じものを検索結果で食い合わせないため、ここは巡回させない。
+Disallow: /RSG_HP/
+# _pages/ も同じ理由（旧世代の紹介ページ）
+Disallow: /_pages/

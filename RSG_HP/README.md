@@ -33,10 +33,12 @@ reverstargo.com は GitHub ではなく **WADAX のレンタルサーバー**で
 
 ## 検索避けについて
 
-各ファイルの `<head>` に `<meta name="robots" content="noindex, nofollow">` を
-入れてあります。この控えが play.reverstargo.com/RSG_HP/ として配信されても、
-検索結果で本家 reverstargo.com と食い合わないようにするためです。
-**サーバーへ上げる前にこの1行を消してください。**
+この控えは play.reverstargo.com/RSG_HP/ としても配信されてしまうため、
+本家 reverstargo.com と検索結果で食い合わないよう、リポジトリ直下の
+`robots.txt` で `/RSG_HP/` を巡回対象から外しています。
+
+**ファイルの中身には手を加えていません。**
+ここから落としたHTMLは、そのまま WADAX に上げて構いません。
 
 ## 履歴
 
