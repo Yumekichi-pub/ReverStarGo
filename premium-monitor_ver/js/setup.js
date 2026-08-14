@@ -447,6 +447,9 @@ async function executeMove(q, r, s, gpColor) {
     // Premium-v14: 着手記録後に「ゲーム設定に戻る／修行部屋に戻る」の状態を再評価
     if (typeof updateRestartBtnState === 'function') updateRestartBtnState();
 
+    // Premium-v128: 最初の着手で時計を動かし、着手完了で手番を切り替える
+    if (typeof clockStart === 'function') clockStart();
+    if (typeof clockOnMoveDone === 'function') clockOnMoveDone(current);
     current = opp(current);
 
     // Premium-v34: 「師匠と修行」モードで bad 評価が出たら、CPU 着手前にプレイヤーに確認させる
@@ -487,6 +490,9 @@ function colorLabel(color) {
 
 // 2人対戦用ターン交代オーバーレイ（画面タップで続行）
 function showTurnModal() {
+  // Premium-v128: 交代の合図を待つ間は時計を止める
+  // （タップして盤面を見る前から次の人の時間が減るのは不公平なため）
+  if (typeof clockPause === 'function') clockPause();
   return new Promise(resolve => {
     const icon = current === 'black' ? '⚫' : '⚪';
     const name = current === 'black' ? '黒' : '白';
@@ -496,6 +502,7 @@ function showTurnModal() {
     const handler = () => {
       modal.style.display = 'none';
       modal.removeEventListener('click', handler);
+      if (typeof clockResume === 'function') clockResume();
       resolve();
     };
     modal.addEventListener('click', handler);
@@ -617,6 +624,8 @@ function pickNonKoGPColor(q, r, s, player) {
 
 // パス表示（人間もCPUも同じモーダルで確認）
 function showPassModal(message) {
+  // Premium-v128: パスの確認中は時計を止める
+  if (typeof clockPause === 'function') clockPause();
   return new Promise(resolve => {
     const pm = document.getElementById('pass-modal');
     pm.querySelector('p').textContent = message;
@@ -628,6 +637,7 @@ function showPassModal(message) {
       if (done) return;
       done = true;
       pm.style.display = 'none';
+      if (typeof clockResume === 'function') clockResume(); // Premium-v128
       document.getElementById('controls').style.display = '';
       document.getElementById('pass-ok').removeEventListener('click', handler);
       resolve();

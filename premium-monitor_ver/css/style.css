@@ -3607,3 +3607,31 @@
       margin-top: 4px;
     }
     .result-finish-btn:hover { background: #f5e6c8; }
+
+    /* ===== Premium-v128: 対局時計 ===== */
+    .sp-clock {
+      margin-top: 3px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      color: #6a5a30;
+      text-align: center;
+      border-top: 1px solid rgba(192,168,88,0.45);
+      padding-top: 3px;
+    }
+    /* 手番側は目立たせる */
+    .sp-clock.clock-active { color: #2a7a45; }
+    /* 秒読み中は赤く点滅 */
+    .sp-clock.clock-byo {
+      color: #c02828;
+      animation: clockPulse 1s ease-in-out infinite;
+    }
+    .sp-clock.clock-over {
+      color: #fff;
+      background: #c02828;
+      border-radius: 6px;
+      animation: none;
+    }
+    @keyframes clockPulse { 50% { opacity: 0.45; } }
+    .clock-btn-row { margin-bottom: 6px; }
+    .clock-btn-row .setup-btn { font-size: 0.85rem; padding: 8px 10px; }

@@ -279,7 +279,11 @@ function _olOnMessage(m) {
       }
       // ホストは両者の hello が揃ったら開始合図を送る（対戦形式も同梱: Premium-v117）
       if (online.isHost) {
-        online.transport.send({ t: 'start', mode: (typeof tpMatchMode !== 'undefined' ? tpMatchMode : 'single') });
+        online.transport.send({
+          t: 'start',
+          mode: (typeof tpMatchMode !== 'undefined' ? tpMatchMode : 'single'),
+          clock: (typeof clockPreset !== 'undefined' ? clockPreset : 'off') // Premium-v128
+        });
         // Premium-v118: ゲストが形式を確認して返事(fmt)するまで待つ
         _olStatus(`${online.oppName}さんが対戦形式を確認しています…`);
       }
@@ -288,6 +292,8 @@ function _olOnMessage(m) {
       // Premium-v122: 対局中なら無視（復帰した相手が新規開始しようとしている）
       if (online.started) { online.transport.send(_olSyncPayload()); break; }
       // Premium-v118: ゲストはホスト提案の形式を確認してから開始（1往復で決着）
+      // Premium-v128: 時計はホストの設定に合わせる（部屋の主が決める）
+      if (!online.isHost && typeof applyClockFromPeer === 'function') applyClockFromPeer(m.clock || 'off');
       if (!online.isHost) _olAskFormat(m.mode === 'reverse' ? 'reverse' : 'single');
       break;
     case 'fmt':
@@ -372,6 +378,9 @@ async function _olHandleSync(p) {
   }
   // 進んでいる側は何もしない（相手が自分の sync を受け取って追いつく）
   _olSetReconnectOverlay('', false);
+  // Premium-v128: 復元後は時計を仕切り直して再開（残り時間は同期しないため）
+  if (typeof clockResetForRestore === 'function') clockResetForRestore();
+  if (typeof clockResume === 'function') clockResume();
   _olSaveSession();
   _olStartHeartbeat();
   if (!behind) _olBubble('🔌 再接続しました', 'cp');
@@ -749,6 +758,8 @@ function _olStartReconnect(msg) {
   online.connected = false;
   online.retryUntil = Date.now() + OL_RETRY_LIMIT;
   online.retryCount = 0;
+  // Premium-v128: 再接続中は時計を止める（通信断で時間を失わない）
+  if (typeof clockPause === 'function') clockPause();
   _olSaveSession();
   _olSetReconnectOverlay(msg || '🔌 再接続を試みています…', true);
   // Premium-v125: 役割で再試行の中身を分ける。

@@ -179,6 +179,8 @@ function endGame() {
   console.log(`[DIAG endGame] called: mv=${moveHistory.length}, stones=${Object.values(board).filter(v => v !== null).length}, cur=${current}`);
   let _dailyCelebrateKind = null; // v83: デイリー達成お祝いの種類 ('day'|'month'|null)
   let _dailyCelebrateMonth = null; // v83: 月コンプ時の月番号（トロフィー登場用）
+  // Premium-v128: 終局したら時計を止める
+  if (typeof clockStop === 'function') clockStop();
   // Premium-v127: 「これで終了」は完全終局のときだけ出す（既定は表示）
   const _finishBtn = document.getElementById('finish-btn');
   if (_finishBtn) _finishBtn.style.display = '';

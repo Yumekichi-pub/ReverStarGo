@@ -169,6 +169,7 @@ document.getElementById('gp-black').addEventListener('click', async () => {
     }
     // Premium-v114: オンライン対戦なら選んだ色を相手に通知
     if (typeof olNotifyGpSelect === 'function') olNotifyGpSelect('black');
+    if (typeof clockResume === 'function') clockResume(); // Premium-v128
     await executeMove(...pendingMove, 'black'); pendingMove = null;
     if (isTutorial) onTutorialGPCallComplete('black', tutFlipCount);
   }
@@ -184,6 +185,7 @@ document.getElementById('gp-white').addEventListener('click', async () => {
     }
     // Premium-v114: オンライン対戦なら選んだ色を相手に通知
     if (typeof olNotifyGpSelect === 'function') olNotifyGpSelect('white');
+    if (typeof clockResume === 'function') clockResume(); // Premium-v128
     await executeMove(...pendingMove, 'white'); pendingMove = null;
     if (isTutorial) onTutorialGPCallComplete('white', tutFlipCount);
   }

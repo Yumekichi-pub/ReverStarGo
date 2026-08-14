@@ -106,6 +106,8 @@ async function onCellClick(q, r, s) {
     }
     document.getElementById('gp-modal').style.display = 'flex';
     document.getElementById('controls').style.display = 'none';
+    // Premium-v128: CPコールの選択中は時計を止める（色を選ぶ時間は消費しない）
+    if (typeof clockPause === 'function') clockPause();
     // Premium-v114: オンライン対戦なら相手に「CPコール待ち」を通知
     // Premium-v126: 置いた場所も伝えて、相手の画面にも仮マーカーを出す
     if (typeof olNotifyGpWait === 'function') olNotifyGpWait(q, r, s);
@@ -140,6 +142,8 @@ function initGame() {
   const ring1 = [[1,-1,0],[1,0,-1],[0,1,-1],[-1,1,0],[-1,0,1],[0,-1,1]];
   ring1.forEach(([q,r,s], i) => board[K(q,r,s)] = i % 2 === 0 ? 'white' : 'black');
 
+  // Premium-v128: 対局時計を初期化（2人対戦かつ設定ありのときだけ動く）
+  if (typeof clockInit === 'function') clockInit();
   capturePending = new Set();
   isAnimating = false;
   lastMove = null;
