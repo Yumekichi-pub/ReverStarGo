@@ -83,6 +83,41 @@ function _olMyName() {
   return _olNorm(n) || 'Player';
 }
 
+// ===== 通信路（中継役）の設定 =====
+// v141: 2台が直接つながれないときに間に入る「中継役」の一覧。
+//
+// これまでは PeerJS の既定（Google の STUN 1台 + PeerJS の中継 2台）だけを
+// 使っていた。ところが PeerJS の中継は UDP の 3478 番という1種類の通り道しか
+// 持っておらず、職場や公衆Wi-Fi ではそこが塞がれていることが多い。塞がれると
+// 2台とも通れないため、直接つながれない利用者は打つ手がなくなっていた。
+//
+// そこで、ホームページと同じ 443 番（TLS）を通れる中継を足す。塞がれにくい
+// 経路がひとつ増えるだけで、既存の2台はそのまま残るので悪くなることはない。
+// ブラウザは使える経路を勝手に選ぶので、順番も気にしなくてよい。
+const OL_ICE_SERVERS = [
+  // --- これまでどおりの経路（PeerJS の既定と同じ内容）---
+  { urls: 'stun:stun.l.google.com:19302' },
+  {
+    urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'],
+    username: 'peerjs',
+    credential: 'peerjsp'
+  },
+  // --- 追加の道しるべ（中継役はまだ未定。下の注記を参照）---
+  { urls: 'stun:stun.relay.metered.ca:80' }
+];
+
+// 【調査中】2026-08 時点で、eu-0 / us-0.turn.peerjs.com は名前解決できない。
+//   つまり中継役が1つも生きていない可能性がある（＝直接つながれない相手とは
+//   対戦できない）。かつて無料で開放されていた openrelay.metered.ca も同様に
+//   消えていた。実機での検査結果を待って、使える中継役を足す。
+//   検査ページ: /ice-check.html
+
+// PeerJS に渡す設定。config を渡すと既定を置き換えるため、上の一覧には
+// もともとの2台も含めてある（含め忘れると今より繋がらなくなる）
+const OL_PEER_OPTS = {
+  config: { iceServers: OL_ICE_SERVERS, sdpSemantics: 'unified-plan' }
+};
+
 // ===== トランスポート =====
 // PeerJS 版と、自動テスト用 BroadcastChannel 版（?oltest）を同じ形で返す。
 // cb: { onOpen(), onData(obj), onClose(), onError(err) }
@@ -165,7 +200,7 @@ function _olCreateTransport(code, isHost, cb) {
     if (destroyed || opening) return;
     opening = true;
     try {
-      peer = isHost ? new Peer(peerId) : new Peer();
+      peer = isHost ? new Peer(peerId, OL_PEER_OPTS) : new Peer(OL_PEER_OPTS);   // v141
     } catch (e) {
       opening = false; peer = null; lastErr = 'construct';
       attempts++; scheduleRemake(1500);

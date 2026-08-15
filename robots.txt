@@ -6,3 +6,5 @@ User-agent: *
 Disallow: /RSG_HP/
 # _pages/ も同じ理由（旧世代の紹介ページ）
 Disallow: /_pages/
+# 検査用ページ（一時的）
+Disallow: /ice-check.html

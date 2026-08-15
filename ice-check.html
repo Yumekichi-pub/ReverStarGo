@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>通信経路の検査 | ReverStarGo</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Hiragino Sans','Hiragino Kaku Gothic ProN',Meiryo,sans-serif;
+       background:#0a1f14;color:#e0d8c0;line-height:1.8;padding:20px 16px;
+       max-width:640px;margin:0 auto}
+  h1{font-size:1.15rem;color:#d4b860;border-bottom:2px solid #c0a858;padding-bottom:8px;margin-bottom:12px}
+  p.lead{font-size:0.88rem;color:rgba(224,216,192,0.75);margin-bottom:18px}
+  button{display:block;width:100%;padding:14px;border:none;border-radius:12px;
+         background:linear-gradient(135deg,#c09020,#a07818);color:#fff;
+         font-size:1.05rem;font-weight:bold;cursor:pointer;margin-bottom:20px}
+  button:disabled{opacity:0.5}
+  table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:0.86rem}
+  th,td{border:1px solid rgba(192,168,88,0.25);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:rgba(192,168,88,0.12);color:#d4b860;font-size:0.8rem}
+  td.r{white-space:nowrap;font-weight:bold}
+  .ok{color:#6fd88a}.ng{color:#ff8a7a}.wait{color:rgba(224,216,192,0.5)}
+  .box{background:rgba(255,255,255,0.05);border:1.5px solid rgba(192,168,88,0.3);
+       border-radius:12px;padding:16px;margin-bottom:18px}
+  .box h2{font-size:1rem;color:#d4b860;margin-bottom:8px}
+  .box p{font-size:0.9rem}
+  .verdict{font-size:1rem;font-weight:bold;line-height:1.7}
+  code{font-size:0.8rem;color:rgba(224,216,192,0.6);word-break:break-all}
+</style>
+</head>
+<body>
+
+<h1>🔍 通信経路の検査</h1>
+<p class="lead">
+  離れた相手と対戦するときに使う「通信の道」が、この端末から使えるかを調べます。
+  ゲームの記録には何も影響しません。20秒ほどで終わります。
+</p>
+
+<button id="go">検査をはじめる</button>
+
+<table>
+  <thead><tr><th>調べる相手</th><th>役目</th><th style="width:6.5em">結果</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<div class="box" id="verdictBox" style="display:none;">
+  <h2>まとめ</h2>
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<div class="box">
+  <h2>用語</h2>
+  <p><strong>道しるべ (STUN)</strong> … 外から見た自分の居場所を教えてくれる係。軽い仕事です。</p>
+  <p><strong>中継役 (TURN)</strong> … 2台が直接つながれないとき、間に入って荷物を運ぶ係。ここが使えないと、
+  回線の条件によっては対戦できません。</p>
+</div>
+
+<script>
+const SERVERS = [
+  { label: 'Google の道しるべ',        kind: 'stun',
+    entry: { urls: 'stun:stun.l.google.com:19302' } },
+  { label: 'PeerJS の中継役（欧州）',   kind: 'turn',
+    entry: { urls: 'turn:eu-0.turn.peerjs.com:3478', username: 'peerjs', credential: 'peerjsp' } },
+  { label: 'PeerJS の中継役（米国）',   kind: 'turn',
+    entry: { urls: 'turn:us-0.turn.peerjs.com:3478', username: 'peerjs', credential: 'peerjsp' } },
+  { label: 'Metered の道しるべ',       kind: 'stun',
+    entry: { urls: 'stun:stun.relay.metered.ca:80' } },
+  { label: 'Open Relay の中継役',      kind: 'turn',
+    entry: { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' } },
+];
+
+const rows = document.getElementById('rows');
+const cells = SERVERS.map((s) => {
+  const tr = document.createElement('tr');
+  const td1 = document.createElement('td');
+  td1.innerHTML = s.label + '<br><code>' +
+    (Array.isArray(s.entry.urls) ? s.entry.urls[0] : s.entry.urls) + '</code>';
+  const td2 = document.createElement('td');
+  td2.textContent = s.kind === 'stun' ? '道しるべ' : '中継役';
+  const td3 = document.createElement('td');
+  td3.className = 'r wait';
+  td3.textContent = '—';
+  tr.append(td1, td2, td3);
+  rows.appendChild(tr);
+  return td3;
+});
+
+function testOne(s, ms) {
+  return new Promise((resolve) => {
+    let pc;
+    try {
+      pc = new RTCPeerConnection({
+        iceServers: [s.entry],
+        iceTransportPolicy: s.kind === 'turn' ? 'relay' : 'all'
+      });
+    } catch (e) { resolve({ ok: false, why: '作成できず' }); return; }
+
+    let done = false;
+    const finish = (r) => {
+      if (done) return;
+      done = true;
+      try { pc.close(); } catch (e) {}
+      resolve(r);
+    };
+    let lastErr = '';
+    pc.onicecandidateerror = (e) => { if (e.errorCode) lastErr = String(e.errorCode); };
+    pc.onicecandidate = (e) => {
+      if (!e.candidate) return;
+      const typ = (e.candidate.candidate.match(/ typ (\w+)/) || [])[1];
+      if (s.kind === 'turn' && typ === 'relay') finish({ ok: true });
+      if (s.kind === 'stun' && typ === 'srflx') finish({ ok: true });
+    };
+    pc.createDataChannel('probe');
+    pc.createOffer().then((o) => pc.setLocalDescription(o)).catch(() => {});
+    setTimeout(() => finish({ ok: false, why: lastErr === '701' ? '見つかりません' : '応答なし' }), ms);
+  });
+}
+
+document.getElementById('go').addEventListener('click', async () => {
+  const btn = document.getElementById('go');
+  btn.disabled = true;
+  btn.textContent = '検査中…';
+  cells.forEach((c) => { c.className = 'r wait'; c.textContent = '調査中'; });
+
+  const results = [];
+  for (let i = 0; i < SERVERS.length; i++) {
+    const r = await testOne(SERVERS[i], 6000);
+    results.push(r);
+    cells[i].className = 'r ' + (r.ok ? 'ok' : 'ng');
+    cells[i].textContent = r.ok ? '✅ 使える' : '❌ ' + (r.why || 'だめ');
+  }
+
+  const turnOk = SERVERS.some((s, i) => s.kind === 'turn' && results[i].ok);
+  const stunOk = SERVERS.some((s, i) => s.kind === 'stun' && results[i].ok);
+  const box = document.getElementById('verdictBox');
+  const v = document.getElementById('verdict');
+  box.style.display = '';
+  if (turnOk) {
+    v.innerHTML = '<span class="ok">中継役が使えます。</span><br>' +
+      '直接つながれない相手とも、間に入ってもらって対戦できます。';
+  } else if (stunOk) {
+    v.innerHTML = '<span class="ng">中継役が1つも使えません。</span><br>' +
+      '道しるべは使えるので、多くの場合は直接つながります。ただし回線の条件が厳しい相手とは、' +
+      'つなぐ手段がありません。';
+  } else {
+    v.innerHTML = '<span class="ng">どれも使えませんでした。</span><br>' +
+      'この端末はネットにつながっていないか、通信が強く制限されています。';
+  }
+  btn.disabled = false;
+  btn.textContent = 'もう一度検査する';
+});
+</script>
+</body>
+</html>
