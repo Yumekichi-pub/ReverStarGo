@@ -252,7 +252,8 @@ function _olCreateTransport(code, isHost, cb) {
     // v133: 部屋がほんとうに開けたかを外から確かめられるように
     isOpen: () => healthy(),
     // v134: つながらない原因の切り分け用
-    diag: () => ({ err: lastErr, tries: attempts }),
+    // v138: notFound = 相手の待ち受けが見つからなかった（peer-unavailable を受けた）
+    diag: () => ({ err: lastErr, tries: attempts, notFound: dialFails > 0 }),
     close: () => {
       destroyed = true;
       if (remakeTimer) { clearTimeout(remakeTimer); remakeTimer = null; }  // v133
@@ -359,10 +360,17 @@ function olJoinPrompt() {
   // Premium-v129: 打ち間違いに気づけるよう、一定時間で見つからなければ知らせる
   online.joinTimer = setTimeout(() => {
     if (!online || online.started || online.connected) return;
+    // v138: until now this said "room not found" even when the room existed but the
+    // media path could not be opened, which wrongly points the blame at the code.
+    const d = (online.transport && online.transport.diag) ? online.transport.diag() : null;
+    const notFound = !d || d.notFound;
+    const msg = notFound
+      ? `⚠ Room 【 ${code} 】 was not found\nPlease check the 4-digit room code and try again`
+      : `⚠ Room 【 ${code} 】 was found, but the connection could not be opened\nWhen both devices are on the same Wi-Fi, some routers stop them from talking directly.\nSwitching one device to mobile data often works.`;
     _olStatus('');
     olTeardown(false);
     olUpdateLobbyButtons();
-    _olShowNotice(`⚠ Room 【 ${code} 】 was not found\nPlease check the 4-digit room code and try again`);
+    _olShowNotice(msg);
   }, 20000);
 }
 
@@ -410,7 +418,6 @@ function _olConnect() {
         olTeardown(false);
         olUpdateLobbyButtons();
         _olShowNotice(`⚠ Room 【 ${_c} 】 was not found\nPlease check the 4-digit room code and try again${_d}`);
-        _olProbeServer();   // v135
       } else if (!olActive()) {
         _olStatus('A connection error occurred. Try again on a different network');
         olTeardown(false);

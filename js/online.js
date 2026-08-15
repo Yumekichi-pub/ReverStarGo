@@ -252,7 +252,8 @@ function _olCreateTransport(code, isHost, cb) {
     // v133: 部屋がほんとうに開けたかを外から確かめられるように
     isOpen: () => healthy(),
     // v134: つながらない原因の切り分け用
-    diag: () => ({ err: lastErr, tries: attempts }),
+    // v138: notFound = 相手の待ち受けが見つからなかった（peer-unavailable を受けた）
+    diag: () => ({ err: lastErr, tries: attempts, notFound: dialFails > 0 }),
     close: () => {
       destroyed = true;
       if (remakeTimer) { clearTimeout(remakeTimer); remakeTimer = null; }  // v133
@@ -359,10 +360,18 @@ function olJoinPrompt() {
   // Premium-v129: 打ち間違いに気づけるよう、一定時間で見つからなければ知らせる
   online.joinTimer = setTimeout(() => {
     if (!online || online.started || online.connected) return;
+    // v138: これまでは通信路が開けなかった場合まで「部屋が見つかりませんでした」と
+    // 出していた。部屋自体は見つかっているのにコードを疑わせるのは筋が悪いので、
+    // 「相手が居なかった」のか「相手は居たが道が通らなかった」のかで文言を分ける。
+    const d = (online.transport && online.transport.diag) ? online.transport.diag() : null;
+    const notFound = !d || d.notFound;
+    const msg = notFound
+      ? `⚠ 部屋【 ${code} 】が見つかりませんでした\n部屋コード（数字4桁）をもう一度ご確認ください`
+      : `⚠ 部屋【 ${code} 】は見つかりましたが、通信路を開けませんでした\n同じWi-Fiにつないだ端末どうしだと、ルーターが直接のやりとりを止めていることがあります。\n片方をモバイル通信に切り替えると、つながることがあります。`;
     _olStatus('');
     olTeardown(false);
     olUpdateLobbyButtons();
-    _olShowNotice(`⚠ 部屋【 ${code} 】が見つかりませんでした\n部屋コード（数字4桁）をもう一度ご確認ください`);
+    _olShowNotice(msg);
   }, 20000);
 }
 
@@ -410,7 +419,6 @@ function _olConnect() {
         olTeardown(false);
         olUpdateLobbyButtons();
         _olShowNotice(`⚠ 部屋【 ${_c} 】が見つかりませんでした\n部屋コード（数字4桁）をもう一度ご確認ください${_d}`);
-        _olProbeServer();   // v135
       } else if (!olActive()) {
         _olStatus('接続エラーが発生しました。通信環境を変えて再度お試しください');
         olTeardown(false);
