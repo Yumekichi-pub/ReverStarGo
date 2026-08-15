@@ -363,6 +363,12 @@ function olJoinPrompt() {
     // v138: これまでは通信路が開けなかった場合まで「部屋が見つかりませんでした」と
     // 出していた。部屋自体は見つかっているのにコードを疑わせるのは筋が悪いので、
     // 「相手が居なかった」のか「相手は居たが道が通らなかった」のかで文言を分ける。
+    //
+    // 実例（2026-08 に特定）: Mac の Chrome で、同じWi-Fiのスマホとだけ繋がらない。
+    //   原因は macOS の「ローカルネットワーク」権限が Chrome に対してオフだったこと。
+    //   （システム設定 → プライバシーとセキュリティ → ローカルネットワーク）
+    //   同じ機体の Safari では繋がるため、アプリ・ルーター・中継サーバーはいずれも
+    //   無関係と切り分けられた。同種の相談があればここを最初に疑うとよい。
     const d = (online.transport && online.transport.diag) ? online.transport.diag() : null;
     const notFound = !d || d.notFound;
     const msg = notFound
