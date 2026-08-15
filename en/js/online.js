@@ -28,6 +28,18 @@ const OL_RETRY_LIMIT = 300000;   // あきらめるまで（v122: 2分→5分）
 // Premium-v122: 数字4桁のほうが口頭でも伝えやすく入力も速いので数字のみに
 const OL_CODE_CHARS = '0123456789';
 
+// v140: 画面に出しているバージョンをそのまま使う（相手との食い違いを知らせる用）
+function _olVersion() {
+  const el = document.querySelector('.app-version');
+  return (el && el.textContent.trim()) || '?';
+}
+
+function _olNewCode() {
+  let c = '';
+  for (let i = 0; i < 4; i++) c += OL_CODE_CHARS[Math.floor(Math.random() * OL_CODE_CHARS.length)];
+  return c;
+}
+
 function olActive() {
   return !!(online && online.connected && online.started);
 }
@@ -119,6 +131,7 @@ function _olCreateTransport(code, isHost, cb) {
   let lastErr = '';       // v134
   let attempts = 0;
   let dialFails = 0;
+  let idTaken = 0;   // v140
   const scheduleRemake = (ms) => {
     if (destroyed || remakeTimer) return;
     remakeTimer = setTimeout(() => { remakeTimer = null; makePeer(); }, ms);
@@ -179,6 +192,11 @@ function _olCreateTransport(code, isHost, cb) {
         try { peer.destroy(); } catch (x) {}
         peer = null;
         attempts++;
+        idTaken++;
+        // v140: 自分の直前の登録がまだ残っているだけなら数秒で解放されるので、
+        // まずは同じ番号で粘る。それでも取れないなら本当に他所で使われている
+        // ということなので、別の番号に切り替えてもらう（放置すると永久に開かない）。
+        if (isHost && idTaken >= 3 && cb.onIdTaken) { cb.onIdTaken(); return; }
         scheduleRemake(Math.min(1200 * attempts, 5000));  // v133: 古い登録が消えるのを待って作り直す
         return;
       }
@@ -272,7 +290,7 @@ function olHost() {
   if (online && online.started && online.connected) { olReturnToGame(); return; }
   if (online) { olTeardown(false); _olStatus('Cancelled'); olUpdateLobbyButtons(); return; }
   let code = '';
-  for (let i = 0; i < 4; i++) code += OL_CODE_CHARS[Math.floor(Math.random() * OL_CODE_CHARS.length)];
+  code = _olNewCode();
   _olBegin(code, true);
   _olStatus(`Opening room 【 ${code} 】…`);
   _olWatchHostRoom(code);   // v133
@@ -400,9 +418,18 @@ function _olConnect() {
         _olSetReconnectOverlay('🔌 Reconnected. Restoring the game…', false);
         online.transport.send(_olSyncPayload());
       } else {
-        online.transport.send({ t: 'hello', name: online.myName });
+        online.transport.send({ t: 'hello', name: online.myName, v: _olVersion() });   // v140
         _olStatus('Connected. Waiting for your opponent…');
       }
+    },
+    // v140: 部屋コードがすでに使われていた → 別のコードで開き直す
+    onIdTaken: () => {
+      if (!online || !online.isHost || online.started) return;
+      const code = _olNewCode();
+      olTeardown(false);
+      _olBegin(code, true);
+      _olStatus(`Room code 【 ${code} 】 was taken, so we switched to another one`);
+      _olWatchHostRoom(code);
     },
     onData: (m) => _olOnMessage(m),
     onClose: () => _olOnDisconnect('lost'),
@@ -435,6 +462,11 @@ function _olOnMessage(m) {
     case 'hello':
       online.oppName = _olNorm(m.name) || 'Opponent';  // v133
       online.helloReceived = true;
+      // v140: 片方だけ古い版が残っていると原因の分からない不具合になるため知らせる
+      if (m.v) {
+        const _mv = _olVersion(), _ov = String(m.v).slice(0, 20);
+        if (_ov !== _mv) _olBubble(`⚠ Your opponent is on ${_ov} (you are on ${_mv}). Mismatched versions can cause problems`, 'cp');
+      }
       // Premium-v122: すでに対局中なら新規開始せず、状態を送り返して復元させる
       // （片方が「前回の対局に再接続」、もう片方が新規接続だと、以前は
       //   開始フローが走って対局がリセットされていた）
