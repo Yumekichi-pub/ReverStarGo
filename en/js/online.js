@@ -366,7 +366,7 @@ function olJoinPrompt() {
     const notFound = !d || d.notFound;
     const msg = notFound
       ? `⚠ Room 【 ${code} 】 was not found\nPlease check the 4-digit room code and try again`
-      : `⚠ Room 【 ${code} 】 was found, but the connection could not be opened\nWhen both devices are on the same Wi-Fi, some routers stop them from talking directly.\nSwitching one device to mobile data often works.`;
+      : `⚠ Room 【 ${code} 】 was found, but the connection could not be opened\nA browser extension or your network may be stopping the two devices from talking directly.\nTry another browser, or switch one device to mobile data.`;
     _olStatus('');
     olTeardown(false);
     olUpdateLobbyButtons();
