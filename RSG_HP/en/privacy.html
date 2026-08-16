@@ -155,16 +155,16 @@
     <h2>Play a Remote Opponent (online play)</h2>
     <p>This optional mode lets you play someone on another device. It works as follows.</p>
     <ul>
-      <li><strong>Setting up the connection.</strong> The app uses WebRTC through the PeerJS library. To introduce the two devices to each other it contacts the public PeerJS broker (<code>0.peerjs.com</code>) and a public STUN server (<code>stun.l.google.com</code>). These are used only to exchange the information needed to open the connection.</li>
+      <li><strong>Setting up the connection.</strong> The app uses WebRTC through the PeerJS library. To introduce the two devices to each other it contacts the public PeerJS broker (<code>0.peerjs.com</code>) and public STUN servers (<code>stun.l.google.com</code>, <code>stun.relay.metered.ca</code>). These are used only to exchange the information needed to open the connection.</li>
       <li><strong>What travels between you.</strong> Once connected, your moves, the player name you typed in (up to 7 characters), and any short messages you send go <strong>directly from one device to the other</strong>, encrypted by WebRTC. They do not pass through us.</li>
-      <li><strong>If a direct link is not possible.</strong> On some networks a direct connection cannot be opened. In that case the data may be relayed through the PeerJS TURN servers (<code>eu-0.turn.peerjs.com</code> / <code>us-0.turn.peerjs.com</code>).</li>
+      <li><strong>If a direct link is not possible.</strong> On some networks a direct connection cannot be opened. In that case the data is carried through a relay server (<code>global.relay.metered.ca</code>). This relay is operated by <strong>Metered</strong> (Next Path Software Consulting Inc, Canada), whose service we subscribe to. What passes through the relay is the same as described above: moves, the player name, and short messages.</li>
       <li><strong>Room codes.</strong> The 4-digit code exists only while the room is open. It is not recorded anywhere.</li>
       <li><strong>No account.</strong> No email address, login, or personal identifier is involved. The player name is whatever you choose to type and may be a nickname.</li>
     </ul>
-    <p>We do not log, store, or have any access to the contents of these games. Please note that the PeerJS and STUN services are operated by third parties outside our control; refer to their own policies for how they handle connection information.</p>
+    <p>We do not log, store, or have any access to the contents of these games. Please note that the PeerJS, STUN and Metered services are operated by third parties outside our control; refer to their own policies for how they handle connection information.</p>
 
     <h2>Third-Party Services</h2>
-    <p>We use no ad networks, no analytics tools, and no social media integrations. The only external services involved are the connection services listed under "Play a Remote Opponent" above, and only while you are using that mode.</p>
+    <p>We use no ad networks, no analytics tools, and no social media integrations. The only external services involved are the connection and relay services listed under "Play a Remote Opponent" above (PeerJS, Google STUN, and Metered), and only while you are using that mode.</p>
 
     <h2>Contact</h2>
     <div class="contact-info">

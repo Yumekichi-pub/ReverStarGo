@@ -66,8 +66,15 @@ const SERVERS = [
     entry: { urls: 'turn:us-0.turn.peerjs.com:3478', username: 'peerjs', credential: 'peerjsp' } },
   { label: 'Metered の道しるべ',       kind: 'stun',
     entry: { urls: 'stun:stun.relay.metered.ca:80' } },
-  { label: 'Open Relay の中継役',      kind: 'turn',
-    entry: { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' } },
+  { label: 'Metered の中継役（80番）',  kind: 'turn',
+    entry: { urls: 'turn:global.relay.metered.ca:80',
+             username: 'f2393c0c4eb5348a37dbf853', credential: 'twhjXiBwxSgYTX3X' } },
+  { label: 'Metered の中継役（443番）', kind: 'turn',
+    entry: { urls: 'turn:global.relay.metered.ca:443',
+             username: 'f2393c0c4eb5348a37dbf853', credential: 'twhjXiBwxSgYTX3X' } },
+  { label: 'Metered の中継役（TLS443）', kind: 'turn',
+    entry: { urls: 'turns:global.relay.metered.ca:443?transport=tcp',
+             username: 'f2393c0c4eb5348a37dbf853', credential: 'twhjXiBwxSgYTX3X' } },
 ];
 
 const rows = document.getElementById('rows');
@@ -138,7 +145,8 @@ document.getElementById('go').addEventListener('click', async () => {
   box.style.display = '';
   if (turnOk) {
     v.innerHTML = '<span class="ok">中継役が使えます。</span><br>' +
-      '直接つながれない相手とも、間に入ってもらって対戦できます。';
+      '直接つながれない相手とも、間に入ってもらって対戦できます。' +
+      '<br>職場や公衆Wi-Fiからでも、つながる見込みが高い状態です。';
   } else if (stunOk) {
     v.innerHTML = '<span class="ng">中継役が1つも使えません。</span><br>' +
       '道しるべは使えるので、多くの場合は直接つながります。ただし回線の条件が厳しい相手とは、' +

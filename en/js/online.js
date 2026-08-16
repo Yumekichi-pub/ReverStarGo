@@ -102,15 +102,32 @@ const OL_ICE_SERVERS = [
     username: 'peerjs',
     credential: 'peerjsp'
   },
-  // --- 追加の道しるべ（中継役はまだ未定。下の注記を参照）---
-  { urls: 'stun:stun.relay.metered.ca:80' }
+  // --- 追加: Metered の中継役（2026-08 契約）---
+  // 80番・TCP80番・443番・TLS443番の4通りを持つので、UDP しか使えない
+  // 経路が塞がれていても、ホームページと同じ 443 番で通り抜けられる。
+  // Global 配置なので、利用者に近いサーバーへ自動で振り分けられる。
+  { urls: 'stun:stun.relay.metered.ca:80' },
+  {
+    urls: [
+      'turn:global.relay.metered.ca:80',
+      'turn:global.relay.metered.ca:80?transport=tcp',
+      'turn:global.relay.metered.ca:443',
+      'turns:global.relay.metered.ca:443?transport=tcp'
+    ],
+    username: 'f2393c0c4eb5348a37dbf853',
+    credential: 'twhjXiBwxSgYTX3X'
+  }
 ];
 
-// 【調査中】2026-08 時点で、eu-0 / us-0.turn.peerjs.com は名前解決できない。
-//   つまり中継役が1つも生きていない可能性がある（＝直接つながれない相手とは
-//   対戦できない）。かつて無料で開放されていた openrelay.metered.ca も同様に
-//   消えていた。実機での検査結果を待って、使える中継役を足す。
-//   検査ページ: /ice-check.html
+// 【経緯】2026-08、eu-0 / us-0.turn.peerjs.com が名前解決できなくなっていた。
+//   実機の検査でも「見つかりません」を確認。つまり中継役が1台も生きておらず、
+//   直接つながれない利用者は対戦できない状態が続いていた。
+//   かつて無料開放されていた openrelay.metered.ca も同様に消えていた。
+//   そこで Metered に契約し、上の中継役を追加した（無料枠 500MB/月。
+//   1局あたり約 82KB なので月6000局ぶんに相当し、当面は使い切らない）。
+//   死んでいる PeerJS の2台は、いつ復活するか分からないので残してある。
+//   ブラウザは使える経路を勝手に選ぶため、居ても害はない。
+//   接続状況の検査ページ: /ice-check.html
 
 // PeerJS に渡す設定。config を渡すと既定を置き換えるため、上の一覧には
 // もともとの2台も含めてある（含め忘れると今より繋がらなくなる）
