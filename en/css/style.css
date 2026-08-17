@@ -1606,13 +1606,16 @@
                  trophyGlowPulse 1.0s ease-out 0.5s 1;
     }
 
-    /* v90: 言語切替チップ（ランクカード下・メニュー幅340pxの右端に固定） */
+    /* v90: 言語切替チップ（ランクカード下・メニュー幅340pxの行）
+       v145: 左に Google Play、右に言語切替を置くため両端揃えに変更 */
     .lang-switch-row {
       width: 100%;
       max-width: 340px;
       margin: -6px auto 0;
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
     }
     .lang-switch {
       padding: 5px 12px;
@@ -1679,6 +1682,15 @@
       font-size: 0.7rem;
       color: rgba(255,255,255,0.35);
       text-align: center;
+    }
+
+    /* v145: Google Play への導線。言語切替チップと同じ形で、行の左端に置く。 */
+    .store-link {
+      display: inline-flex;
+      align-items: center;
+      color: #ffd700;
+      border-color: rgba(255,215,0,0.55);
+      text-decoration: none;
     }
 
     .menu-grid {

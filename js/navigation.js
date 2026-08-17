@@ -18,6 +18,24 @@ function updateDailyTileDate() {
   dayEl.textContent = now.getDate();
 }
 
+// v145: アプリとして起動しているか（TWA / インストール済み PWA）を判定する。
+function isStandaloneApp() {
+  try {
+    if (document.referrer && document.referrer.indexOf('android-app://') === 0) return true;
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+    if (navigator.standalone) return true;
+  } catch (e) {}
+  return false;
+}
+
+// v145: Google Play への導線。すでにアプリで遊んでいる人には評価を、
+// ブラウザで見ている人にはアプリ版の入手を案内する。
+function updateStoreLink() {
+  const el = document.getElementById('play-store-label');
+  if (!el) return;
+  el.textContent = isStandaloneApp() ? '★ 評価する' : '▶ Google Play';
+}
+
 // ===== ページナビゲーション =====
 /**
  * 画面（ページ）の切り替えを行う。各ページの表示/非表示を一括管理。
