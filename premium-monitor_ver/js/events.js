@@ -162,6 +162,8 @@ function initGame() {
   const undoBtn = document.getElementById('undo-btn');
   undoBtn.disabled = true;
   undoBtn.textContent = '1手戻る';
+  // v144: 2人対戦では押せないので、ボタン自体を出さない
+  undoBtn.style.display = (battleMode === 'two') ? 'none' : '';
   // Premium-v34: 「1手進む」ボタンもリセット
   if (typeof updateRedoButton === 'function') updateRedoButton();
   if (battleMode === 'two') {

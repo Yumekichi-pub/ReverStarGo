@@ -158,6 +158,8 @@ function initGame() {
   const undoBtn = document.getElementById('undo-btn');
   undoBtn.disabled = true;
   undoBtn.textContent = 'Undo';
+  // v144: 2人対戦では押せないので、ボタン自体を出さない
+  undoBtn.style.display = (battleMode === 'two') ? 'none' : '';
   if (battleMode === 'two') {
     // v101: show player names on score panels
     document.getElementById('black-role').textContent = (typeof tpNameFor === 'function') ? tpNameFor('black') : '';

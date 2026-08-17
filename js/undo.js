@@ -15,6 +15,13 @@ let lastResultShareText = null; // 結果画面のシェア用テキスト（CPU
 
 // ===== 1手戻る（Undo） =====
 function saveUndoState() {
+  // v144: 2人対戦では「1手戻る」を使わない。
+  //   これまでは undoUsed がゲーム全体で1つの旗だったため、どちらかが一度
+  //   使うと以後スナップショットが保存されず、相手は二度と使えなかった。
+  //   先に押した者勝ちで不公平。加えて、このゲームは着手すると裏返りや
+  //   囲み取りの結果が見えてしまうので、人間相手に戻せると答えを覗くのと
+  //   同じになる。CPU戦は本人が決めればよいので、そのまま残す。
+  if (typeof battleMode !== 'undefined' && battleMode === 'two') return;
   if (undoUsed) return; // 既に使用済みなら保存しない
   undoSnapshot = {
     board: { ...board },
