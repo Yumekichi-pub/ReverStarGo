@@ -114,7 +114,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v144</p>
+    <p class="app-version">RSG-v145</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -182,7 +182,10 @@
         <button class="setup-btn" id="ol-host-btn" onclick="olHost()">部屋を作る</button>
         <button class="setup-btn" id="ol-join-btn" onclick="olJoinPrompt()">部屋に入る</button>
       </div>
-      <button class="setup-btn" id="ol-resume-btn" style="display:none;" onclick="olResumeSession()">🔄 前回の対局に再接続</button>
+      <div class="setup-buttons-row ol-resume-row" id="ol-resume-row" style="display:none;">
+        <button class="setup-btn" id="ol-resume-btn" onclick="olResumeSession()">🔄 前回の対局に再接続</button>
+        <button class="setup-btn ol-resume-forget" id="ol-forget-btn" onclick="olForgetSession()" title="この記録を消す">✕</button>
+      </div>
       <p id="ol-status" class="tp-mode-desc"></p>
 
     </div>

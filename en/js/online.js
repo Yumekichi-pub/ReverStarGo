@@ -1118,14 +1118,28 @@ function _olLoadSession() {
 // 「前回の対局に再接続」ボタンの表示を更新（保存があるときだけ出す）
 function olUpdateResumeButton() {
   const btn = document.getElementById('ol-resume-btn');
+  const row = document.getElementById('ol-resume-row');
   if (!btn) return;
   const p = (online ? null : _olLoadSession());
   if (p) {
+    if (row) row.style.display = '';
     btn.style.display = '';
-    btn.textContent = `🔄 Reconnect to last game (opponent: ${p.oppName || '?'})`;
+    btn.textContent = `🔄 Reconnect: ${p.oppName || '?'}`;
   } else {
+    if (row) row.style.display = 'none';
     btn.style.display = 'none';
   }
+}
+
+// v145: let the player clear a saved game they have no intention of resuming.
+//   It expires after two hours anyway, but until then the "Reconnect" button
+//   keeps sitting there even after the opponent has gone for good.
+function olForgetSession() {
+  const p = _olLoadSession();
+  const who = (p && p.oppName) ? `your game with ${p.oppName}` : 'the saved game';
+  if (!confirm(`Forget ${who}?\nYou will no longer be able to reconnect to it.`)) return;
+  _olClearSession();
+  _olStatus('');
 }
 
 // 保存された対局を復元して同じ部屋につなぎ直す

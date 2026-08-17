@@ -114,7 +114,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v144-en</p>
+    <p class="app-version">RSG-v145-en</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -181,7 +181,10 @@
         <button class="setup-btn" id="ol-host-btn" onclick="olHost()">Create room</button>
         <button class="setup-btn" id="ol-join-btn" onclick="olJoinPrompt()">Join room</button>
       </div>
-      <button class="setup-btn" id="ol-resume-btn" style="display:none;" onclick="olResumeSession()">🔄 Reconnect to last game</button>
+      <div class="setup-buttons-row ol-resume-row" id="ol-resume-row" style="display:none;">
+        <button class="setup-btn" id="ol-resume-btn" onclick="olResumeSession()">🔄 Reconnect to last game</button>
+        <button class="setup-btn ol-resume-forget" id="ol-forget-btn" onclick="olForgetSession()" title="Forget this game">✕</button>
+      </div>
       <p id="ol-status" class="tp-mode-desc"></p>
 
     </div>

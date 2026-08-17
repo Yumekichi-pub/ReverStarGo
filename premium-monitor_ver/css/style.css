@@ -3637,6 +3637,16 @@
     /* v132: 行間をはっきり空け、3つ並ぶ行が折り返さないよう詰める */
     .clock-btn-row { margin-bottom: 10px; gap: 8px; }
     .clock-btn-row .setup-btn { font-size: 0.78rem; padding: 8px 4px; }
+    /* v145: 「前回の対局に再接続」と、その記録を消す✕ */
+    .ol-resume-row { margin-top: 10px; }
+    .ol-resume-row .setup-btn { font-size: 0.74rem; padding: 9px 6px; }
+    .ol-resume-row .ol-resume-forget {
+      flex: 0 0 auto;
+      min-width: 40px;
+      padding: 9px 0;
+      font-size: 0.9rem;
+      color: rgba(224,216,192,0.65);
+    }
     /* 小さい画面でも3つが1行に収まるように */
     @media (max-width: 359px) {
       .clock-btn-row .setup-btn { font-size: 0.66rem; padding: 8px 1px; }

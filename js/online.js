@@ -1125,14 +1125,29 @@ function _olLoadSession() {
 // 「前回の対局に再接続」ボタンの表示を更新（保存があるときだけ出す）
 function olUpdateResumeButton() {
   const btn = document.getElementById('ol-resume-btn');
+  const row = document.getElementById('ol-resume-row');
   if (!btn) return;
   const p = (online ? null : _olLoadSession());
   if (p) {
+    if (row) row.style.display = '';
     btn.style.display = '';
-    btn.textContent = `🔄 前回の対局に再接続（相手: ${p.oppName || '?'}）`;
+    btn.textContent = `🔄 前回の対局に再接続（${p.oppName || '?'}）`;
   } else {
+    if (row) row.style.display = 'none';
     btn.style.display = 'none';
   }
+}
+
+// v145: もう再開するつもりがない対局の記録を、利用者の意思で消せるようにする。
+//   保存は2時間で自動的に消えるが、それまで「前回の対局に再接続」が出続けて
+//   邪魔になる。相手が居なくなったあとも押せてしまうので、自分で片付けられる
+//   出口を用意した。
+function olForgetSession() {
+  const p = _olLoadSession();
+  const who = (p && p.oppName) ? `${p.oppName}さんとの` : '';
+  if (!confirm(`${who}前回の対局の記録を消しますか？\n消すと「再接続」はできなくなります。`)) return;
+  _olClearSession();
+  _olStatus('');
 }
 
 // 保存された対局を復元して同じ部屋につなぎ直す
