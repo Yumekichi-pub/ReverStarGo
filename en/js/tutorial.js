@@ -27,7 +27,7 @@ const TUTORIAL_STEPS = [
   { title: 'Step 3 / 7', message: 'When you sandwich opponent stones,\nthey flip to your color.\nThere are 6 sandwich directions.\nNow try sandwiching!' },
   { title: 'Step 4 / 7', message: 'ReverStarGo has a special rule\nnot found in Reversi!\nWhen you completely surround\nopponent stones with your own,\nyou can capture them.\nCaptured stones add to your points.\nCaptured cells can be reused.\nNow try surrounding to capture!' },
   { title: 'Step 5 / 7', message: 'The purple cell at the center\nis the Core Point (CP).\nThe CP is special and\ncan be either color.\nWhen you use the CP to sandwich,\nyou must call "Black" or "White"\nright after placing your stone.\nThe call color changes the flip result.\nChoose "Black" or "White"!' },
-  { title: 'Step 6 / 7', message: 'There are 3 game-end conditions:\n① All 37 cells are filled\n② Neither player has valid moves\n③ Ko prevents progress\n\nThe winner is decided by total points:\nstones on the board + captured stones.\nThe player with more points wins!' },
+  { title: 'Step 6 / 7', message: 'There are 3 game-end conditions:\n① All 36 cells except the CP are filled\n② Neither player has valid moves\n③ Ko prevents progress\n\nThe winner is decided by total points:\nstones on the board + captured stones.\nThe player with more points wins!' },
   { title: 'Step 7 / 7', message: 'Great job!\nYou\'ve learned all the rules.\nNow practice with a mini-game!\nYour opponent is a very weak Lv.1 CPU.\n\nYellow dots show where\nyou can place stones.\nIf stuck, use the ❓ button\nto review the rules.\n\nEnjoy the game freely!' },
 ];
 
