@@ -35,6 +35,9 @@ if ('serviceWorker' in navigator) {
 // ===== スタート =====
 // Premium-v54: 戦績データの署名移行（初回のみ。既存ランク維持 + 改ざん検知を有効化）
 if (typeof _rsgInit === 'function') _rsgInit();
+// Premium-v145.3: 修行コースの 19.4/19.9/25.4/25.9 を昇格試験に切り替えたので、
+//   旧条件（ふつうの対局の勝ち数）で既に上がっていた人のランクを引き継ぐ。初回のみ。
+if (typeof _migrateTrainingExams === 'function') _migrateTrainingExams();
 // Premium-v128: 対局時計の設定を復元
 if (typeof loadClockSetting === 'function') loadClockSetting();
 // Premium-v120: 中断した対局が保存されていれば「前回の対局に再接続」を出す

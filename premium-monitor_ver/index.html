@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v145.2</p>
+    <p class="app-version">Premium-v145.3</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -250,6 +250,13 @@
           <button class="setup-btn" data-tlevel="9" onclick="selectTrainingLevel(9)">Lv.9</button>
           <button class="setup-btn" data-tlevel="10" onclick="selectTrainingLevel(10)">Lv.10</button>
         </div>
+      </div>
+      <!-- v145.3: 修行コースの昇格試験（RM 7番勝負）。受けられる時だけ出る -->
+      <div id="training-promotion-section" class="setup-section promotion-section" style="display:none;">
+        <h2 id="training-promotion-title">⚔ 修行ランクアップマッチ</h2>
+        <p id="training-promotion-desc"></p>
+        <p id="training-promotion-progress" style="display:none;"></p>
+        <button class="promotion-start-btn" onclick="startTrainingExam()">⚔ 挑戦する</button>
       </div>
       <div class="setup-section">
         <div class="setup-buttons-row">

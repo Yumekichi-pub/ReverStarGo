@@ -562,6 +562,109 @@ function saveTrainingRecord(record) {
   try { localStorage.setItem(TRAINING_RECORD_KEY, _rsgPack(record)); } catch(e) {}
 }
 
+/* ============================================================
+   Premium-v145.3: 修行コースの昇格試験（ランクアップマッチ）
+
+   19.4 ルナ・19.9 ネプチューン・25.4 スピカ・25.9 デネブ の 4 つは
+   「RM 7番勝負で勝ち越し、または試験の通算20勝」で上がる。
+   メインの昇格試験（PROMOTION_EXAMS）と同じ考え方だが、ランクの
+   体系が別（19.x / 25.x）なので、混ざらないよう別の一組として持つ。
+
+   ※ v145.2 までは、この 4 つも「ふつうの対局の勝ち数」で上がって
+     いた（表示と実装が食い違っていた）。ザラメさんが「7番勝負が
+     出てこなかった」と気づかれたのがこの食い違い。
+   ============================================================ */
+const TRAINING_PROMOTION_KEY = 'reverstargo-training-promotions';
+const TRAINING_EXAM_KEY      = 'reverstargo-training-exam';
+const TRAINING_CAREER_KEY    = 'reverstargo-training-exam-career';
+
+// 試験が要る修行ランク。key は太陽系/銀河系とランク番号の組。
+//   tLevel = 相手の修行レベル（表示 Lv.6/7/9/10）
+//   winsNeeded 4 / maxLosses 4 = 7番勝負（先に4勝で合格、4敗で不合格）
+const TRAINING_EXAMS = {
+  sun4:    { course: 'sun',    rankIdx: 4, tLevel: 6,  winsNeeded: 4, maxLosses: 4, careerWins: 20, label: 'Lv.7 解放' },
+  sun9:    { course: 'sun',    rankIdx: 9, tLevel: 7,  winsNeeded: 4, maxLosses: 4, careerWins: 20, label: '太陽系 修了 → MAX へ' },
+  galaxy4: { course: 'galaxy', rankIdx: 4, tLevel: 9,  winsNeeded: 4, maxLosses: 4, careerWins: 20, label: 'Lv.10 解放' },
+  galaxy9: { course: 'galaxy', rankIdx: 9, tLevel: 10, winsNeeded: 4, maxLosses: 4, careerWins: 20, label: '銀河系 修了 → FINAL へ' },
+};
+
+// 署名付きで読み書きする共通ヘルパ（他の記録と同じ扱い）
+function _tExamLoad(key) {
+  const unpacked = _rsgUnpack(localStorage.getItem(key));
+  if (unpacked === '__TAMPERED__') { try { localStorage.setItem(key, _rsgPack({})); } catch(e) {} return {}; }
+  const isLegacy = !!(unpacked && unpacked.__legacy__);
+  if (isLegacy && _rsgLegacyAction() === 'reject') { try { localStorage.setItem(key, _rsgPack({})); } catch(e) {} return {}; }
+  const data = isLegacy ? unpacked.__legacy__ : unpacked;
+  if (data && typeof data === 'object') {
+    if (isLegacy) { try { localStorage.setItem(key, _rsgPack(data)); } catch(e) {} }
+    return data;
+  }
+  return {};
+}
+function _tExamSave(key, data) {
+  try { localStorage.setItem(key, _rsgPack(data)); } catch(e) {}
+}
+
+// ---- 合格記録 ----
+function loadTrainingPromotions() { return _tExamLoad(TRAINING_PROMOTION_KEY); }
+function saveTrainingPromotion(examKey) {
+  const data = loadTrainingPromotions();
+  data[examKey] = true;
+  _tExamSave(TRAINING_PROMOTION_KEY, data);
+}
+function hasPassedTrainingExam(examKey) {
+  return !!loadTrainingPromotions()[examKey];
+}
+
+// ---- 試験の通算成績（「通算20勝で昇格」の分母）----
+function loadTrainingExamCareer() { return _tExamLoad(TRAINING_CAREER_KEY); }
+function getTrainingExamCareer(examKey) {
+  return loadTrainingExamCareer()[examKey] || { wins: 0, losses: 0 };
+}
+function saveTrainingExamCareer(examKey, wins, losses) {
+  const data = loadTrainingExamCareer();
+  data[examKey] = { wins, losses };
+  _tExamSave(TRAINING_CAREER_KEY, data);
+}
+
+// ---- 進行中の試験 ----
+let trainingExam = null;  // { examKey, tLevel, wins, losses, winsNeeded, maxLosses }
+
+function loadTrainingExam() {
+  try { return JSON.parse(localStorage.getItem(TRAINING_EXAM_KEY)); } catch(e) { return null; }
+}
+function saveTrainingExam(exam) {
+  try { localStorage.setItem(TRAINING_EXAM_KEY, JSON.stringify(exam)); } catch(e) {}
+}
+function clearTrainingExam() {
+  trainingExam = null;
+  try { localStorage.removeItem(TRAINING_EXAM_KEY); } catch(e) {}
+}
+
+/**
+ * Premium-v145.3: v145.2 以前に「ふつうの対局の勝ち数」で上がっていた人を救済する。
+ *
+ * 判定を試験合格に切り替えると、旧条件で 19.4 まで来ていた人が 19.3 に
+ * 下がってしまう。すでに手にしたランクを取り上げるのは筋が通らないので、
+ * 旧条件を満たしていれば、その試験は合格済みとして引き継ぐ。
+ * 起動時に一度だけ走る。
+ */
+const _TRAINING_EXAM_MIGRATED_KEY = 'reverstargo-training-exam-migrated';
+function _migrateTrainingExams() {
+  try {
+    if (localStorage.getItem(_TRAINING_EXAM_MIGRATED_KEY)) return;
+    const r = (typeof loadTrainingRecord === 'function') ? loadTrainingRecord() : {};
+    const w = k => (r[k] && r[k].win) || 0;
+    const lv6 = w('21'), lv7 = w('11'), lv9 = w('13'), lv10 = w('14');
+    // v145.2 までの解放条件をそのまま使う
+    if (lv6 >= 20)          saveTrainingPromotion('sun4');
+    if (lv6 + lv7 >= 50)    saveTrainingPromotion('sun9');
+    if (lv9 >= 20)          saveTrainingPromotion('galaxy4');
+    if (lv9 + lv10 >= 50)   saveTrainingPromotion('galaxy9');
+    localStorage.setItem(_TRAINING_EXAM_MIGRATED_KEY, '1');
+  } catch (e) {}
+}
+
 // Premium-v22: 修行コースランクの計算
 // 戦績から現在の太陽系/銀河系ランクを算出する。0 = 未達成, 1〜9 = 19.1〜19.9 / 25.1〜25.9 に対応。
 //
@@ -585,29 +688,33 @@ function calculateTrainingRank() {
   const lv9 = (record['13'] && record['13'].win) || 0;
   const lv10 = (record['14'] && record['14'].win) || 0;
 
+  // Premium-v145.3: 19.4 / 19.9 / 25.4 / 25.9 は昇格試験（7番勝負）に変更。
+  //   ふつうの対局の勝ち数では上がらない。メインのランクと同じ考え方。
+  const passed = (typeof hasPassedTrainingExam === 'function') ? hasPassedTrainingExam : () => false;
+
   // 太陽系ランク
   let sunRank = 0;
   if (lv6 >= 2)  sunRank = 1;
   if (lv6 >= 5)  sunRank = 2;
   if (lv6 >= 10) sunRank = 3;
-  if (lv6 >= 20) sunRank = 4;  // Lv.7 解放
+  if (passed('sun4')) sunRank = 4;  // 7番勝負 合格 → Lv.7 解放
   if (lv7 >= 2)  sunRank = 5;
   if (lv7 >= 5)  sunRank = 6;
   if (lv7 >= 10) sunRank = 7;
   if (lv7 >= 20) sunRank = 8;
-  if (lv6 + lv7 >= 50) sunRank = 9;  // 修行終了 (MAX へ)
+  if (passed('sun9')) sunRank = 9;  // 7番勝負 合格 → 修行終了 (MAX へ)
 
   // 銀河系ランク
   let galaxyRank = 0;
   if (lv9  >= 2)  galaxyRank = 1;
   if (lv9  >= 5)  galaxyRank = 2;
   if (lv9  >= 10) galaxyRank = 3;
-  if (lv9  >= 20) galaxyRank = 4;  // Lv.10 解放
+  if (passed('galaxy4')) galaxyRank = 4;  // 7番勝負 合格 → Lv.10 解放
   if (lv10 >= 2)  galaxyRank = 5;
   if (lv10 >= 5)  galaxyRank = 6;
   if (lv10 >= 10) galaxyRank = 7;
   if (lv10 >= 20) galaxyRank = 8;
-  if (lv9 + lv10 >= 50) galaxyRank = 9;  // 修行終了 (FINAL へ)
+  if (passed('galaxy9')) galaxyRank = 9;  // 7番勝負 合格 → 修行終了 (FINAL へ)
 
   return { sunRank, galaxyRank };
 }
@@ -629,6 +736,94 @@ function hasFinishedTrainingSun() {
 // 銀河系修行終了（→ FINAL へ）達成済みか
 function hasFinishedTrainingGalaxy() {
   return calculateTrainingRank().galaxyRank >= 9;
+}
+
+/* ===== Premium-v145.3: 修行コースの昇格試験 進行まわり ===== */
+
+/**
+ * いま受けられる修行コースの試験を返す（なければ null）。
+ * 受験資格は「1つ手前のランクに届いている」こと（メインと同じ）。
+ * 例: 19.4 ルナの試験は 19.3 アース に届いていれば受けられる。
+ */
+function getAvailableTrainingExam() {
+  const { sunRank, galaxyRank } = calculateTrainingRank();
+  for (const examKey of ['sun4', 'sun9', 'galaxy4', 'galaxy9']) {
+    if (hasPassedTrainingExam(examKey)) continue;
+    const def = TRAINING_EXAMS[examKey];
+    // 銀河系はコース自体が開いていないと受けられない（メインで MAX 撃破）
+    if (def.course === 'galaxy'
+        && typeof hasDefeatedMainMax === 'function' && !hasDefeatedMainMax()) continue;
+    const cur = def.course === 'sun' ? sunRank : galaxyRank;
+    if (cur >= def.rankIdx - 1) return { examKey, ...def };
+  }
+  return null;
+}
+
+/**
+ * 修行コースの昇格試験を始める。
+ * 中断して戻ってきた場合は、同じ試験なら勝敗数を引き継いで再開する。
+ */
+function startTrainingExam() {
+  const ex = getAvailableTrainingExam();
+  if (!ex) return;
+  const existing = loadTrainingExam();
+  if (existing && existing.examKey === ex.examKey) {
+    trainingExam = Object.assign({}, existing, { tLevel: ex.tLevel });
+  } else {
+    trainingExam = {
+      examKey: ex.examKey, tLevel: ex.tLevel,
+      wins: 0, losses: 0,
+      winsNeeded: ex.winsNeeded, maxLosses: ex.maxLosses
+    };
+  }
+  saveTrainingExam(trainingExam);
+  // 相手のレベルは試験で決まる（選び直せない）
+  if (typeof selectTrainingLevel === 'function') selectTrainingLevel(ex.tLevel);
+  else if (typeof trainingLevel !== 'undefined') trainingLevel = ex.tLevel;
+  if (typeof startTrainingGame === 'function') startTrainingGame();
+}
+
+/**
+ * 試験中の 1 局の結果を記録し、合格・不合格・続行を判定する。
+ * メインの recordPromotionResult と同じ流れ。
+ * @param {boolean} isWin プレイヤーが勝ったか
+ * @returns {object|null} 決着したら結果、まだ続くなら null
+ */
+function recordTrainingExamResult(isWin) {
+  if (!trainingExam) return null;
+  if (isWin) trainingExam.wins++;
+  else trainingExam.losses++;
+  saveTrainingExam(trainingExam);
+
+  // 通算成績（「試験の通算20勝で昇格」の分母）
+  const career = getTrainingExamCareer(trainingExam.examKey);
+  if (isWin) career.wins++;
+  else career.losses++;
+  saveTrainingExamCareer(trainingExam.examKey, career.wins, career.losses);
+
+  const def = TRAINING_EXAMS[trainingExam.examKey];
+
+  // 勝ち越しで合格
+  if (trainingExam.wins >= trainingExam.winsNeeded) {
+    saveTrainingPromotion(trainingExam.examKey);
+    const result = { passed: true, exam: Object.assign({}, trainingExam), career, def };
+    clearTrainingExam();
+    return result;
+  }
+  // 通算勝利数で合格
+  if (def && def.careerWins > 0 && career.wins >= def.careerWins) {
+    saveTrainingPromotion(trainingExam.examKey);
+    const result = { passed: true, careerPass: true, exam: Object.assign({}, trainingExam), career, def };
+    clearTrainingExam();
+    return result;
+  }
+  // 負け越しで不合格（何度でも受け直せる）
+  if (trainingExam.losses >= trainingExam.maxLosses) {
+    const result = { passed: false, exam: Object.assign({}, trainingExam), career, def };
+    clearTrainingExam();
+    return result;
+  }
+  return null;  // まだ続く
 }
 
 // ===== 当日成績（localStorage） =====

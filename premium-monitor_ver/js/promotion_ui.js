@@ -67,6 +67,19 @@ function getMatchLabel(winsNeeded, level) {
 
 function updatePromotionGameStatus() {
   const statusEl = document.getElementById('promotion-game-status');
+  // Premium-v145.3: 修行コースの昇格試験中は、そちらの進み具合を出す
+  if (typeof trainingExam !== 'undefined' && trainingExam) {
+    const def = TRAINING_EXAMS[trainingExam.examKey];
+    const ranks = (def && def.course === 'sun') ? TRAINING_SUN_RANKS : TRAINING_GALAXY_RANKS;
+    const target = (def && ranks) ? ranks[def.rankIdx - 1] : null;
+    const tMatchNum = trainingExam.wins + trainingExam.losses + 1;
+    const tColor = humanColor === 'black' ? '●黒' : '○白';
+    statusEl.style.display = '';
+    statusEl.innerHTML =
+      `⚔ 修行ランクアップマッチ ${target ? target.rank + ' ' + target.name : ''}（RM 7番勝負）<br>` +
+      `第${tMatchNum}試合 ${tColor}（${trainingExam.wins}勝${trainingExam.losses}敗）`;
+    return;
+  }
   if (!promotionExam) {
     statusEl.style.display = 'none';
     return;

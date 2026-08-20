@@ -459,6 +459,33 @@ function endGame() {
         else tRecord[lvKey].draw++;
         saveTrainingRecord(tRecord);
       }
+      // Premium-v145.3: 修行コースの昇格試験（RM 7番勝負）中なら、その結果も記録する。
+      //   合格するとランクが上がるので、下のランクアップ判定より先に置く。
+      if (typeof trainingExam !== 'undefined' && trainingExam) {
+        const tMatchNum = trainingExam.wins + trainingExam.losses + 1;
+        const tRes = recordTrainingExamResult(soundType === 'win');
+        if (tRes) {
+          if (tRes.passed) {
+            if (tRes.careerPass) {
+              msg += `\n\n🎉 試験 通算${tRes.career.wins}勝達成！\n修行ランクアップマッチ 合格！`;
+            } else {
+              msg += `\n\n🎉 修行ランクアップマッチ 合格！\nRM 7番勝負: ${tRes.exam.wins}勝${tRes.exam.losses}敗`;
+            }
+            if (tRes.def && tRes.def.label) msg += `\n🔓 ${tRes.def.label}`;
+          } else {
+            let tCareerMsg = '';
+            if (tRes.def && tRes.def.careerWins > 0) {
+              tCareerMsg = `\n通算: ${tRes.career.wins}勝（あと${tRes.def.careerWins - tRes.career.wins}勝で昇格）`;
+            }
+            msg += `\n\n😢 修行ランクアップマッチ 不合格...\nRM 7番勝負: ${tRes.exam.wins}勝${tRes.exam.losses}敗${tCareerMsg}\nもう一度挑戦できます！`;
+          }
+        } else {
+          // まだ続く（ここに来る時は clearTrainingExam されていない）
+          const tNext = trainingExam.wins + trainingExam.losses + 1;
+          msg += `\n\n⚔ 修行ランクアップマッチ（RM 7番勝負）\n第${tMatchNum}試合終了\n` +
+                 `${trainingExam.wins}勝${trainingExam.losses}敗（次: 第${tNext}試合）`;
+        }
+      }
       // Premium-v22: ランクアップ判定（戦績更新後）と通知メッセージ追記
       if (_prevTrainingRanks && typeof calculateTrainingRank === 'function') {
         const newRanks = calculateTrainingRank();

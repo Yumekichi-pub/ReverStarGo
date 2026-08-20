@@ -33,6 +33,57 @@ function enterTrainingMode(mode) {
   // 戦績ボタンは実戦モードのみ表示
   const recordsBtn = document.getElementById('training-records-btn');
   if (recordsBtn) recordsBtn.style.display = mode === 'real' ? '' : 'none';
+  // Premium-v145.3: 昇格試験の枠も実戦モードのみ
+  if (typeof updateTrainingPromotionSection === 'function') updateTrainingPromotionSection();
+  if (typeof renderTrainingAccount === 'function') renderTrainingAccount();
+}
+
+/**
+ * Premium-v145.3: 修行コースの昇格試験（RM 7番勝負）の枠を更新する。
+ *
+ * 出すのは「実戦でランクアップ」モードのときだけ。「師匠と修行」は
+ * 戦績が付かない学びの場なので、試験もそこには置かない。
+ * 作りはメインの updatePromotionSection に合わせてある。
+ */
+function updateTrainingPromotionSection() {
+  const section = document.getElementById('training-promotion-section');
+  if (!section) return;
+  if (trainingMode !== 'real' || typeof getAvailableTrainingExam !== 'function') {
+    section.style.display = 'none';
+    return;
+  }
+  const ex = getAvailableTrainingExam();
+  if (!ex) { section.style.display = 'none'; return; }
+
+  const ranks = ex.course === 'sun' ? TRAINING_SUN_RANKS : TRAINING_GALAXY_RANKS;
+  const target = ranks[ex.rankIdx - 1];
+  section.style.display = '';
+
+  document.getElementById('training-promotion-title').innerHTML =
+    `⚔ 修行ランクアップマッチ → ` +
+    `<img src="cosmo/${target.rank}.png" alt="${target.name}" ` +
+    `style="width:22px;height:22px;vertical-align:middle;border-radius:50%;object-fit:cover;"> ` +
+    `${target.rank} ${target.name}`;
+
+  let desc = `Lv.${ex.tLevel} と RM 7番勝負で勝ち越しで昇格`;
+  if (ex.careerWins > 0) desc += `\nまたは試験の通算${ex.careerWins}勝で昇格`;
+  document.getElementById('training-promotion-desc').textContent = desc;
+
+  const progEl = document.getElementById('training-promotion-progress');
+  const exam = (typeof loadTrainingExam === 'function') ? loadTrainingExam() : null;
+  const career = (typeof getTrainingExamCareer === 'function')
+    ? getTrainingExamCareer(ex.examKey) : { wins: 0, losses: 0 };
+  let prog = '';
+  if (exam && exam.examKey === ex.examKey) {
+    prog = `今回: ${exam.wins}勝${exam.losses}敗（あと${ex.winsNeeded - exam.wins}勝で昇格）`;
+  }
+  // 通算は10勝を超えてから出す（メインと同じ。最初から見せると遠く感じるため）
+  if (career.wins > 10 && ex.careerWins > 0) {
+    prog += (prog ? '\n' : '') +
+      `通算: ${career.wins}勝${career.losses}敗（あと${ex.careerWins - career.wins}勝で昇格）`;
+  }
+  if (prog) { progEl.style.display = ''; progEl.textContent = prog; }
+  else { progEl.style.display = 'none'; }
 }
 
 /**
