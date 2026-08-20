@@ -471,7 +471,7 @@ function endGame() {
             } else {
               msg += `\n\n🎉 修行ランクアップマッチ 合格！\nRM 7番勝負: ${tRes.exam.wins}勝${tRes.exam.losses}敗`;
             }
-            if (tRes.def && tRes.def.label) msg += `\n🔓 ${tRes.def.label}`;
+            // v145.6: 「🔓 Lv.7 解放」は下のランクアップ側で出すので、ここでは出さない
           } else {
             let tCareerMsg = '';
             if (tRes.def && tRes.def.careerWins > 0) {
@@ -493,13 +493,23 @@ function endGame() {
             && typeof TRAINING_SUN_RANKS !== 'undefined') {
           const r = TRAINING_SUN_RANKS[newRanks.sunRank - 1];
           msg += `\n\n🌟 太陽系ランクアップ！\n${r.rank} ${r.name} 達成！`;
-          if (r.unlock) msg += `\n🔓 ${r.unlock}`;
+          // v145.6: レベルが開くときは「解放」まで書く（「🔓 Lv.7 解放」）。
+          //   修了（「修行終了 MAX へ」など）はそのまま出す。
+          if (r.unlock) {
+            const u = String(r.unlock).replace(/<br>/g, ' ');
+            msg += `\n🔓 ${u}` + (/^Lv\.\d+$/.test(u) ? ' 解放' : '');
+          }
         }
         if (newRanks.galaxyRank > _prevTrainingRanks.galaxyRank
             && typeof TRAINING_GALAXY_RANKS !== 'undefined') {
           const r = TRAINING_GALAXY_RANKS[newRanks.galaxyRank - 1];
           msg += `\n\n🌟 銀河系ランクアップ！\n${r.rank} ${r.name} 達成！`;
-          if (r.unlock) msg += `\n🔓 ${r.unlock}`;
+          // v145.6: レベルが開くときは「解放」まで書く（「🔓 Lv.7 解放」）。
+          //   修了（「修行終了 MAX へ」など）はそのまま出す。
+          if (r.unlock) {
+            const u = String(r.unlock).replace(/<br>/g, ' ');
+            msg += `\n🔓 ${u}` + (/^Lv\.\d+$/.test(u) ? ' 解放' : '');
+          }
         }
       }
     }
