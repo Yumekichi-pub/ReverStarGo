@@ -142,10 +142,14 @@ function isTrainingGalaxyUnlocked() {
  * Premium-v43→v44→v45: 修行コーストップにアカウント＋現在ランクを表示する。
  *   メイン画面の「ランク14：トパーズ」と同じ書式に統一（絵文字・英語表記なし）。
  *   銀河系は「太陽系卒業」だけでは解放せず、通常モード MAX 撃破後に解放。
+ *
+ * Premium-v145.2: 入口だけでなく「レベルを選ぶ画面」にも同じものを出す。
+ *   レベルを選ぶ時がいちばんランクを見たい場面なのに、そこで消えていた。
+ *   .training-account が付いた枠すべてに描くので、置き場所は HTML 側で増やせる。
  */
 function renderTrainingAccount() {
-  const el = document.getElementById('training-account-display');
-  if (!el) return;
+  const els = document.querySelectorAll('.training-account');
+  if (!els.length) return;
   const { sunRank, galaxyRank } = (typeof calculateTrainingRank === 'function')
     ? calculateTrainingRank() : { sunRank: 0, galaxyRank: 0 };
   const sunCurrent = (sunRank > 0 && typeof TRAINING_SUN_RANKS !== 'undefined')
@@ -181,7 +185,7 @@ function renderTrainingAccount() {
   } else if (!sunCurrent) {
     html += `<div class="training-account-empty">修行これから — まずは太陽系から</div>`;
   }
-  el.innerHTML = html;
+  els.forEach(el => { el.innerHTML = html; });
 }
 
 /**

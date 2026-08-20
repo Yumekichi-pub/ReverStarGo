@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v145.1</p>
+    <p class="app-version">Premium-v145.2</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -202,8 +202,9 @@
 
     <!-- Premium-v20 (v28 でアイコン追加): モード選択（入口）-->
     <div id="training-mode-select">
-      <!-- Premium-v43: 修行コースのアカウント表示（実戦モードのランク） -->
-      <div id="training-account-display" class="training-account"></div>
+      <!-- Premium-v43: 修行コースのアカウント表示（実戦モードのランク）
+           v145.2: メイン画面のアカウント欄と同じ枠（setup-section）に入れる -->
+      <div id="training-account-display" class="setup-section training-account"></div>
       <!-- Premium-v48: 各モードの右上に「？」ヘルプボタン -->
       <div class="setup-section training-mode-section">
         <button class="training-mode-help-btn" onclick="showTrainingModeHelp('juku')" title="師匠と修行の説明">？</button>
@@ -227,6 +228,8 @@
     <!-- Premium-v20: 詳細画面（モード選択後）-->
     <div id="training-detail-area" style="display:none;">
       <h2 id="training-detail-title" class="training-detail-title"></h2>
+      <!-- v145.2: レベルを選ぶこの画面にもランクを出す（いちばん見たい場所なので） -->
+      <div class="setup-section training-account"></div>
       <div class="setup-section">
         <h2>あなたの色を選んでください</h2>
         <div class="setup-buttons-row">

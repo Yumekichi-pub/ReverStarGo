@@ -2433,6 +2433,19 @@
       letter-spacing: 0.04em;
     }
 
+    /* Premium-v145.2: メイン画面と同じ枠（.setup-section）に入れたので、
+       中身が枠に収まるように整える。枠なしで浮いていた頃は、名前が枠外に
+       はみ出したり、案内文の2行目が背景と重なって読みにくかった。 */
+    .training-account .training-account-name {
+      /* 名前は7文字まで。狭い画面では枠からはみ出すので自動で縮める */
+      font-size: clamp(1.7rem, 7.5vw, 2.5rem);
+      overflow-wrap: anywhere;
+    }
+    .training-account .training-account-empty {
+      line-height: 1.7;
+      margin-top: 10px;
+    }
+
     /* Premium-v32: 上部スコアパネルの間に配置（盤面の角一つだけ隠れる位置）
        師匠の顔は売りなので 64px のまま維持、padding を削ってトースト全体を細身に */
     .mq-toast.mq-juku-good,
