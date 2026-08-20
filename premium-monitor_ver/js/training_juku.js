@@ -76,11 +76,14 @@ function evaluateJukuMove(q, r, s, player) {
   if (validMoves.length < 2) return null; // 一択なら評価不要
 
   // 全候補手を負側 negamax でスコアリング
+  // Premium-v145.4: 探索は師匠専用の正確版を使う（下の _jukuNegamax 参照）。
+  //   ai.js の negamax は置換表に上界を正確値として保存してしまい、
+  //   対称なはずの手に違う値が付くことがある。評価値ラボと同じ数字にする。
   const scored = validMoves.map(([mq, mr, ms]) => {
     let score;
     try {
       score = withMove(mq, mr, ms, player, () =>
-        -negamax(getJukuDepth(), opp(player), -Infinity, Infinity)
+        -_jukuNegamax(getJukuDepth(), opp(player), -Infinity, Infinity)
       );
     } catch (e) {
       score = -Infinity;
@@ -88,25 +91,95 @@ function evaluateJukuMove(q, r, s, player) {
     return { move: [mq, mr, ms], score };
   });
 
-  // 高スコア順にソート
-  scored.sort((a, b) => b.score - a.score);
-
-  // プレイヤーの手の順位（0 始まり）
-  const playerRank = scored.findIndex(item =>
+  // プレイヤーが打った手の点数
+  const mine = scored.find(item =>
     item.move[0] === q && item.move[1] === r && item.move[2] === s
   );
-  if (playerRank < 0) return null;
+  if (!mine) return null;
 
-  // 候補手数 N を 3 等分。順位を 3 段階に分類
-  // 例: N=9 → good[0,1,2] / normal[3,4,5] / bad[6,7,8]
-  // 例: N=5 → good[0,1] / normal[2,3] / bad[4]
+  /* Premium-v145.4: 同点は同じ順位にする（評価値ラボと同じ数え方）。
+
+     v145.3 までは sort した並び順の「何番目か」で 3 等分していた。
+     リバースターゴは同点の手が非常に多く、たとえば初期局面の D4 では
+     9 手のうち 8 手が同じ点になる。並び順で切ると、まったく同じ価値の
+     手なのに、前の方は「いい手！」、後ろの方は「もう一回考えてみよう」
+     になってしまう。対称な場所で師匠の表情が食い違う原因がこれ。 */
+  const better = scored.filter(item => item.score > mine.score).length;
+  const rank = better + 1;   // 1 始まり。全部同点なら全員 1 位
+
+  // 候補手数 N を 3 等分して 3 段階に分類
+  // 例: N=9 → 1〜3位 いい手 / 4〜6位 それもあり / 7位以下 考え直そう
   const total = scored.length;
   const goodEnd = Math.ceil(total / 3);
   const normalEnd = Math.ceil(total * 2 / 3);
 
-  if (playerRank < goodEnd) return 'good';
-  if (playerRank < normalEnd) return 'normal';
+  if (rank <= goodEnd) return 'good';
+  if (rank <= normalEnd) return 'normal';
   return 'bad';
+}
+
+/* ============================================================
+   Premium-v145.4: 師匠専用の探索（置換表を正しく使う版）
+
+   ai.js の negamax は、β カットが起きなくても「best が最初の alpha
+   以下だった」場合の値まで正確値として置換表に保存してしまう。それは
+   本当の値ではなく上界（これ以下であることは確か）にすぎないので、
+   あとで別の枝がその値を引くと、本当より甘い評価が返ることがある。
+
+   初期局面（120°回転対称）で実際に確認できる:
+     置換表あり : B2=-24  B6=-24  BX=-16   ← 対称なのに揃わない
+     置換表なし : B2=-24  B6=-24  BX=-24   ← 揃う
+
+   評価値ラボ (lab_search.js) の labNegamaxFixed と同じ実装。
+   値と一緒に「正確値か・上界か・下界か」を持たせるだけで、評価関数も
+   手順も枝刈りも ai.js と同じ。CPU の指し手には一切触らないので、
+   師匠の顔だけが正確になり、対戦相手の強さは変わらない。
+   ============================================================ */
+const _JUKU_TT = new Map();
+const _JUKU_TT_MAX = 120000;
+const _JUKU_EXACT = 0, _JUKU_LOWER = 1, _JUKU_UPPER = 2;
+
+function _jukuNegamax(depth, player, alpha, beta) {
+  if (depth === 0) return evaluateBoardFor(player);
+
+  const alphaOrig = alpha, betaOrig = beta;
+  const key = serializeBoard() + ':' + player + ':' + depth;
+  const hit = _JUKU_TT.get(key);
+  if (hit !== undefined) {
+    if (hit.flag === _JUKU_EXACT) return hit.value;
+    if (hit.flag === _JUKU_LOWER && hit.value > alpha) alpha = hit.value;
+    else if (hit.flag === _JUKU_UPPER && hit.value < beta) beta = hit.value;
+    if (alpha >= beta) return hit.value;
+  }
+
+  const moves = getValidMoves(player);
+  if (moves.length === 0) {
+    // パス：盤面はそのままで手番だけ渡す
+    return -_jukuNegamax(depth - 1, opp(player), -beta, -alpha);
+  }
+
+  // 手順は ai.js と同一（枝刈り効率を揃えるため）
+  const ranked = moves.map(([q, r, s]) => ({
+    move: [q, r, s],
+    pri: positionValue(q, r, s) * 3 + evaluateMove(q, r, s, player)
+  })).sort((a, b) => b.pri - a.pri);
+
+  let best = -Infinity;
+  for (const { move: [q, r, s] } of ranked) {
+    const val = withMove(q, r, s, player, () =>
+      -_jukuNegamax(depth - 1, opp(player), -beta, -alpha)
+    );
+    if (val > best) best = val;
+    if (best > alpha) alpha = best;
+    if (alpha >= beta) break;
+  }
+
+  const flag = best <= alphaOrig ? _JUKU_UPPER
+             : best >= betaOrig  ? _JUKU_LOWER
+             : _JUKU_EXACT;
+  if (_JUKU_TT.size >= _JUKU_TT_MAX) _JUKU_TT.delete(_JUKU_TT.keys().next().value);
+  _JUKU_TT.set(key, { value: best, flag });
+  return best;
 }
 
 /**
