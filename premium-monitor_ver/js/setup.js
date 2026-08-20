@@ -330,7 +330,8 @@ async function executeMove(q, r, s, gpColor) {
   const _inJukuMode = typeof isTrainingMode === 'function' && isTrainingMode()
     && (typeof trainingMode === 'undefined' || trainingMode === 'juku');
   if (_inJukuMode) {
-    try { _jukuKind = evaluateJukuMove(q, r, s, current); } catch (e) {}
+    // Premium-v145.5: 実際にコールした CP の色も渡す（色の良し悪しを顔に出すため）
+    try { _jukuKind = evaluateJukuMove(q, r, s, current, gpColor); } catch (e) {}
   } else {
     try { _moveQualityRank = evaluateMoveQuality(q, r, s, current); } catch (e) {}
   }

@@ -61,9 +61,10 @@ let _jukuToastTimer = null;
  * @param {number} r - cube 座標
  * @param {number} s - cube 座標
  * @param {'black'|'white'} player - 手を打つプレイヤー
+ * @param {'black'|'white'|null} [gpColor] - その手で実際にコールした CP の色
  * @returns {'good'|'normal'|'bad'|null}
  */
-function evaluateJukuMove(q, r, s, player) {
+function evaluateJukuMove(q, r, s, player, gpColor) {
   // ---- 条件チェック ----
   if (typeof isTrainingMode !== 'function' || !isTrainingMode()) return null;
   // Premium-v20: 「師匠と修行」モードのみ評価。「実戦」モードでは塾評価しない
@@ -75,27 +76,38 @@ function evaluateJukuMove(q, r, s, player) {
   const validMoves = getValidMoves(player);
   if (validMoves.length < 2) return null; // 一択なら評価不要
 
-  // 全候補手を負側 negamax でスコアリング
-  // Premium-v145.4: 探索は師匠専用の正確版を使う（下の _jukuNegamax 参照）。
-  //   ai.js の negamax は置換表に上界を正確値として保存してしまい、
-  //   対称なはずの手に違う値が付くことがある。評価値ラボと同じ数字にする。
+  /* 全候補手をスコアリングする。
+
+     Premium-v145.4: 探索は師匠専用の正確版を使う（下の _jukuNegamax 参照）。
+       ai.js の negamax は置換表に上界を正確値として保存してしまい、
+       対称なはずの手に違う値が付くことがある。評価値ラボと同じ数字にする。
+
+     Premium-v145.5: CP コールの色も評価に含める。
+       各候補手の実力は「選べる色のうち一番よい値」。プレイヤーの点数は
+       「実際に選んだ色での値」。こうすると、置いた場所は良くても損な色で
+       コールした時に順位が下がり、師匠の顔に出る。 */
+  const depth = getJukuDepth();
   const scored = validMoves.map(([mq, mr, ms]) => {
-    let score;
+    let score = -Infinity;
     try {
-      score = withMove(mq, mr, ms, player, () =>
-        -_jukuNegamax(getJukuDepth(), opp(player), -Infinity, Infinity)
-      );
+      for (const c of _jukuColorChoices(mq, mr, ms, player)) {
+        const v = _jukuScoreMove(mq, mr, ms, player, c, depth);
+        if (v > score) score = v;
+      }
     } catch (e) {
       score = -Infinity;
     }
     return { move: [mq, mr, ms], score };
   });
 
-  // プレイヤーが打った手の点数
-  const mine = scored.find(item =>
-    item.move[0] === q && item.move[1] === r && item.move[2] === s
-  );
-  if (!mine) return null;
+  // プレイヤーが打った手の点数（実際にコールした色で計算する）
+  const inList = validMoves.some(m => m[0] === q && m[1] === r && m[2] === s);
+  if (!inList) return null;
+  let myScore;
+  try {
+    myScore = _jukuScoreMove(q, r, s, player, gpColor, depth);
+  } catch (e) { return null; }
+  const mine = { score: myScore };
 
   /* Premium-v145.4: 同点は同じ順位にする（評価値ラボと同じ数え方）。
 
@@ -116,6 +128,68 @@ function evaluateJukuMove(q, r, s, player) {
   if (rank <= goodEnd) return 'good';
   if (rank <= normalEnd) return 'normal';
   return 'bad';
+}
+
+/* ============================================================
+   Premium-v145.5: CP コールの色を評価に含めるための道具
+   ============================================================ */
+
+/**
+ * その手で試すべき CP コールの色を返す。
+ *   ・CP を通らない手は色に意味がないので [null] だけ
+ *   ・コウで塞がれる色は外す（実際に選べないので）
+ *   ・両方コウならコウ例外で両方選べるので両方返す
+ */
+function _jukuColorChoices(q, r, s, player) {
+  if (typeof needsGPCall !== 'function' || !needsGPCall(q, r, s, player)) return [null];
+  if (typeof getNonKoGPColors === 'function' && prevBoardSnapshot) {
+    const nonKo = getNonKoGPColors(q, r, s, player);
+    if (nonKo.length > 0) return nonKo;
+  }
+  return ['black', 'white'];
+}
+
+/**
+ * ai.js の withMove を、CP コールの色を指定できるようにしたもの。
+ * withMove は中で bestGPColor を呼んで色を勝手に決めてしまうため、
+ * 「黒でコールした場合」「白でコールした場合」を読み分けられない。
+ * 手順は withMove と 1 対 1 で同じ。gp の決め方だけが違う。
+ * （評価値ラボの labWithMoveGP と同じ実装）
+ */
+function _jukuWithMoveGP(q, r, s, player, gpColor, evalFn) {
+  const snap = Object.assign({}, board);
+  const preBoardSnap = snap;
+  const gpK = K(0, 0, 0);
+  const gpWasAlreadySurrounded = DIRS.every(([dq, dr, ds]) => board[K(dq, dr, ds)] === player);
+
+  board[K(q, r, s)] = player;
+  if (gpColor && board[gpK] === null) board[gpK] = gpColor;
+  for (const [fq, fr, fs] of getFlippable(q, r, s, player, gpColor)) {
+    board[K(fq, fr, fs)] = player;
+  }
+  if (board[gpK] === null && !gpWasAlreadySurrounded &&
+      DIRS.every(([dq, dr, ds]) => board[K(dq, dr, ds)] === player)) {
+    board[gpK] = opp(player);
+  }
+  for (const group of filterRealCaptures(findCaptureGroups(player), preBoardSnap)) {
+    for (const [cq, cr, cs] of group) board[K(cq, cr, cs)] = null;
+  }
+  if (board[gpK] !== null) board[gpK] = null;
+
+  const result = evalFn();
+  Object.assign(board, snap);
+  return result;
+}
+
+/** 「(q,r,s) に打って CP を gpColor でコールした場合」の評価値。 */
+function _jukuScoreMove(q, r, s, player, gpColor, depth) {
+  // 色が要らない手は、いつも通り withMove（中の bestGPColor は結果に影響しない）
+  if (gpColor === null || gpColor === undefined) {
+    return withMove(q, r, s, player, () =>
+      -_jukuNegamax(depth, opp(player), -Infinity, Infinity));
+  }
+  return _jukuWithMoveGP(q, r, s, player, gpColor, () =>
+    -_jukuNegamax(depth, opp(player), -Infinity, Infinity));
 }
 
 /* ============================================================
