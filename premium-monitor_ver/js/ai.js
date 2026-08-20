@@ -10,6 +10,9 @@
 // 各ゲーム開始時（initGame）にクリアされる。サイズ上限到達時は古いものから捨てる。
 const transTable = new Map();
 const TT_MAX_SIZE = 50000;
+// 置換表に入れる値の種類。α-β枝刈りで途中打ち切りになった値は
+// 「正確な値」ではなく上限／下限にすぎないので、区別して持つ。
+const TT_EXACT = 0, TT_LOWER = 1, TT_UPPER = 2;
 
 // ===== AI ロジック =====
 
@@ -133,10 +136,18 @@ function withMove(q, r, s, player, evalFn) {
 function negamax(depth, currentPlayer, alpha, beta) {
   if (depth === 0) return evaluateBoardFor(currentPlayer);
 
-  // TT lookup: 同じ局面・同じ手番・同じ深さなら過去の探索結果を再利用
+  // 入口の α・β を控えておく（保存時に値の種類を決めるのに使う）
+  const alphaOrig = alpha, betaOrig = beta;
+
+  // TT lookup: 値の種類に応じた使い方をする
   const ttKey = serializeBoard() + ':' + currentPlayer + ':' + depth;
-  const cached = transTable.get(ttKey);
-  if (cached !== undefined) return cached;
+  const hit = transTable.get(ttKey);
+  if (hit !== undefined) {
+    if (hit.flag === TT_EXACT) return hit.value;                           // 正確値はそのまま使える
+    if (hit.flag === TT_LOWER && hit.value > alpha) alpha = hit.value;     // 下限は α を押し上げる
+    else if (hit.flag === TT_UPPER && hit.value < beta) beta = hit.value;  // 上限は β を押し下げる
+    if (alpha >= beta) return hit.value;
+  }
 
   const moves = getValidMoves(currentPlayer);
   if (moves.length === 0) {
@@ -151,23 +162,23 @@ function negamax(depth, currentPlayer, alpha, beta) {
   })).sort((a,b) => b.pri - a.pri);
 
   let best = -Infinity;
-  let cutOff = false;
   for (const {move:[q,r,s]} of ranked) {
     const val = withMove(q, r, s, currentPlayer, () =>
       -negamax(depth - 1, opp(currentPlayer), -beta, -alpha)
     );
     if (val > best) best = val;
     if (best > alpha) alpha = best;
-    if (alpha >= beta) { cutOff = true; break; } // alpha-beta枝刈り
+    if (alpha >= beta) break; // alpha-beta枝刈り
   }
 
-  // TT 記録: α-β カットしなかった場合のみ正確値としてキャッシュ
-  if (!cutOff) {
-    if (transTable.size >= TT_MAX_SIZE) {
-      transTable.delete(transTable.keys().next().value);
-    }
-    transTable.set(ttKey, best);
+  // TT 記録: 値の種類を判定して一緒に保存する
+  const flag = best <= alphaOrig ? TT_UPPER   // 全手が入口の α 以下 → 上限
+             : best >= betaOrig  ? TT_LOWER   // β カット成立 → 下限
+             : TT_EXACT;                      // それ以外は正確値
+  if (transTable.size >= TT_MAX_SIZE) {
+    transTable.delete(transTable.keys().next().value);
   }
+  transTable.set(ttKey, { value: best, flag });
   return best;
 }
 
