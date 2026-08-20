@@ -11,7 +11,7 @@
    事前キャッシュ(precache)は行わず、取得したものを順次保存する。
    ============================================================ */
 
-const CACHE_NAME = 'rsg-premium-v145';
+const CACHE_NAME = 'rsg-premium-v145.1';
 
 self.addEventListener('install', () => {
   self.skipWaiting(); // 新しいSWを即座に有効化

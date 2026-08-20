@@ -74,7 +74,8 @@ function showTrainingModeHelp(mode) {
       '<div class="help-section-title">🔒 レベル開放</div>' +
       '<ul>' +
         '<li>Lv.6 から始まり、勝ち進めば Lv.7 が開放</li>' +
-        '<li>銀河系コース（Lv.9 / Lv.10）は太陽系卒業＋メインの MAX 撃破で開放</li>' +
+        '<li>メインで <b>MAX を倒している人</b>は、太陽系を飛ばして <b>Lv.9 まで開いています</b></li>' +
+        '<li>Lv.10 は銀河系のスピカ（25.4）達成で開放</li>' +
       '</ul>' +
       '<div class="help-section-title">⚠ 実戦ルール</div>' +
       '<ul>' +
@@ -113,6 +114,23 @@ function backToTrainingEntry() {
 const TRAIN_SUN_KEY = 'rsg-train-sun';
 const TRAIN_GALAXY_KEY = 'rsg-train-galaxy';
 
+/**
+ * Premium-v145.1: メイン（外の世界）で MAX を倒したことがあるか。
+ *
+ * 戦績のキーは 1〜7 で、6 = MAX、7 = FINAL。
+ * 修行部屋はもともと「MAX を攻略するための道場」として作ったので
+ * Lv.6 から順に積む造りだったが、MAX を直接攻略した人には
+ * 太陽系を積み直す理由がない。そこで MAX 撃破を
+ * 「太陽系を飛ばして Lv.9 まで開ける」判断材料に使う。
+ */
+function hasDefeatedMainMax() {
+  try {
+    if (typeof loadBattleRecord !== 'function') return false;
+    const br = loadBattleRecord();
+    return !!(br && br['6'] && br['6'].win > 0);
+  } catch (e) { return false; }
+}
+
 function isTrainingSunUnlocked() {
   return localStorage.getItem(TRAIN_SUN_KEY) !== '0';
 }
@@ -134,15 +152,9 @@ function renderTrainingAccount() {
     ? TRAINING_SUN_RANKS[sunRank - 1] : null;
   const galaxyCurrent = (galaxyRank > 0 && typeof TRAINING_GALAXY_RANKS !== 'undefined')
     ? TRAINING_GALAXY_RANKS[galaxyRank - 1] : null;
-  const sunGraduated = sunRank >= 9;
   // Premium-v45: 銀河系の解放は通常モード MAX (cpuLevel 6) 撃破後
-  let maxDefeated = false;
-  try {
-    if (typeof loadBattleRecord === 'function') {
-      const br = loadBattleRecord();
-      maxDefeated = !!(br && br['6'] && br['6'].win > 0);
-    }
-  } catch (e) {}
+  // Premium-v145.1: 太陽系卒業は問わない（MAX を倒していれば銀河系が開く）
+  const galaxyOpen = hasDefeatedMainMax();
   const name = (typeof getPlayerName === 'function') ? getPlayerName() : 'あなた';
 
   // メイン画面と同じ「ランクX.X：名前」形式
@@ -156,18 +168,18 @@ function renderTrainingAccount() {
 
   let html = '';
   html += `<div class="training-account-name">${name}</div>`;
-  if (!sunCurrent) {
-    html += `<div class="training-account-empty">修行これから — まずは太陽系から</div>`;
-  } else {
-    html += rankLine(sunCurrent);
-    // 銀河系は太陽系卒業 + MAX 撃破 の両方で初めて表示
-    if (sunGraduated && maxDefeated) {
-      if (galaxyCurrent) {
-        html += rankLine(galaxyCurrent);
-      } else {
-        html += `<div class="training-account-empty">銀河系コース 解放！ さあ次へ</div>`;
-      }
+  if (sunCurrent) html += rankLine(sunCurrent);
+  if (galaxyOpen) {
+    if (galaxyCurrent) {
+      html += rankLine(galaxyCurrent);
+    } else if (sunCurrent) {
+      html += `<div class="training-account-empty">銀河系コース 解放！ さあ次へ</div>`;
+    } else {
+      // MAX を倒して来た人。太陽系を積んでいなくても銀河系から始められる
+      html += `<div class="training-account-empty">MAX 撃破ずみ — 銀河系コースから始められます</div>`;
     }
+  } else if (!sunCurrent) {
+    html += `<div class="training-account-empty">修行これから — まずは太陽系から</div>`;
   }
   el.innerHTML = html;
 }
@@ -203,22 +215,20 @@ function applyTrainingUnlocks() {
 //   Lv.9: 太陽系卒業 + 通常モード MAX (cpuLevel 6) 撃破 で解放
 //   Lv.10: スピカ (25.4) 達成で解放
 //   開発者モード中は全解放
+//
+//   Premium-v145.1: メインで MAX を倒した人は Lv.9 まで一気に開ける。
+//   修行部屋は「MAX を攻略するための道場」として作ったので Lv.6 から
+//   順に積む造りだったが、MAX を直接倒せた人に太陽系をやり直させる
+//   意味はない。Lv.10 だけは銀河系で勝ち進んでから（スピカ達成）のまま。
 function isTrainingLevelLocked(lv) {
   if (typeof devMode !== 'undefined' && devMode) return false;
   if (lv === 6) return false;
   if (lv === 7) {
+    if (hasDefeatedMainMax()) return false;
     return !(typeof isTrainingSunLv7Unlocked === 'function' && isTrainingSunLv7Unlocked());
   }
   if (lv === 9) {
-    const sunDone = (typeof hasFinishedTrainingSun === 'function') && hasFinishedTrainingSun();
-    let maxDefeated = false;
-    try {
-      if (typeof loadBattleRecord === 'function') {
-        const br = loadBattleRecord();
-        maxDefeated = !!(br && br['6'] && br['6'].win > 0);
-      }
-    } catch (e) {}
-    return !(sunDone && maxDefeated);
+    return !hasDefeatedMainMax();
   }
   if (lv === 10) {
     return !(typeof isTrainingGalaxyLv10Unlocked === 'function' && isTrainingGalaxyLv10Unlocked());
@@ -227,8 +237,8 @@ function isTrainingLevelLocked(lv) {
 }
 
 function getTrainingLevelHint(lv) {
-  if (lv === 7)  return 'ルナ（19.4）達成で解放されます';
-  if (lv === 9)  return '太陽系修行を卒業し MAX を倒すと解放されます';
+  if (lv === 7)  return 'ルナ（19.4）達成、またはメインで MAX を倒すと解放されます';
+  if (lv === 9)  return 'メインで MAX を倒すと解放されます';
   if (lv === 10) return 'スピカ（25.4）達成で解放されます';
   return '';
 }
