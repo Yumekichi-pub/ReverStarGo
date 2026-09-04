@@ -111,7 +111,9 @@
   }
 
   // 告知バー（トップページ・購入直前など、大きく出す場所）
-  function buildBar(d) {
+  // 置き場所に data-odekake-nolink と書いておくと、ショップへのリンクを省きます。
+  // （すぐ下にショップのボタンがある場所など、二重に出ると野暮なとき用）
+  function buildBar(d, slot) {
     var box = document.createElement('div');
     box.className = 'odekake-bar';
     box.setAttribute('role', 'note');
@@ -130,7 +132,7 @@
       p.appendChild(strong('PDF（ダウンロード版）は期間中もすぐにご利用いただけます。'));
     }
 
-    if (CONFIG.shopUrl) {
+    if (CONFIG.shopUrl && !slot.hasAttribute('data-odekake-nolink')) {
       var a = el('a', CONFIG.shopLabel || CONFIG.shopUrl);
       a.href = CONFIG.shopUrl;
       p.appendChild(document.createTextNode(' '));
@@ -196,7 +198,7 @@
 
     for (i = 0; i < slots.length; i++) {
       var build = BUILDERS[slots[i].getAttribute('data-odekake')];
-      if (build) slots[i].appendChild(build(d));
+      if (build) slots[i].appendChild(build(d, slots[i]));
     }
   }
 

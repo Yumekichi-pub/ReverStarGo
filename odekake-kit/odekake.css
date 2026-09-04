@@ -1,54 +1,70 @@
 /* ============================================================
    おでかけ告知キット  odekake.css
    ------------------------------------------------------------
-   色みを変えたいときは、いちばん上の変数だけ書き換えてください。
-   告知が出ていないときは、何も描かれません（高さも取りません）。
+   色や大きさを変えたいときは、いちばん上の変数だけ書き換えてください。
+   告知が出ていないときは、何も描かれません（余白も取りません）。
    ============================================================ */
 
 :root {
-  --odekake-bg:      #fff8e1;   /* 告知バーの地の色 */
-  --odekake-border:  #f0c36d;   /* ふちの色 */
-  --odekake-text:    #5a4a2a;   /* 文字の色 */
-  --odekake-link:    #8a5a00;   /* リンクと注記の色 */
-  --odekake-width:   960px;     /* 横幅のいちばん広いところ */
+  --odekake-bg:        #fff8e1;   /* 告知バーの地の色 */
+  --odekake-border:    #f0c36d;   /* ふちの色 */
+  --odekake-accent:    #f0c36d;   /* 左端の太い線。ふちと同じ色にすれば目立たなくなる */
+  --odekake-text:      #5a4a2a;   /* 文字の色 */
+  --odekake-link:      #8a5a00;   /* リンクと注記の色 */
+  --odekake-radius:    8px;       /* 角のまるさ */
+  --odekake-font-size: 0.95rem;   /* 文字の大きさ */
+  --odekake-width:     960px;     /* 横幅のいちばん広いところ */
 }
 
 /* 置き場所そのものは、中身が無いあいだ完全に無いものとして扱う */
 [data-odekake]:empty { display: none; }
+/* span で置いた場合も、中身が入ったらブロックとして扱う */
+span[data-odekake]:not(:empty) { display: block; }
 
 .odekake-bar {
   background: var(--odekake-bg);
   border: 1px solid var(--odekake-border);
-  border-radius: 8px;
-  padding: 14px 18px;
+  border-left: 5px solid var(--odekake-accent);
+  border-radius: var(--odekake-radius);
+  padding: 16px 20px;
   margin: 20px auto;
   max-width: var(--odekake-width);
-  font-size: 0.95rem;
+  font-size: var(--odekake-font-size);
   line-height: 1.8;
   color: var(--odekake-text);
+  text-align: left;
 }
 .odekake-bar p { margin: 0; }
 .odekake-bar a {
   color: var(--odekake-link);
   text-decoration: underline;
+  font-weight: bold;
 }
 
 .odekake-note {
   color: var(--odekake-link);
-  font-size: 0.9rem;
+  font-size: calc(var(--odekake-font-size) - 0.05rem);
   line-height: 1.7;
-  margin: 8px 0 0;
+  margin: 10px 0 0;
+  text-align: left;
 }
 
 .odekake-legal {
   display: block;
-  margin-top: 6px;
+  margin-top: 8px;
+  color: var(--odekake-link);
 }
 
 @media (max-width: 600px) {
   .odekake-bar {
     margin: 14px 12px;
-    padding: 12px 14px;
-    font-size: 0.9rem;
+    padding: 13px 15px;
   }
 }
+
+
+/* ============================================================
+   ここから下は、取り付けるサイトごとの調整を書く場所です。
+   （固定ヘッダーの下に潜り込む、など、そのサイト特有の事情の吸収用）
+   何も要らないサイトなら、空のままで構いません。
+   ============================================================ */
