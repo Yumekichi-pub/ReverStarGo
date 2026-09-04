@@ -1,0 +1,54 @@
+/* ============================================================
+   おでかけ告知キット  odekake.css
+   ------------------------------------------------------------
+   色みを変えたいときは、いちばん上の変数だけ書き換えてください。
+   告知が出ていないときは、何も描かれません（高さも取りません）。
+   ============================================================ */
+
+:root {
+  --odekake-bg:      #fff8e1;   /* 告知バーの地の色 */
+  --odekake-border:  #f0c36d;   /* ふちの色 */
+  --odekake-text:    #5a4a2a;   /* 文字の色 */
+  --odekake-link:    #8a5a00;   /* リンクと注記の色 */
+  --odekake-width:   960px;     /* 横幅のいちばん広いところ */
+}
+
+/* 置き場所そのものは、中身が無いあいだ完全に無いものとして扱う */
+[data-odekake]:empty { display: none; }
+
+.odekake-bar {
+  background: var(--odekake-bg);
+  border: 1px solid var(--odekake-border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 20px auto;
+  max-width: var(--odekake-width);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--odekake-text);
+}
+.odekake-bar p { margin: 0; }
+.odekake-bar a {
+  color: var(--odekake-link);
+  text-decoration: underline;
+}
+
+.odekake-note {
+  color: var(--odekake-link);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin: 8px 0 0;
+}
+
+.odekake-legal {
+  display: block;
+  margin-top: 6px;
+}
+
+@media (max-width: 600px) {
+  .odekake-bar {
+    margin: 14px 12px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+}

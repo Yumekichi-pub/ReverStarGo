@@ -8,3 +8,5 @@ Disallow: /RSG_HP/
 Disallow: /_pages/
 # 検査用ページ（一時的）
 Disallow: /ice-check.html
+# おでかけ告知キット（サイトの部品置き場。ゲームとは無関係）
+Disallow: /odekake-kit/

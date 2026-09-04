@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>おでかけ告知キット 見本</title>
+<link rel="stylesheet" href="odekake.css">
+<style>
+  body { font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+         line-height: 1.8; color: #333; margin: 0; background: #fdfcf8; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+  header { background: #fff; border-bottom: 1px solid #e6e0d0; padding: 14px 16px; font-weight: bold; }
+  h1 { font-size: 1.3rem; margin: 28px 0 8px; }
+  h2 { font-size: 1.05rem; margin: 36px 0 8px; border-left: 4px solid #f0c36d; padding-left: 10px; }
+  .card { background: #fff; border: 1px solid #eee6d6; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .btn { display: inline-block; background: #8a5a00; color: #fff; padding: 12px 28px;
+         border-radius: 999px; text-decoration: none; }
+  .hint { background: #f4f4f4; border-radius: 8px; padding: 12px 14px; font-size: 0.9rem; }
+  code { background: #eee; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>夢吉出版（見本ページ）</header>
+
+<div class="wrap">
+
+  <!-- ① トップページ用：ヘッダーのすぐ下 -->
+  <div data-odekake="bar"></div>
+
+  <p class="hint">
+    このページは、告知の見え方をたしかめるための見本です。実際のサイトではありません。<br>
+    告知が出ていないときは、<code>demo.html?odekake-preview=1</code> を開くと見え方だけ確かめられます。<br>
+    <code>demo.html?odekake-now=2026-10-02</code> なら、10月2日にお客様が開いたときの見え方（＝消えているか）を確かめられます。
+  </p>
+
+  <h1>遊びながら「数感」を磨き、一生モノの思考力を。</h1>
+  <p>（ここに、ふだんのトップページの中身が続きます）</p>
+
+  <h2>② ご購入の流れ ― 項目のすぐ下に置く小さな注記</h2>
+  <div class="card">
+    <p><strong>4. 商品の発送</strong><br>ご入金確認後、速やかに商品を発送し、発送完了メールをお送りします。</p>
+    <div data-odekake="note"></div>
+  </div>
+
+  <h2>③ ショップへ進むボタンの直前</h2>
+  <p>準備ができたら、こちらからオンラインショップへ進めます。</p>
+  <div data-odekake="bar"></div>
+  <p><a class="btn" href="https://yumekichi-publishing.stores.jp/">夢吉出版 オンラインショップへ</a></p>
+
+  <h2>④ 特定商取引法に基づく表記 ― 引渡し時期の欄</h2>
+  <div class="card">
+    <p><strong>商品の引渡し時期</strong><br>
+      ご入金確認後、7日以内に発送いたします。
+      <span data-odekake="legal"></span>
+    </p>
+  </div>
+
+</div>
+
+<script src="odekake.js"></script>
+</body>
+</html>
