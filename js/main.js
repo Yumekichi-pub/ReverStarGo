@@ -25,6 +25,7 @@ promotionExam = loadPromotionExam(); // 昇格試験の復元
 updatePlayerNameDisplay();
 updateRankDisplay();
 updateDailyTileDate();
+updateStoreLink();
 updateLevelButtons();
 // ロック状態の確定後にゲーム設定を復元（v40〜）
 loadGameSettings();
