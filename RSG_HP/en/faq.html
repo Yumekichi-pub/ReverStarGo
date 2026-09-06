@@ -45,13 +45,13 @@
 <header class="site-header">
   <a href="index.html" class="site-header-logo"><img src="../logo.png" alt="ReverStarGo"></a>
   <nav class="site-nav">
-    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html" class="active">FAQ</a>
+    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="../report/en/easy.html">Research</a><a href="faq.html" class="active">FAQ</a>
     <a href="../faq.html" class="lang-switch">JP</a>
   </nav>
   <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='&#9776;'?'&#10005;':'&#9776;';" aria-label="Menu">&#9776;</button>
 </header>
 <nav class="mobile-nav" id="mobile-nav">
-  <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+  <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="../report/en/easy.html">Research</a><a href="faq.html">FAQ</a>
   <a href="https://play.reverstargo.com/en/" target="_blank">Play the App</a>
   <a href="https://play.google.com/store/apps/details?id=com.yumekichi.reverstargo" target="_blank">Get it on Google Play</a>
   <a href="../faq.html">Japanese</a>
@@ -122,6 +122,15 @@
   </div>
 
   <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)"><span>How deep is this game compared to Reversi?</span><span class="faq-arrow">&#9660;</span></button>
+    <div class="faq-a"><div class="faq-a-inner">
+      Rather than guessing, we <strong>measured it</strong>. ReverStarGo, 8&times;8 Reversi and 6&times;6 Reversi were played against themselves under identical conditions for more than 100,000 games in total.<br><br>
+      The finding: depth is not determined by board size or game length. ReverStarGo runs about as long as 6&times;6 Reversi (36 vs 35 moves on average), yet the variety of play differs greatly. <strong>Board shape and rule structure</strong> are what matter.<br><br>
+      The full method and data are published: <a href="../report/en/easy.html">Research report</a>.
+    </div></div>
+  </div>
+
+  <div class="faq-item">
     <button class="faq-q" onclick="toggleFaq(this)"><span>I don't understand the rules</span><span class="faq-arrow">&#9660;</span></button>
     <div class="faq-a"><div class="faq-a-inner">In the app, go to "Rules" and select <strong>Tutorial</strong> to learn by playing. The "Learn by Playing" mode is recommended. You can also check the <a href="rules.html">Rules page</a>.</div></div>
   </div>
@@ -148,7 +157,7 @@
 
 <footer class="site-footer">
   <nav class="site-footer-nav">
-    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="faq.html">FAQ</a>
+    <a href="index.html">Home</a><a href="guide.html">Guide</a><a href="rules.html">Rules</a><a href="features.html">Features</a><a href="ranks.html">Ranks</a><a href="../report/en/easy.html">Research</a><a href="faq.html">FAQ</a>
     <a href="../index.html">Japanese</a>
   </nav>
   <div class="site-footer-buttons">

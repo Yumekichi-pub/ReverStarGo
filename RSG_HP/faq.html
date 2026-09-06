@@ -45,13 +45,13 @@
 <header class="site-header">
   <a href="index.html" class="site-header-logo"><img src="logo.png" alt="ReverStarGo"></a>
   <nav class="site-nav">
-    <a href="index.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html" class="active">FAQ</a>
+    <a href="index.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="report/">研究レポート</a><a href="faq.html" class="active">FAQ</a>
     <a href="en/faq.html" class="lang-switch">EN</a>
   </nav>
   <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.textContent=this.textContent==='☰'?'✕':'☰';" aria-label="メニュー">☰</button>
 </header>
 <nav class="mobile-nav" id="mobile-nav">
-  <a href="index.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+  <a href="index.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="report/">研究レポート</a><a href="faq.html">FAQ</a>
   <a href="https://play.reverstargo.com" target="_blank">アプリ版で遊ぶ</a>
   <a href="https://play.google.com/store/apps/details?id=com.yumekichi.reverstargo" target="_blank">Google Play で入手</a>
   <a href="en/faq.html">English</a>
@@ -122,6 +122,15 @@
   </div>
 
   <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)"><span>リバーシと比べて、どれくらい深いゲームですか？</span><span class="faq-arrow">&#9660;</span></button>
+    <div class="faq-a"><div class="faq-a-inner">
+      感覚で答えるのではなく、<strong>実際に測定しました</strong>。ReverStarGo・8×8 リバーシ・6×6 リバーシの 3 つを同じ方法で自動対戦させ、合計 10 万局以上のデータを取っています。<br><br>
+      分かったのは、深さは盤の大きさや手数では決まらないということです。ReverStarGo は 6×6 リバーシとほぼ同じ手数（平均 36 手 対 35 手）ですが、戦い方の広がりは大きく違いました。<strong>盤の形とルールの構造</strong>が効いています。<br><br>
+      測定方法もデータもすべて公開しています。<a href="report/easy.html">やさしい解説</a>／<a href="report/paper.html">本論文</a>
+    </div></div>
+  </div>
+
+  <div class="faq-item">
     <button class="faq-q" onclick="toggleFaq(this)"><span>ルールが分かりません</span><span class="faq-arrow">&#9660;</span></button>
     <div class="faq-a"><div class="faq-a-inner">アプリ内の「ルール」から<strong>チュートリアル</strong>を選ぶと、実際にプレイしながらルールを学べます。「体験しながら学ぶ」モードがおすすめです。<a href="rules.html">ルール説明ページ</a>もご覧ください。</div></div>
   </div>
@@ -148,7 +157,7 @@
 
 <footer class="site-footer">
   <nav class="site-footer-nav">
-    <a href="index.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="faq.html">FAQ</a>
+    <a href="index.html">ホーム</a><a href="guide.html">遊び方</a><a href="rules.html">ルール</a><a href="features.html">機能紹介</a><a href="ranks.html">ランク</a><a href="report/">研究レポート</a><a href="faq.html">FAQ</a>
     <a href="en/faq.html">English</a>
   </nav>
   <div class="site-footer-buttons">
