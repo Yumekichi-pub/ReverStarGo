@@ -168,6 +168,10 @@ function selectLevel(lv) {
  */
 function startGame() {
   saveSettings();
+  // v149: 普通の「ゲーム開始」で始めた対局は、受験中の試験があっても
+  //   その1試合には数えない（息抜き）。試験は残るので、あとで
+  //   「⚔ 挑戦する」から続きを受けられる。
+  if (typeof examGameActive !== 'undefined') examGameActive = false;
   // Premium-v105: 2人対戦のマッチ準備（リバースマッチは名前2人分が必須）
   if (typeof tpPrepareMatch === 'function') {
     if (tpPrepareMatch() === 'need-names') {

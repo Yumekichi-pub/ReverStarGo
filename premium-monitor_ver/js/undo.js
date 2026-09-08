@@ -577,7 +577,7 @@ function endGame() {
       }
       // 昇格試験の結果記録
       let promotionPassed = false;
-      if (promotionExam) {
+      if (promotionExam && examGameActive) {
         const matchNum = promotionExam.wins + promotionExam.losses + 1;
         const promoResult = recordPromotionResult(soundType === 'win');
         if (promoResult) {

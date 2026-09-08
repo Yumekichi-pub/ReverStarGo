@@ -50,6 +50,15 @@ function updatePromotionSection() {
   } else {
     progressEl.style.display = 'none';
   }
+
+  // v149: 中断中の試験が残っているときは、ボタンを「続きから」に変えて
+  //   再開だと分かるようにする（普通の「ゲーム開始」は息抜きで、試験には数えない）
+  const startBtn = section.querySelector('.promotion-start-btn');
+  if (startBtn) {
+    const inProgress = exam && exam.targetRank === promo.targetRank
+                       && (exam.wins + exam.losses) > 0;
+    startBtn.textContent = inProgress ? '⚔ 続きから挑戦する' : '⚔ 挑戦する';
+  }
 }
 
 function getMatchLabel(winsNeeded, level) {
@@ -80,7 +89,7 @@ function updatePromotionGameStatus() {
       `第${tMatchNum}試合 ${tColor}（${trainingExam.wins}勝${trainingExam.losses}敗）`;
     return;
   }
-  if (!promotionExam) {
+  if (!promotionExam || !examGameActive) {   // v149: 息抜きの対局では帯を出さない
     statusEl.style.display = 'none';
     return;
   }
@@ -120,7 +129,7 @@ document.getElementById('play-again-btn').addEventListener('click', () => {
     }
     // ランクアップマッチ中は白黒を交互にする（v41〜）
     // Lv.5 以上は Reverse Match（セット内で色交代）で自動的にパターンが維持されるため、ここでは Lv.4 以下のみ実行
-    if (promotionExam && !reverseMatch && promotionExam.level < 5) {
+    if (promotionExam && examGameActive && !reverseMatch && promotionExam.level < 5) {
       humanColor = opp(humanColor);
       cpuColor = opp(humanColor);
       // 設定画面の選択状態も更新

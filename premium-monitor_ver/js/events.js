@@ -304,6 +304,7 @@ function devSetRank(rankIdx) {
   // 進行中の昇格試験をクリア
   clearPromotionExam();
   promotionExam = null;
+  examGameActive = false;
   updateRankDisplay();
   updateLevelButtons();
   updateAccountRankDisplay();
@@ -329,6 +330,7 @@ function devResetAll() {
     if (typeof TP_RECORDS_KEY !== 'undefined') localStorage.removeItem(TP_RECORDS_KEY);
     // devOverrideRank と進行中の試験もリセット
     promotionExam = null;
+    examGameActive = false;
     sessionWins = { black: 0, white: 0, draw: 0 };
     if (devMode) devOverrideRank = 0;
     closeDevMenu();
@@ -360,6 +362,7 @@ function devResetPromotions() {
     localStorage.removeItem(PROMOTION_EXAM_KEY);
     localStorage.removeItem(PROMOTION_CAREER_KEY);
     promotionExam = null;
+    examGameActive = false;
     closeDevMenu();
     updateRankDisplay();
     updateLevelButtons();
@@ -537,8 +540,8 @@ function confirmQuit() {
     const dailyRec = loadDailyRecord();
     dailyRec[lvKey].lose++;
     saveDailyRecord(dailyRec);
-    // ランクアップマッチ中なら1敗として記録
-    if (promotionExam) {
+    // ランクアップマッチ中なら1敗として記録（息抜きの対局は数えない）
+    if (promotionExam && examGameActive) {
       recordPromotionResult(false);
     }
   }

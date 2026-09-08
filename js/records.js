@@ -318,6 +318,14 @@ function getPromotionCareer(rankIndex) {
 
 // 進行中の昇格試験
 let promotionExam = null; // { targetRank, level, wins, losses, winsNeeded, maxLosses }
+// v149: いま遊んでいる対局がランクアップマッチの1試合かどうか。
+//   promotionExam は「受験中の試験」を持ち続けるので、中断してから
+//   別のレベルで遊ぶと、その対局まで試験の続きとして数えられていた。
+//   （試験は Lv.5 なのに Lv.3 と戦って合格できてしまう状態だった）
+//   「⚔ 挑戦する」で始めた対局だけ true にして、普通の「ゲーム開始」で
+//   始めた対局＝息抜きは試験に数えない。保存はしないので、アプリを
+//   開き直した直後も false（＝もう一度「挑戦する」を押して再開する）。
+let examGameActive = false;
 
 // ===== Reverse Match 進行中フラグ（v44〜：中断検知） =====
 // スマホ戻るボタン・タブ閉じる等の予期せぬ離脱を検知して1敗記録するため
@@ -327,7 +335,7 @@ function markReverseMatchPending() {
   try {
     localStorage.setItem(REVERSE_MATCH_PENDING_KEY, JSON.stringify({
       cpuLevel: cpuLevel,
-      promotionExamTargetRank: promotionExam ? promotionExam.targetRank : null,
+      promotionExamTargetRank: (promotionExam && examGameActive) ? promotionExam.targetRank : null,
       timestamp: Date.now()
     }));
   } catch(e) {}
@@ -390,7 +398,7 @@ function handlePendingReverseMatchOnStart() {
 function shouldUseReverseMatch() {
   if (battleMode === 'two') return false;
   if (tutorialMiniGame) return false;
-  if (promotionExam) {
+  if (promotionExam && examGameActive) {
     // 昇格試験: 対象レベルが Lv.5 以上なら適用
     return promotionExam.level >= 5;
   }
@@ -411,6 +419,7 @@ function savePromotionExam(exam) {
 }
 function clearPromotionExam() {
   promotionExam = null;
+  examGameActive = false;
   try { localStorage.removeItem(PROMOTION_EXAM_KEY); } catch(e) {}
 }
 
@@ -453,6 +462,7 @@ function startPromotionExam() {
     };
   }
   savePromotionExam(promotionExam);
+  examGameActive = true; // v149: ここから始まる対局は試験の1試合
   // レベルと対戦モードを設定して開始
   cpuLevel = examLevel;
   battleMode = 'cpu';

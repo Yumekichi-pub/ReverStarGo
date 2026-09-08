@@ -50,6 +50,16 @@ function updatePromotionSection() {
   } else {
     progressEl.style.display = 'none';
   }
+
+  // v149: If a paused exam is still on record, label the button as a resume so
+  //   it is clear this continues the series (a plain "Start Game" is a casual
+  //   game and is not counted towards the exam).
+  const startBtn = section.querySelector('.promotion-start-btn');
+  if (startBtn) {
+    const inProgress = exam && exam.targetRank === promo.targetRank
+                       && (exam.wins + exam.losses) > 0;
+    startBtn.textContent = inProgress ? '⚔ Resume Challenge' : '⚔ Challenge';
+  }
 }
 
 function getMatchLabel(winsNeeded, level) {
@@ -67,7 +77,7 @@ function getMatchLabel(winsNeeded, level) {
 
 function updatePromotionGameStatus() {
   const statusEl = document.getElementById('promotion-game-status');
-  if (!promotionExam) {
+  if (!promotionExam || !examGameActive) {   // v149: 息抜きの対局では帯を出さない
     statusEl.style.display = 'none';
     return;
   }
@@ -106,7 +116,7 @@ document.getElementById('play-again-btn').addEventListener('click', () => {
     }
     // ランクアップマッチ中は白黒を交互にする（v41〜）
     // Lv.5 以上は Reverse Match（セット内で色交代）で自動的にパターンが維持されるため、ここでは Lv.4 以下のみ実行
-    if (promotionExam && !reverseMatch && promotionExam.level < 5) {
+    if (promotionExam && examGameActive && !reverseMatch && promotionExam.level < 5) {
       humanColor = opp(humanColor);
       cpuColor = opp(humanColor);
       // 設定画面の選択状態も更新
