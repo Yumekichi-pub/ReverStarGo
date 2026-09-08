@@ -13,6 +13,25 @@ let undoUsed = false;          // 1ゲームに1回のみ
 let gameStarted = false;       // 最初の一手が打たれたか
 let lastResultShareText = null; // 結果画面のシェア用テキスト（CPU対戦の終局時に組み立て）
 
+/**
+ * v148: Reflect the current humanColor in the game-setup selection and storage.
+ *
+ * When a Reverse Match swapped colors, the colour button and localStorage kept
+ * the Round 1 colour. In memory the swap carried over, so playing straight
+ * through alternated Black -> White -> White -> Black, but closing and
+ * reopening the app restored the saved (Round 1) colour, so every set started
+ * with the same colour. Saving at the moment of the swap keeps the
+ * set-to-set alternation across a restart.
+ */
+function syncColorSelectionToSettings() {
+  const btn = document.querySelector(`[data-color="${humanColor}"]`);
+  if (btn) {
+    document.querySelectorAll('[data-color]').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+  if (typeof saveSettings === 'function') saveSettings();
+}
+
 // ===== 1手戻る（Undo） =====
 function saveUndoState() {
   // v144: 2人対戦では「1手戻る」を使わない。
@@ -219,6 +238,8 @@ function endGame() {
       humanColor = opp(humanColor);
       cpuColor = opp(cpuColor);
       reverseMatch.round = 2;
+      // v148: persist the swapped colour so the order survives a restart
+      syncColorSelectionToSettings();
       // イベント台帳への通知（RM 1局目→2局目 色交換）
       try { window.__RSG_EVENT__ && window.__RSG_EVENT__('PRO_010'); } catch(e) {}
       // 中間結果メッセージ

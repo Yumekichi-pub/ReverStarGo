@@ -52,6 +52,24 @@ function updateRedoButton() {
   btn.disabled = !_isJukuMode() || jukuRedoStack.length === 0;
 }
 
+/**
+ * v148: いまの humanColor を「ゲーム設定」の選択状態と保存領域へ反映する。
+ *
+ * リバースマッチで色を入れ替えても、画面の色ボタンと localStorage は
+ * 1局目の色のままだった。メモリ上は引き継がれるので連続で遊ぶ分には
+ * 黒→白→白→黒 と交互になるが、アプリを閉じて開き直すと保存値（1局目の色）
+ * に戻ってしまい、毎回同じ色から始まっていた。
+ * 入れ替えた時点で保存しておけば、一旦終了してもセット間の交代が続く。
+ */
+function syncColorSelectionToSettings() {
+  const btn = document.querySelector(`[data-color="${humanColor}"]`);
+  if (btn) {
+    document.querySelectorAll('[data-color]').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+  if (typeof saveSettings === 'function') saveSettings();
+}
+
 // ===== 1手戻る（Undo） =====
 function saveUndoState() {
   // v144: 2人対戦では「1手戻る」を使わない。
@@ -332,6 +350,8 @@ function endGame() {
       humanColor = opp(humanColor);
       cpuColor = opp(cpuColor);
       reverseMatch.round = 2;
+      // v148: 入れ替えた色を設定画面と保存領域にも反映（開き直しても順番が続く）
+      syncColorSelectionToSettings();
       // イベント台帳への通知（RM 1局目→2局目 色交換）
       try { window.__RSG_EVENT__ && window.__RSG_EVENT__('PRO_010'); } catch(e) {}
       // 中間結果メッセージ
