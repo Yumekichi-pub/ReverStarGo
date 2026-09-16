@@ -65,7 +65,7 @@ async function onCellClick(q, r, s) {
   // コウ手を踏んだ場合：有効手だがコウで禁止されている
   const isKoCell = allValid.some(([vq,vr,vs]) => vq===q && vr===r && vs===s)
                 && !valid.some(([vq,vr,vs]) => vq===q && vr===r && vs===s);
-  if (isKoCell && !koException) { showKoMessage(); return; }
+  if (isKoCell && !koException) { showKoMessage(q, r, s); return; }
   const playable = koException ? allValid : valid;
   if (!playable.some(([vq,vr,vs]) => vq===q && vr===r && vs===s)) return;
 

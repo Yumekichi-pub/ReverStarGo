@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v149</p>
+    <p class="app-version">Premium-v150</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -776,8 +776,9 @@
     <div class="ko-help-content">
       <h2>コウとは？</h2>
       <p>囲んで相手の石を取った直後、相手がすぐ同じ場所に置き返すと、同じ盤面が永遠に繰り返されてしまいます。</p>
-      <p>これを防ぐため、<strong>1手前とまったく同じ盤面に戻してしまう手は打てません。</strong></p>
-      <p>他の場所に一手置いてからなら、再び石を置くことができます。</p>
+      <p>これを防ぐため、<strong>その対局で一度でも現れた盤面に戻してしまう手は打てません。</strong></p>
+      <p>1手前の盤面だけでなく、ずっと前に現れた盤面も対象です。他の場所に一手置いても、相手がパスしても、この禁止は解けません。</p>
+      <p>ただし<strong>他に置ける場所が全くないときだけ</strong>、例外として打てます（そのときは赤いマスに黄色ドットが付きます）。</p>
       <p>💡 ヒント表示のしくみ：<br>
         <span style="color:#c8b832;font-weight:bold;">● 黄色ドット</span> = 置ける場所（背景色問わず）
         <span style="color:#f0a030;font-weight:bold;">● オレンジ背景＋白枠</span> = CPコール制限あり（置ける）<br>

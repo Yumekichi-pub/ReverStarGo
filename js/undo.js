@@ -76,10 +76,35 @@ function undoMove() {
 }
 
 // コウ手クリック時の一時メッセージ
-function showKoMessage() {
+/**
+ * v150: その手が「いつの盤面に戻ってしまうのか」を調べて短い言葉で返す。
+ *   ReverStarGo のコウは「一度現れた盤面には戻れない」（スーパーコウ）。
+ *   赤いマスを押しても「打てません」としか出ず、他の場所に打てば解けると
+ *   誤解されやすかったので、戻り先を具体的に示す。
+ * @returns {string|null} 例 '1手前' / '12手目' — 分からなければ null
+ */
+function koReturnPointLabel(q, r, s, player) {
+  try {
+    const snaps = needsGPCall(q, r, s, player)
+      ? [simulateFinalSnapshot(q, r, s, player, 'black'),
+         simulateFinalSnapshot(q, r, s, player, 'white')]
+      : [simulateFinalSnapshot(q, r, s, player, bestGPColor(q, r, s, player))];
+    for (const snap of snaps) {
+      if (snap === prevBoardSnapshot) return '1手前';
+      const i = boardHistory.indexOf(snap);
+      if (i !== -1) return `${i + 1}手目`;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function showKoMessage(q, r, s) {
   if (koMessageTimer) clearTimeout(koMessageTimer);
   const el = document.getElementById('turn-info');
-  el.innerHTML = 'コウ：その手は打てません <button onclick="showKoHelp()" style="background:none;border:2px solid #e30909;border-radius:50%;width:24px;height:24px;font-size:0.8rem;font-weight:bold;color:#e30909;cursor:pointer;vertical-align:middle;margin-left:4px;">？</button>';
+  // v150: 戻り先が分かるときは、それを言う
+  const where = (q === undefined) ? null : koReturnPointLabel(q, r, s, current);
+  const body = where ? `コウ：${where}の盤面に戻ります` : 'コウ：その手は打てません';
+  el.innerHTML = body + ' <button onclick="showKoHelp()" style="background:none;border:2px solid #e30909;border-radius:50%;width:24px;height:24px;font-size:0.8rem;font-weight:bold;color:#e30909;cursor:pointer;vertical-align:middle;margin-left:4px;">？</button>';
   el.style.color = '#e30909';
   koMessageTimer = setTimeout(() => {
     const icon = current === 'black' ? '●' : '○';

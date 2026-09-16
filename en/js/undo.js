@@ -77,10 +77,35 @@ function undoMove() {
 }
 
 // コウ手クリック時の一時メッセージ
-function showKoMessage() {
+/**
+ * v150: Work out which earlier position the move would return the board to.
+ *   Ko in ReverStarGo is positional superko — no position that has already
+ *   appeared may come back. The old message only said "not allowed", which
+ *   made people think playing elsewhere would clear it, so name the position.
+ * @returns {string|null} e.g. 'the previous board' / 'the board after move 12'
+ */
+function koReturnPointLabel(q, r, s, player) {
+  try {
+    const snaps = needsGPCall(q, r, s, player)
+      ? [simulateFinalSnapshot(q, r, s, player, 'black'),
+         simulateFinalSnapshot(q, r, s, player, 'white')]
+      : [simulateFinalSnapshot(q, r, s, player, bestGPColor(q, r, s, player))];
+    for (const snap of snaps) {
+      if (snap === prevBoardSnapshot) return 'the previous board';
+      const i = boardHistory.indexOf(snap);
+      if (i !== -1) return `the board after move ${i + 1}`;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function showKoMessage(q, r, s) {
   if (koMessageTimer) clearTimeout(koMessageTimer);
   const el = document.getElementById('turn-info');
-  el.innerHTML = 'Ko: That move is not allowed <button onclick="showKoHelp()" style="background:none;border:2px solid #e30909;border-radius:50%;width:24px;height:24px;font-size:0.8rem;font-weight:bold;color:#e30909;cursor:pointer;vertical-align:middle;margin-left:4px;">?</button>';
+  // v150: name the position it would return to, when we can work it out
+  const where = (q === undefined) ? null : koReturnPointLabel(q, r, s, current);
+  const body = where ? `Ko: returns to ${where}` : 'Ko: that move is not allowed';
+  el.innerHTML = body + ' <button onclick="showKoHelp()" style="background:none;border:2px solid #e30909;border-radius:50%;width:24px;height:24px;font-size:0.8rem;font-weight:bold;color:#e30909;cursor:pointer;vertical-align:middle;margin-left:4px;">?</button>';
   el.style.color = '#e30909';
   koMessageTimer = setTimeout(() => {
     const icon = current === 'black' ? '●' : '○';

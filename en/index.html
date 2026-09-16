@@ -115,7 +115,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v149-en</p>
+    <p class="app-version">RSG-v150-en</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -647,8 +647,9 @@
     <div class="ko-help-content">
       <h2>What is Ko?</h2>
       <p>Right after surrounding and capturing opponent stones, if the opponent immediately places back at the same spot, the board would repeat forever.</p>
-      <p>To prevent this, <strong>you cannot play a move that returns the board to exactly the state one turn ago.</strong></p>
-      <p>After playing one move elsewhere, you may place again.</p>
+      <p>To prevent this, <strong>you cannot play a move that returns the board to any position that has already appeared in this game.</strong></p>
+      <p>That covers the position one turn ago and every earlier position. Playing elsewhere first, or the opponent passing, does not lift it.</p>
+      <p>The one exception is when you have <strong>no other legal move at all</strong> — then it becomes playable (a yellow dot appears on the red cell).</p>
       <p>💡 How hint display works:<br>
         <span style="color:#c8b832;font-weight:bold;">● Yellow dot</span> = Valid placement (any background)
         <span style="color:#f0a030;font-weight:bold;">● Orange background + white border</span> = CP call restricted (placement allowed)<br>
