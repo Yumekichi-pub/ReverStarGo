@@ -81,9 +81,9 @@ const RANKS = [
   { name: 'マスター', icon: '/icon/23.png', condition: 'MAXに RM 累計20勝' },      // 22
   { name: 'レジェンド', icon: '/icon/24.png', condition: 'RM 7番勝負で勝ち越し' }, // 23
   { name: 'グランドマスター', icon: '/icon/25.png', condition: 'RM 15番勝負で勝ち越し' }, // 24 🔓FINAL
-  { name: 'アークマスター', icon: '/icon/26.png', condition: 'FINALに RM 累計10勝' }, // 25
-  { name: 'オーバーロード', icon: '/icon/27.png', condition: 'FINALに RM 累計30勝' }, // 26
-  { name: 'デミゴッド', icon: '/icon/28.png', condition: 'FINALに RM 累計50勝' },   // 27
+  { name: 'アークマスター', icon: '/icon/26.png', condition: 'FINALに RM 累計5勝' }, // 25
+  { name: 'オーバーロード', icon: '/icon/27.png', condition: 'FINALに RM 累計10勝' }, // 26
+  { name: 'デミゴッド', icon: '/icon/28.png', condition: 'FINALに RM 累計20勝' },   // 27
   { name: 'ゴッド', icon: '/icon/29.png', condition: 'RM 11番勝負で勝ち越し' },   // 28
   { name: 'ゼウス', icon: '/icon/30.png', condition: 'RM 21番勝負で勝ち越し' },   // 29
 ];

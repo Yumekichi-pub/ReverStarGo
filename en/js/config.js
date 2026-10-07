@@ -81,9 +81,9 @@ const RANKS = [
   { name: 'Master', icon: 'icon/23.png', condition: '20 RM wins at MAX' },           // 22
   { name: 'Legend', icon: 'icon/24.png', condition: 'Win RM Best of 7' },            // 23
   { name: 'Grandmaster', icon: 'icon/25.png', condition: 'Win RM Best of 15' },      // 24 🔓FINAL
-  { name: 'Archmaster', icon: 'icon/26.png', condition: '10 RM wins at FINAL' },     // 25
-  { name: 'Overlord', icon: 'icon/27.png', condition: '30 RM wins at FINAL' },       // 26
-  { name: 'Demigod', icon: 'icon/28.png', condition: '50 RM wins at FINAL' },        // 27
+  { name: 'Archmaster', icon: 'icon/26.png', condition: '5 RM wins at FINAL' },     // 25
+  { name: 'Overlord', icon: 'icon/27.png', condition: '10 RM wins at FINAL' },       // 26
+  { name: 'Demigod', icon: 'icon/28.png', condition: '20 RM wins at FINAL' },        // 27
   { name: 'God', icon: 'icon/29.png', condition: 'Win RM Best of 11' },              // 28
   { name: 'Zeus', icon: 'icon/30.png', condition: 'Win RM Best of 21' },             // 29
 ];

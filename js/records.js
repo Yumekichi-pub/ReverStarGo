@@ -180,12 +180,12 @@ function calculateRank() {
   if (passed(29)) return 29;
   // 29. ゴッド - 11番勝負で勝ち越し
   if (passed(28)) return 28;
-  // 28. デミゴッド - FINALに累計50勝
-  if (getWins(7) >= 50) return 27;
-  // 27. オーバーロード - FINALに累計30勝
-  if (getWins(7) >= 30) return 26;
-  // 26. アークマスター - FINALに累計10勝
-  if (getWins(7) >= 10) return 25;
+  // 28. デミゴッド - FINALに累計20勝（v151: 50勝は長すぎたので緩和）
+  if (getWins(7) >= 20) return 27;
+  // 27. オーバーロード - FINALに累計10勝（v151）
+  if (getWins(7) >= 10) return 26;
+  // 26. アークマスター - FINALに累計5勝（v151）
+  if (getWins(7) >= 5) return 25;
   // 25. グランドマスター - 15番勝負で勝ち越し
   if (passed(24)) return 24;
   // 24. レジェンド - 7番勝負で勝ち越し
