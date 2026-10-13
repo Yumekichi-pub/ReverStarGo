@@ -191,6 +191,54 @@ function isMonthComplete(year, month) {
   return true;
 }
 
+/* ============================================================
+   v152: tap a trophy to see it full size
+   Only trophies you have earned respond; months not yet complete
+   do nothing when tapped.
+   ============================================================ */
+
+// One line per month. Nothing about seasons or weather — just the
+// fact that they kept at it.
+const TROPHY_COMMENTS = [
+  'Started the year without missing a single day.',
+  'A short month, finished cleanly.',
+  'Every day adds up — and it shows.',
+  'Not one day skipped. Well done.',
+  'Same again next month?',
+  'Keeping it up is the hard part.',
+  'Thank you for showing up every day.',
+  'A whole month, seen through.',
+  'Quietly, steadily. Impressive.',
+  'Nicely done.',
+  'One day at a time, and here it is.',
+  'A fine way to close out the year.'
+];
+const TROPHY_YEAR_COMMENT = 'All twelve months. Genuinely impressive.';
+const TROPHY_ZOOM_HINT = 'Tap to enlarge 🔍';
+
+function openTrophyZoom(src, title, comment) {
+  const modal = document.getElementById('trophy-zoom-modal');
+  if (!modal) return;
+  document.getElementById('trophy-zoom-img').src = src;
+  document.getElementById('trophy-zoom-title').textContent = title;
+  document.getElementById('trophy-zoom-comment').textContent = comment;
+  modal.style.display = 'flex';
+}
+
+function closeTrophyZoom() {
+  const modal = document.getElementById('trophy-zoom-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function makeTrophyZoomable(wrap, img, title, comment) {
+  img.classList.add('trophy-zoomable');
+  img.onclick = () => openTrophyZoom(img.src, title, comment);
+  const hint = document.createElement('div');
+  hint.className = 'trophy-zoom-hint';
+  hint.textContent = TROPHY_ZOOM_HINT;
+  wrap.appendChild(hint);
+}
+
 /**
  * 月別トロフィーアイコンを描画する。
  * 各月のデイリーチャレンジ全完了でブロンズ→シルバー→ゴールドが付与される仕組み。
@@ -217,6 +265,11 @@ function renderTrophies() {
 
   container.appendChild(img);
   container.appendChild(label);
+  // v152: only an earned month opens full size
+  if (complete) {
+    makeTrophyZoomable(container, img,
+      `🏆 ${monthNames[month-1]} Complete!`, TROPHY_COMMENTS[month-1]);
+  }
 }
 
 /**
@@ -267,6 +320,10 @@ function renderTrophyList() {
 
       div.appendChild(img);
       div.appendChild(label);
+      if (complete) {
+        makeTrophyZoomable(div, img,
+          `🏆 ${monthNames[m-1]} Complete!`, TROPHY_COMMENTS[m-1]);
+      }
       grid.appendChild(div);
     }
 
@@ -295,6 +352,10 @@ function renderTrophyList() {
 
     yearDiv.appendChild(yearImg);
     yearDiv.appendChild(yearLabel);
+    if (yearComplete) {
+      makeTrophyZoomable(yearDiv, yearImg,
+        `🏆 ${year} Complete!`, TROPHY_YEAR_COMMENT);
+    }
     section.appendChild(yearDiv);
 
     container.appendChild(section);

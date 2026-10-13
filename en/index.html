@@ -115,7 +115,7 @@
       </div>
     </div>
     <p id="xm-indicator" class="xm-indicator" style="display:none;" onclick="_xmActivate()">🌌 RSG-51</p>
-    <p class="app-version">RSG-v151-en</p>
+    <p class="app-version">RSG-v152-en</p>
   </div>
 
   <!-- Game Setup Page -->
@@ -715,6 +715,16 @@
     <p id="tp-swap-note" style="display:none;">⇄ Colors swap for the next game</p>
     <!-- v131: a clear way to end the session -->
     <button class="result-sub-btn result-finish-btn" id="finish-btn" onclick="finishSession()">🏁 Finish</button>
+  </div>
+
+  <!-- v152: view a trophy full size -->
+  <div id="trophy-zoom-modal" style="display:none;" onclick="closeTrophyZoom()">
+    <div class="trophy-zoom-content" onclick="event.stopPropagation()">
+      <img id="trophy-zoom-img" alt="Trophy">
+      <p id="trophy-zoom-title"></p>
+      <p id="trophy-zoom-comment"></p>
+      <button class="trophy-zoom-close" onclick="closeTrophyZoom()">Close</button>
+    </div>
   </div>
 
   <!-- Copy Toast -->

@@ -1544,6 +1544,82 @@
       font-weight: normal;
     }
 
+    /* ===== v152: トロフィーを大きく見る ===== */
+    /* せっかくの絵なので、押したら全体がしっかり見える大きさで出す。
+       背景を暗く落として、トロフィーだけに目が行くようにしている。 */
+    #trophy-zoom-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      /* .setup-page が z-index:500 なので、それより上に置かないと裏に隠れる */
+      z-index: 1300;
+      background: rgba(0,0,0,0.78);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .trophy-zoom-content {
+      background: linear-gradient(135deg, #fffdf6, #f4ead2);
+      border: 3px solid #c0a858;
+      border-radius: 22px;
+      padding: 18px 16px 16px;
+      text-align: center;
+      max-width: 420px;
+      width: 94%;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+      animation: trophyZoomIn 0.35s cubic-bezier(.34,1.56,.64,1) both;
+    }
+
+    #trophy-zoom-img {
+      width: 100%;
+      max-width: 340px;
+      height: auto;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+    }
+
+    #trophy-zoom-title {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: #9a7010;
+      margin-top: 14px;
+    }
+
+    #trophy-zoom-comment {
+      font-size: 0.92rem;
+      color: #6a5a30;
+      margin-top: 6px;
+      line-height: 1.7;
+    }
+
+    .trophy-zoom-close {
+      margin-top: 16px;
+      padding: 10px 32px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #c09020, #a07818);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    @keyframes trophyZoomIn {
+      from { transform: scale(0.82); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+
+    /* 押せるトロフィーだけ指カーソルにして、下に小さく案内を出す */
+    .trophy-zoomable { cursor: pointer; }
+    .trophy-zoom-hint {
+      font-size: 0.72rem;
+      color: rgba(154,112,16,0.75);
+      margin-top: 3px;
+    }
+
     /* ===== v83: デイリー達成演出 ===== */
     /* カレンダーの達成日が「ポンッ」と緑に出現＋グローリング */
     @keyframes calDayPop {

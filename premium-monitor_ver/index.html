@@ -97,7 +97,7 @@
       </div>
     </div>
     <p id="dev-mode-indicator" class="dev-mode-indicator" style="display:none;" onclick="activateDevMode()">🔧 開発者モード実行中</p>
-    <p class="app-version">Premium-v151</p>
+    <p class="app-version">Premium-v152</p>
   </div>
 
   <!-- ゲーム設定ページ（新規） -->
@@ -851,6 +851,16 @@
     <p id="tp-swap-note" style="display:none;">⇄ 次の1局は先手・後手が入れ替わります</p>
     <!-- Premium-v127: 対局をはっきり終わらせる導線 -->
     <button class="result-sub-btn result-finish-btn" id="finish-btn" onclick="finishSession()">🏁 これで終了</button>
+  </div>
+
+  <!-- v152: トロフィーを大きく見る -->
+  <div id="trophy-zoom-modal" style="display:none;" onclick="closeTrophyZoom()">
+    <div class="trophy-zoom-content" onclick="event.stopPropagation()">
+      <img id="trophy-zoom-img" alt="トロフィー">
+      <p id="trophy-zoom-title"></p>
+      <p id="trophy-zoom-comment"></p>
+      <button class="trophy-zoom-close" onclick="closeTrophyZoom()">閉じる</button>
+    </div>
   </div>
 
   <!-- コピー完了トースト -->

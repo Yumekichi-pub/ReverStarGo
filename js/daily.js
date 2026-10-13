@@ -190,6 +190,64 @@ function isMonthComplete(year, month) {
   return true;
 }
 
+/* ============================================================
+   v152: トロフィーを押すと大きく見られるようにする
+   （素因数分解パズルと同じ使い勝手に揃える）
+   手に入れたトロフィーだけが対象。まだの月は押しても何も起きない。
+   ============================================================ */
+
+// 月ごとの一言。季節や天気には触れず、続けたこと自体をねぎらう。
+const TROPHY_COMMENTS = [
+  '一年の始まりを、1日も欠かさずに。',
+  '短い月を、きっちり走り抜けましたね。',
+  '毎日の積み重ね、見事です。',
+  '1日も休まず、よく続けました。',
+  'この調子で、次の月も。',
+  '続けることが、いちばん難しいのに。',
+  '毎日ここに来てくれて、ありがとう。',
+  'ひと月まるごと、やりきりましたね。',
+  '静かに、着実に。立派です。',
+  'よく頑張りました。',
+  '一日ずつの積み重ねが、形になりました。',
+  '一年の締めくくり、お疲れさまでした。'
+];
+const TROPHY_YEAR_COMMENT = '12か月すべて。本当にお見事です。';
+const TROPHY_ZOOM_HINT = 'タップで大きく 🔍';
+
+/**
+ * トロフィーを拡大表示する。
+ * @param {string} src - 画像のパス
+ * @param {string} title - 見出し（例: 「🏆 9月 コンプリート！」）
+ * @param {string} comment - 一言
+ */
+function openTrophyZoom(src, title, comment) {
+  const modal = document.getElementById('trophy-zoom-modal');
+  if (!modal) return;
+  document.getElementById('trophy-zoom-img').src = src;
+  document.getElementById('trophy-zoom-title').textContent = title;
+  document.getElementById('trophy-zoom-comment').textContent = comment;
+  modal.style.display = 'flex';
+}
+
+function closeTrophyZoom() {
+  const modal = document.getElementById('trophy-zoom-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+/**
+ * 手に入れたトロフィーの画像を「押したら拡大」にする。
+ * @param {HTMLElement} wrap - 画像とラベルを入れている箱
+ * @param {HTMLImageElement} img - トロフィー画像
+ */
+function makeTrophyZoomable(wrap, img, title, comment) {
+  img.classList.add('trophy-zoomable');
+  img.onclick = () => openTrophyZoom(img.src, title, comment);
+  const hint = document.createElement('div');
+  hint.className = 'trophy-zoom-hint';
+  hint.textContent = TROPHY_ZOOM_HINT;
+  wrap.appendChild(hint);
+}
+
 /**
  * 月別トロフィーアイコンを描画する。
  * 各月のデイリーチャレンジ全完了でブロンズ→シルバー→ゴールドが付与される仕組み。
@@ -216,6 +274,11 @@ function renderTrophies() {
 
   container.appendChild(img);
   container.appendChild(label);
+  // v152: 手に入れた月だけ、押したら大きく見られるようにする
+  if (complete) {
+    makeTrophyZoomable(container, img,
+      `🏆 ${monthNames[month-1]} コンプリート！`, TROPHY_COMMENTS[month-1]);
+  }
 }
 
 /**
@@ -266,6 +329,10 @@ function renderTrophyList() {
 
       div.appendChild(img);
       div.appendChild(label);
+      if (complete) {
+        makeTrophyZoomable(div, img,
+          `🏆 ${monthNames[m-1]} コンプリート！`, TROPHY_COMMENTS[m-1]);
+      }
       grid.appendChild(div);
     }
 
@@ -294,6 +361,10 @@ function renderTrophyList() {
 
     yearDiv.appendChild(yearImg);
     yearDiv.appendChild(yearLabel);
+    if (yearComplete) {
+      makeTrophyZoomable(yearDiv, yearImg,
+        `🏆 ${year}年 コンプリート！`, TROPHY_YEAR_COMMENT);
+    }
     section.appendChild(yearDiv);
 
     container.appendChild(section);
